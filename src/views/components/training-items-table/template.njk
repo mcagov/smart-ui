@@ -1,0 +1,50 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "button/macro.njk" import govukButton %}
+{% set rows = [] %}
+{% for smartItem in params.smartItems %}
+
+    {% set href %}/smart-items/{{smartItem.id}}{% endset %}
+    {% set siLink %}
+      <a href="{{href}}" class="govuk-link">
+        {{smartItem.description}}
+      </a>
+    {% endset %}
+
+    {% set rate = smartItem.rates | getCurrentRate %}
+    {% set rows = (rows.push([
+    { html: siLink },
+    { text: smartItem.paymentType },
+    { text: smartItem.numberOfInstalments },
+    { text: rate.paymentAmount | currencyUK },
+    {
+            text: govukButton({
+                text: params.action.text,
+                href: params.action.href + smartItem.id,
+                classes: 'govuk-!-margin-top-0 govuk-!-margin-bottom-0 govuk-!-padding-top-2 govuk-!-padding-bottom-1'
+              })
+    } if params.action
+    ] | cleanList ), rows) %}
+{% endfor %}
+
+{{ govukTable({
+  caption: 'Table displaying training items',
+  captionClasses: 'govuk-table__caption--m govuk-visually-hidden',
+  head: [
+    {
+      text: "Smart item"
+    },
+    {
+      text: "Payment Type"
+    },
+    {
+      text: "Instalments"
+    },
+    {
+      text: "Amount"
+    },
+    {
+      text: ""
+    } if params.action
+  ] | cleanList ,
+  rows: rows
+}) }}

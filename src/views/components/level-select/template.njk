@@ -1,0 +1,22 @@
+{% set items = [{ value: "", text: "-- status --"}] %}
+{% for item in params.items %}
+    {% set items = (items.push({ text: item.text, value: item.id}), items) %}
+{% endfor %}
+
+{% set id = params.id if params.id else 'level' %}
+
+{% from "select/macro.njk" import govukSelect %}
+
+{{ govukSelect({
+    id: id,
+    name: params.name if params.name else id,
+    label: {
+        text: params.label.text if params.label.text else 'Choose level',
+        classes: params.label.classes if params.label.classes
+    },
+    hint: {
+        text: 'Select the level the trainee will be awarded on completion'
+    },
+    items: items | selectValue(params.value),
+    errorMessage: params.errorMessage
+}) }}

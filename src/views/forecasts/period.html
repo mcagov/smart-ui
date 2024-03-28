@@ -1,0 +1,22 @@
+{% set titleText = 'Forecasts for ' + items.meta.year + '/'+  items.meta.period |financialPeriodFormat %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if period %}
+  {% include "./period-data.html" %}
+{% else %}
+  {% include "./period-empty.html" %}
+{% endif %}
+{% endblock %}
+{% block pageScript %}
+{% if period and items %}
+<script nonce='{{ cspNonce }}'>
+    const period = {{ period | dump | safe }}
+    const items = {{ items | dump | safe }}
+    console.log(period)
+    console.log(items)
+</script>
+{% endif %}
+{% endblock %}

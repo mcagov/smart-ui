@@ -1,0 +1,19 @@
+{% set titleText = 'Manage ' + trainingProvider.companyName + ' details and users' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/company-nav/macro.njk" import companyNav %}
+
+{{ companyNav({ trainingProvider: trainingProvider, active: 'summary' }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{titleText}}</h1>
+      <p>You can manage the details and users for {{trainingProvider.companyName}}.</p>
+      <p>Choose from the sub-menu above to drill into specific data.</p>
+    </div>
+  </div>
+
+{% endblock %}

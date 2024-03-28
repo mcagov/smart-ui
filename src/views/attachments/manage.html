@@ -1,0 +1,64 @@
+{% from "./document-remove.html"  import documentRemove %}
+
+{{ govukBackLink({
+    text: "Back to " + resourceSubject,
+    href: resourceUrl
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{ titleText }}</h1>
+        {% block uploads %}
+            {% for type in attachmentTypes %}
+                <h2 class="govuk-heading-m uksr-!-required ">{{ type.description }}</h2>
+                <div class="govuk-summary-list">
+                    <dl>
+                    {% for attachment in attachments.data | where ("fileType", type.fileType) %}
+                        {{ documentRemove({
+                            resourceUrl: resourceUrl,
+                            attachment: attachment,
+                            csrfToken: csrfToken
+                        }) }}
+                    {% endfor %}
+                    </dl>
+                </div>
+                {% if canchange %}
+                    <a href="{{ resourceUrl }}/attachments/upload?fileType={{ type.fileType }}&docDescription={{ type.description }}"
+                       class="govuk-button govuk-button govuk-button--secondary ">
+                       Upload {{ type.description }} <span class="govuk-visually-hidden">evidence document</span>
+                       </a>
+                {% endif %}
+            {% endfor %}
+        {% endblock %}
+    </div>
+
+    <div class="govuk-grid-column-one-third">
+        <aside class="app-related-items" role="complementary">
+            <h2 class="govuk-heading-m" id="subsection-title-1">About attachments</h2>
+            {% if aboutBlurb %}
+                {{ aboutBlurb | safe }}
+            {% else %}
+                <p class="govuk-body">
+                    These attachments are required to provide evidence to the administering body and the MCA.
+                </p>
+            {% endif %}
+        </aside>
+        {% block progress %}
+        {% endblock %}
+    </div>
+</div>
+{% block afterScript %}
+
+<script nonce='{{ cspNonce }}'>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof MOJFrontend.MultiFileUpload !== 'undefined' && typeof MCGAFrontend.Attachments !== 'undefined') {
+      MCGAFrontend.attachments = new MCGAFrontend.Attachments({
+        attachments: [],
+        resourceUrl: '{{ resourceUrl }}',
+        csrf: '{{ csrfToken }}'
+      })
+      MCGAFrontend.attachments.init()
+    }
+  })
+</script>
+{% endblock %}

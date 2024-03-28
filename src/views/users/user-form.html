@@ -1,0 +1,69 @@
+<form action="{{ formUrl }}" id="register-form" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+    {% set data = profile if profile else tpUser.profile %}
+
+    {{ govukInput({
+    label: {
+    text: "First name"
+    },
+    classes: "govuk-input--width-20",
+    id: "firstname",
+    name: "firstname",
+    value: data.firstName,
+    autocomplete: false,
+    errorMessage: 'firstname' | getError(error),
+    attributes: { spellcheck: "false" }
+    }) }}
+
+    {{ govukInput({
+    label: {
+    text: "Last name"
+    },
+    classes: "govuk-input--width-20",
+    id: "lastname",
+    name: "lastname",
+    value: data.lastName,
+    autocomplete: false,
+    errorMessage: 'lastname' | getError(error),
+    attributes: { spellcheck: "false" }
+    }) }}
+
+    {{ govukInput({
+    label: {
+    text: "Email address"
+    },
+    hint: {
+    text: "This must be their work email address and not shared with any other user"
+    },
+    classes: "govuk-input--width-20",
+    id: "email",
+    name: "email",
+    type: "email",
+    autocomplete: false,
+    value: data.email,
+    errorMessage: 'email' | getError(error),
+    attributes: { spellcheck: "false" } if editEmail else { spellcheck: "false", disabled: true }
+    }) }}
+
+    {{ govukInput({
+    label: {
+    text: "Phone number"
+    },
+    hint: {
+    text: "This must be their work phone number"
+    },
+    classes: "govuk-input--width-20",
+    id: "phone",
+    name: "phone",
+    type: "phone",
+    autocomplete: false,
+    value: data.primaryPhone,
+    errorMessage: 'phone' | getError(error),
+    attributes: { spellcheck: "false" }
+    }) }}
+
+    {{ govukButton({
+    text: "Continue",
+    preventDoubleClick: true
+    }) }}
+</form>

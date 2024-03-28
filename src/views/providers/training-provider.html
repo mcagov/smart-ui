@@ -1,0 +1,51 @@
+{% set titleText = trainingProvider.companyName%}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/trainingprovidersummary/macro.njk" import trainingProviderSummary %}
+
+<h1 id="page-title" class="govuk-heading-l">{{ titleText }}</h1>
+
+{% if user.role == 'admin' %}
+    {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+    {{ trainingProviderNav({ active: 'details', trainingProvider: trainingProvider }) }}
+{% else %}
+    {% from "components/company-nav/macro.njk" import companyNav %}
+    {{ companyNav({ trainingProvider: trainingProvider, active: 'details' }) }}
+{% endif %}
+
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        {{ trainingProviderSummary({
+            trainingProvider: trainingProvider,
+            return: '/training-providers/' + trainingProvider.id,
+            clientCompanies: clientCompanies,
+            user: user
+        }) }}
+        </ul>
+    </div>
+    <div class="govuk-grid-column-one-third">
+        <h2 class="govuk-heading-m">Actions</h2>
+        <p>Manage the training provider</p>
+        <div class="govuk-button-group">
+            {% if user.role == 'admin' %}
+                {{ govukButton({
+                    text: 'Deactivate' if trainingProvider.status === 'Active' else 'Activate',
+                    href: '/training-providers/' + trainingProvider.id + '/status/'+ ('Deactivated' if trainingProvider.status === 'Active' else 'Active'),
+                    classes: 'govuk-button--warning action-button',
+                    attributes: { id: 'status-button' }
+                }) }}
+            {% endif %}
+            {{ govukButton({
+                text: 'Audit evidence',
+                href: '/training-providers/' + trainingProvider.id + '/audit/attachments',
+                classes: 'govuk-button--secondary action-button'
+            }) }}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

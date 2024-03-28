@@ -1,0 +1,108 @@
+{% set titleText = 'Details for  ' + (trainee.contactName  if trainee.contactName else trainee.matsuNumber)  %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+{% if user.role == 'admin' %}
+    {{ govukBackLink({
+        text: "Back to " + trainingProvider.companyName,
+        href: '/training-providers/' + trainingProvider.id + '/trainees'
+    }) }}
+{% endif %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% from 'components/trainee-nav/macro.njk' import traineeNav %}
+{{ traineeNav({
+    active: 'details',
+    trainingProviderId: trainingProvider.id,
+    trainee: trainee,
+    titleText: titleText,
+    user: user }) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        {% from "components/traineesummary/macro.njk" import smartsTraineeSummary %}
+        {{ smartsTraineeSummary({
+            trainee: trainee,
+            editable: true,
+            trainingProvider: trainingProvider,
+            clientCompanies: clientCompanies,
+            return: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id
+        }) }}
+    </div>
+    <div class="govuk-grid-column-one-third">
+    {% set htmlNotes %}
+        <ul>
+            <li>personal information</li>
+            <li>enrolments on MCA authorised training</li>
+            <li>record unauthorised absences</li>
+            <li>provide additional information about the trainee through comments and attach documents</li>
+        </ul>
+    {% endset %}
+
+    {{ govukDetails({
+        summaryText: "You can manage changes to a trainee’s",
+        html: htmlNotes
+    }) }}
+
+    {{ govukWarningText({
+        text: "Changes to enrolments and absences will alter the value of a claim.",
+        iconFallbackText: "Warning"
+    }) }}
+
+    </div>
+    {% if user.isAdmin %}
+        <div class="govuk-grid-column-one-third">
+            <h2 class="govuk-heading-m">Actions</h2>
+            {{ govukButton({
+                text: 'Transfer',
+                href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/transfer',
+                classes: 'action-button govuk-button--secondary'
+            }) }}
+            {% from "button-menu/macro.njk" import mojButtonMenu %}
+            {{ mojButtonMenu({
+                items: [
+                {
+                    text: "Review",
+                    attributes: { id: 'review-button'},
+                    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/status/review'
+                },
+                {
+                    text: "Activate",
+                    attributes: { id: 'submit-button'},
+                    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/status/activate'
+                },
+                {
+                    text: "Deactivate",
+                    attributes: { id: 'reviewed-button'},
+                    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/status/deactivate'
+                },
+                {
+                    text: "Delete",
+                    attributes: { id: 'delete-button'},
+                    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/delete'
+                } if trainee.canDelete
+
+                ]
+            }) }}
+        </div>
+    {% endif %}
+</div>
+{% block afterScript %}
+{% if user.role == 'admin' %}
+<script nonce='{{ cspNonce }}'>
+    const trainee = {{ trainee | dump | safe }}
+    console.log(trainee)
+    document.addEventListener('DOMContentLoaded', function () {
+      new MOJFrontend.ButtonMenu({
+        container: $(".moj-button-menu"),
+        mq: "(min-width: 200em)",
+        buttonText: "Manage trainee",
+        menuClasses: "moj-button-menu__wrapper--right",
+      });
+    })
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

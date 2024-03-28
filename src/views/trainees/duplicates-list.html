@@ -1,0 +1,31 @@
+{% set titleText = 'Duplicate trainees' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from 'components/admin-trainee-nav/macro.njk' import adminTraineeNav %}
+{{ adminTraineeNav({ active: 'duplicate-trainees'}) }}
+<div class="govuk-grid-row">
+
+    {{ listFilter({
+        columnClasses: "govuk-grid-column-full",
+        resetLink: '?',
+        includeTextFilter: true,
+        includeDobFilter: true,
+        textFilterLabel: 'Enter text to search the duplicates by trainee name or postcode',
+        includeStatusFilter: true,
+        meta: trainees.meta
+    }) }}
+
+    <div class="govuk-grid-column-full">
+        <h1 id="page-title" class="govuk-heading-l govuk-visually-hidden"">{{titleText}}</h1>
+        {% from 'components/traineetable/macro.njk' import traineeTable %}
+        {{ traineeTable({
+            trainees: trainees,
+            baseUrl: '/trainees/',
+            showTrainingProvider: true
+        }) }}
+    </div>
+</div>
+{% endblock %}

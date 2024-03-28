@@ -1,0 +1,109 @@
+{% set titleText = 'Training Item' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/training-items-table/macro.njk" import trainingItemsTable %}
+
+  {{ govukBackLink({
+      text: "Back",
+      href: "/training-items"
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{titleText}}</h1>
+      {{ govukSummaryList({
+          rows: [{
+            key: {  text: "Description" },
+            value: {  text: trainingItem.description  },
+            actions: {
+              items: [{
+                href: "/training-items/" + trainingItem.id + "/details",
+                text: "Change",
+                visuallyHiddenText: " description"
+              }]
+            }
+          }, {
+            key: {  text: "Requires experience" },
+            value: {  text: 'Yes' if trainingItem.experienceRequired else 'No' },
+            actions: {
+            items: [{
+            href: "/training-items/" + trainingItem.id + "/details",
+            text: "Change",
+            visuallyHiddenText: " requires experience"
+            }]
+            }
+          }, {
+            key: {  text: 'Legacy' },
+            value: {  text: 'This training item should not be used in the future'  },
+            actions: {
+              items: [{
+                href: "/training-items/" + trainingItem.id + "/details",
+                text: "Change",
+                visuallyHiddenText: " is legacy"
+              }]
+            }
+          } if trainingItem.isLegacy,
+          {
+            key: {  text: 'Disciplines' },
+            value: {  text: trainingItem.disciplines | summariseArray('discipline')  },
+            actions: {
+              items: [{
+                href: "/training-items/" + trainingItem.id + "/details",
+                text: "Change",
+                visuallyHiddenText: " disciplines"
+              }]
+            }
+          },
+          {
+            key: {  text: 'Levels' },
+            value: {  text: trainingItem.levels | summariseArray('level')  },
+            actions: {
+              items: [{
+                href: "/training-items/" + trainingItem.id + "/details",
+                text: "Change",
+                visuallyHiddenText: " levels"
+              }]
+            }
+          },
+          {
+            key: {  text: "Status" },
+              value: {
+                text: govukTag({
+                  text: trainingItem.status,
+                  classes: trainingItem.status | getStatusCssClass
+                })
+              },
+              actions: {
+              items: [{
+                href: "/training-items/" + trainingItem.id + "/change-status",
+                text: "Deactivate" if trainingItem.status == "Active" else "Activate" ,
+                visuallyHiddenText: " status"
+              }]
+            }
+          }] | cleanList
+      }) }}
+    </div>
+    <div class="govuk-grid-column-two-thirds">
+      <h2 id="page-subtitle" class="govuk-heading-m">Smart Items</h2>
+      {{ trainingItemsTable({
+          smartItems: trainingItem.smartItems,
+          action: {
+              text: "Remove",
+              href: "/training-items/" + trainingItem.id + "/del-smart-item/"
+          }
+      }) }}
+    </div>
+    <div class="govuk-grid-column-one-third">
+      <h2 class="govuk-heading-m">Actions</h2>
+      {{ govukButton({
+        text: 'Add a smart item',
+        href: '/training-items/' + trainingItem.id + '/smart-item',
+        attributes: { id: 'add-button' }
+      }) }}
+    </div>
+  </div>
+
+{% endblock %}

@@ -1,0 +1,57 @@
+{% set titleText = 'SMarT Items' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/admin-nav/macro.njk" import adminNav %}
+
+{{ adminNav({ active: 'smart-items' }) }}
+
+  <div class="govuk-grid-row">
+    {{ listFilter({
+      columnClasses: "govuk-grid-column-two-thirds",
+      textFilterLabel: 'Enter text to search the smart items',
+      includeTextFilter: true,
+      includeStatusFilter: true,
+      resetLink: "/smart-items?status=Active",
+      meta: smartItems.meta
+    }) }}
+
+    <div class="govuk-grid-column-one-third">
+      <label class="govuk-label govuk-label--m">Actions</label>
+      {{ govukButton({
+        text: 'Add smart item',
+        href: '/smart-items/create',
+        attributes: { id: 'add-button' }
+        }) }}
+    </div>
+
+    <div class="govuk-grid-column-full">
+      <h1 id="page-title" class="govuk-heading-l govuk-visually-hidden">{{titleText}}</h1>
+      {% set baseUrl = params.baseUrl %}
+      {% set rows = [] %}
+      {% for item in smartItems.data %}
+        {%set tableLink%}
+        <a href="/smart-items/{{item.id}}" class="govuk-link">{{item.description}}</a>
+        {%endset%}
+        {% set rows = (rows.push([
+            { html: tableLink },
+            { text: item.smartCategory.category },
+            { text: govukTag({ text: item.status, classes: item.status | getStatusCssClass }) }
+          ]), rows) %}
+      {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            { text: 'Description', attributes: { "aria-sort": "none", "data-name": "description" } },
+            { text: 'Smart Category', attributes: { "aria-sort": "none", "data-name": "smartCategory.category" } },
+            { text: 'Status' }
+          ],
+          rows: rows,
+          caption: 'Table showing smart items, column headers with buttons are sortable',
+          meta: smartItems.meta
+      }) }}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% set titleText = 'Forbidden' %}
+
+{% extends "layout.html" %}
+
+{% set mainClasses = "govuk-main-wrapper--l" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+        <p class="govuk-body">
+            You have requested a page or service for which you do not have the correct permissions.
+        </p>
+        {# <p class="govuk-body">
+            {{error|dump}}
+        </p> #}
+        <p class="govuk-body">
+            Try going back to SMarT <a href="/" class="govuk-link">home</a>.
+        </p>
+    </div>
+</div>
+{% endblock %}

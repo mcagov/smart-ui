@@ -1,0 +1,26 @@
+{% from "components/summary-list/macro.njk" import govukSummaryList %}
+
+{{ govukSummaryList({
+    rows: [
+        {
+            key: {  text: "Subject" },
+            value: { text: params.comment.subject | safe}
+        } if params.withMessage,
+        {
+            key: {  text: "Training Provider" },
+            value: { text: params.comment.tpName }
+        } if params.user.isAdmin,
+        {
+            key: {  text: "Created by" },
+            value: { text: params.comment.userName if params.comment.userName else params.comment.userId }
+        },
+        {
+            key: {  text: "Created on" },
+            value: { text: params.comment.created | dateTimeUKFormat }
+        },
+        {
+            key: {  text: "Updated on" },
+            value: { text: params.comment.updated | dateTimeUKFormat }
+        }
+    ] | cleanList
+}) }}

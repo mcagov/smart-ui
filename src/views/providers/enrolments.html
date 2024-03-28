@@ -1,0 +1,59 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Enrolments for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Enrolments'%}
+{% endif %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% if user.role == 'admin' %}
+    {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+    {{ trainingProviderNav({
+        active: 'enrolments',
+        trainingProvider: trainingProvider,
+        titleText: titleText
+    }) }}
+{% endif %}
+
+    <div class="govuk-grid-row">
+        {% set customFilters %}
+            {{ govukSelect({
+                id: "filter-training",
+                name: "trainingId",
+                classes: "mca-filter",
+                formGroup: { classes: "govuk-!-display-inline" },
+                attributes: { "data-name": "trainingId", "data-events": '["change"]' },
+                label: {
+                    text: 'Filter enrolments by training',
+                    classes: 'govuk-visually-hidden'
+                },
+                items: trainings | selectAddDefault ('training') | selectValue(enrolments.meta.queries.trainingId)
+            }) }}
+
+            {{ enrolmentStatusSelect({ value: enrolments.meta.queries.status, filter: true }) }}
+        {% endset %}
+
+        {{ listFilter({
+            columnClasses: "govuk-grid-column-full",
+            resetLink: '/training-providers/' + trainingProvider.id + '/enrolments?status=Active',
+            status: { items: statusItems },
+            meta: enrolments.meta,
+            textFilterLabel: 'Enter text to search the enrolments by trainee name',
+            customFilters: customFilters,
+            includeTextFilter: true
+        }) }}
+
+        <div class="govuk-grid-column-full">
+            {% from 'components/enrolments-table/macro.njk' import enrolmentsTable %}
+            {{ enrolmentsTable({
+                items: enrolments,
+                tpId: trainingProvider.id,
+                isTp: (user.isTP === true),
+                baseUrl: '/training-providers/' + trainingProvider.id
+            }) }}
+        </div>
+    </div>
+{% endblock %}

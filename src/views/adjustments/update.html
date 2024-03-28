@@ -1,0 +1,71 @@
+{% set titleText = 'Update new joiners' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% set baseUrl = '/training-providers/' + trainingProvider.id + '/forecasts/adjustments/' + forecastAdjustment.financialYear + '/' + forecastAdjustment.financialPeriod + '/' + forecastAdjustment.trainingId %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <form class="form" action="" method="post" id="adjustment-form">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+        {% set inputHTML %}
+                    {{ govukInput({
+                classes: 'govuk-input--width-3 govuk-!-display-inline ',
+                formGroup: { classes: "govuk-!-display-inline" },
+                id: 'traineeCount',
+                name: 'traineeCount',
+                value: forecastAdjustment.traineeCount if forecastAdjustment.traineeCount else '',
+                errorMessage: 'traineeCount' | getError(errors)
+            }) }}
+        {% endset %}
+
+        {{ govukSummaryList({
+            rows: [{
+                key: { text: "Financial Year" },
+                value: { text: forecastAdjustment.financialYear | financialYearFormat }
+            },{
+                key: { text: "Financial Period" },
+                value: { text: forecastAdjustment.financialPeriod | financialPeriodFormat}
+            },{
+                key: { text: "Smart Category" },
+                value: { text: forecastAdjustment.smartCategory }
+            },{
+                key: { text: "Training Item" },
+                value: { text: forecastAdjustment.trainingDescription }
+            },{
+                key: { text: "Number of joiners" },
+                value: {
+                html: inputHTML
+                }
+            }]
+        }) }}
+
+            {{ govukButton({
+                name: 'submit',
+                attributes: { id: 'submit' },
+                value: 'save',
+                text: 'Update'
+            }) }}
+            {{ govukButton({
+                name: 'return',
+                value: 'return',
+                text: 'Cancel',
+                href: '/training-providers/' + trainingProvider.id + '/forecasts/adjustments/' + forecastAdjustment.financialYear ,
+                classes: "govuk-button--secondary"
+            }) }}
+            {{ govukButton({
+                name: 'delete',
+                attributes: { id: 'delete-button' },
+                value: 'delete',
+                text: 'Delete',
+                href: '/training-providers/' + trainingProvider.id + '/forecasts/adjustments/' + forecastAdjustment.financialYear + '/' + forecastAdjustment.financialPeriod + '/' + forecastAdjustment.trainingId + '/delete',
+                classes: "govuk-button--warning"
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

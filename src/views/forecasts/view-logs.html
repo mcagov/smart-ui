@@ -1,0 +1,25 @@
+{% set titleText = 'Forecast workflow logs for ' + trainingProvider.companyName%}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% from "components/forecasts-nav/macro.njk" import forecastsNav %}
+{{ forecastsNav({ trainingProvider: trainingProvider, active: 'logs',  user:user , activeTp: activeTp }) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+        {% from 'components/workflow-logs/macro.njk' import workflowLogsTable %}
+        {{ workflowLogsTable({
+            workflowLogs: workflowLogs,
+            noDataMessage: 'No workflow logs available'
+        }) }}
+    </div>
+</div>
+{% block afterScript %}
+{% if user.role == 'admin' %}
+{% endif %}
+{% endblock %}
+{% endblock %}

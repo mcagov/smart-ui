@@ -1,0 +1,21 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set items = [
+{
+    text: 'Details',
+    href: '/training-providers/' + params.trainingProviderId + '/trainings/' + params.trainingProviderTraining.id,
+    active: true if params.active == 'details' else false,
+    attributes: { id: 'details' }
+},{
+    text: 'Enrolled trainees',
+    href: '/training-providers/' + params.trainingProviderId + '/trainings/' + params.trainingProviderTraining.id + '/trainees',
+    active: true if params.active == 'trainees' else false,
+    attributes: { id: 'trainees' }
+}] %}
+
+<h1 id="page-title" class="govuk-heading-l">{{ params.titleText }}</h1>
+
+{{ mojSubNavigation({
+    label: 'Training Sub navigation',
+    items: items
+}) }}

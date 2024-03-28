@@ -1,0 +1,76 @@
+<div class="{{ params.columnClasses if params.columnClasses else 'govuk-grid-column-two-thirds' }}">
+  <div class="govuk-form-group search search-group">
+    <form method="get" class="mca-filter-form">
+      <label class="govuk-label govuk-label--m">Filter</label>
+      {% if params.description %}
+        <p>{{ params.description }}</p>
+      {% endif %}
+
+      {% if params.includeTextFilter %}
+        {{ govukInput({
+          formGroup: { classes: "govuk-!-display-inline" },
+          classes: 'govuk-input govuk-input--width-10',
+          id: 'searchText',
+          name: 'searchText',
+          value: params.meta.queries.searchText,
+          label: {
+              text: params.textFilterLabel,
+              classes: 'govuk-visually-hidden'  if hideLabels
+          },
+          attributes: {
+            placeholder: "Type to filter...",
+            "data-name": "searchText"
+          }
+        }) }}
+      {% endif %}
+
+
+      {% if params.includeDobFilter %}
+        {{ govukInput({
+          formGroup: { classes: "govuk-!-display-inline" },
+          classes: 'govuk-input govuk-input--width-8',
+          id: 'searchDob',
+          name: 'searchDob',
+          value: params.meta.queries.searchDob,
+          label: {
+              text: 'Enter DOB in to format dd-mm-yyyy to filter by DOB',
+              classes: 'govuk-visually-hidden'  if hideLabels
+          },
+          attributes: {
+            placeholder: "Filter by DOB...",
+            "data-name": "searchDob"
+          }
+        }) }}
+      {% endif %}
+
+      {% if params.includeStatusFilter %}
+        {{ status_filter({
+            value: params.meta.queries.status,
+            items: params.status.items,
+            hideLabels: hideLabels
+          }) }}
+      {% endif %}
+
+      {% if params.customFilters%}
+        {{ params.customFilters | safe }}
+      {% endif %}
+
+      {{ govukButton({
+          name: 'filter-button',
+          attributes: {"id": "filter-button" },
+          text: 'Filter'
+      }) }}
+      {{ govukButton({
+          name: 'reset',
+          text: 'Reset',
+          attributes: {"id": "reset-button" },
+          href: params.resetLink if params.resetLink else '/',
+          classes: 'govuk-button--secondary'
+      }) }}
+
+      {% if params.customButtons %}
+        {{ params.customButtons | safe }}
+      {% endif %}
+    </div>
+  </form>
+</div>

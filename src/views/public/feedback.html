@@ -1,0 +1,32 @@
+{% set titleText = 'Give your feedback on our service' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-xl">{{titleText}}</h1>
+            {% if error %}
+                {{ govukErrorSummary({
+                  titleText: "There is a problem",
+                  errorList: error
+                }) }}
+            {% endif %}
+            {% if status == 'success' %}
+                {% set panelHtml = 'Your reference number<br><strong>' + issue.key + '</strong>' %}
+                {{ govukPanel({
+                    titleText: "Feedback submitted",
+                    html: panelHtml
+                }) }}
+                <a href="/" class="govuk-link govuk-!-margin-top-2">Return to SMART home</a>
+            {% else %}
+                {% include "includes/feedback-form.html" %}
+            {% endif %}
+        </div>
+    </div>
+    <script nonce='{{ cspNonce }}'>
+      document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('resolution').value = window.screen.width + ' x ' + window.screen.height
+      })
+    </script>
+{% endblock %}

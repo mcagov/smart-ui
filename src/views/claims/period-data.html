@@ -1,0 +1,349 @@
+{% set baseUrl = '/training-providers/' + trainingProvider.id +
+                 '/claims/years/' + paymentSchedule.financialYear +
+                 '/periods/' + paymentSchedule.financialPeriod  %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      {% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: {  text: "Status"  },
+            value: {  html: mcaClaimTag({ status: claimPeriod.status })  }
+          },
+          {
+            key: {  text: "Trainee claims total"  },
+            value: {  text: claimPeriod.traineeClaimAmount | currencyUK },
+            actions: {
+              items: [{
+                href: baseUrl + '/trainee-claims',
+                text: "View details",
+                visuallyHiddenText: " of trainee claims"
+              },{
+                href: baseUrl + '/si-summary',
+                text: "View summary",
+                visuallyHiddenText: " of trainee claims"
+              }
+              ]
+            }
+          },
+          {
+            key: {  text: "Balancing claims total"  },
+            value: { text: claimPeriod.traineeBalancingClaimAmount | currencyUK },
+            actions: {
+              items: [{
+                href: baseUrl + '/balancing-claims',
+                text: "View",
+                visuallyHiddenText: " balancing claims"
+              }]
+            }
+          },
+          {
+            key: {  text: "Other claims total"  },
+            value: { text: claimPeriod.otherClaimAmount | currencyUK },
+            actions: {
+              items: [{
+                href: baseUrl + '/other-claims',
+                text: "View",
+                visuallyHiddenText: " other claims"
+              }]
+            }
+          },
+          {
+            key: { text: "Total" },
+            value: {  text: claimPeriod.periodAmount | currencyUK }
+          }
+        ]
+      }) }}
+      {% if not user.isAdmin %}
+        <p>This claim has been generated based on current trainee enrolments and unauthorised absences. </p>
+        {% if claimPeriod.status in ['Pending'] %}
+        {{ govukWarningText({
+            text: "Before submitting the claim - record any unauthorised absences, new trainees, new enrolments, leavers and transferring trainees.",
+            iconFallbackText: "Warning"
+        }) }}
+      {% endif %}
+ {% endif %}
+  </div>
+  <div class="govuk-grid-column-one-third">
+    <h2 class="govuk-heading-m">Actions</h2>
+    {{ govukButton({
+      text: "Comments",
+      href: baseUrl  + '/comments',
+      classes: "action-button govuk-button--secondary",
+      attributes: { id: 'comments-button'}
+    }) }}
+    {% if user.isTP %}
+      {{ govukButton({
+        text: "Submit claim",
+        href: baseUrl + '/submitted',
+        classes: "action-button",
+        attributes: { id: 'submit-button' }
+      }) if not claimPeriod.status or claimPeriod.status in ['Pending'] }}
+
+    {% endif %}
+    {% if user.isAdmin %}
+      {% from "button-menu/macro.njk" import mojButtonMenu %}
+
+      {{ mojButtonMenu({
+        items: [
+          {
+            text: "Submit",
+            attributes: { id: 'submit-button'},
+            href: baseUrl + '/submitted'
+          } if claimPeriod.status in ['Pending'],
+          {
+            text: "Un-Submit",
+            attributes: { id: 'pending-button'},
+            href: baseUrl + '/pending'
+          } if claimPeriod.status in ['Reviewing', 'Submitted'],
+          {
+            text: "Add Balancing Claim",
+            attributes: { id: 'bc-button'},
+            href: baseUrl + '/balancing-claim/trainee'
+          } if claimPeriod.status in ['Pending', 'Reviewed', 'Submitted', 'Reviewing'],
+          {
+            text: "Add Other Claim",
+            attributes: { id: 'oc-button'},
+            href: baseUrl + '/other-claim/add'
+          } if claimPeriod.status in ['Pending', 'Reviewed', 'Submitted', 'Reviewing'],
+          {
+            text: "Start review",
+            attributes: { id: 'review-button'},
+            href: baseUrl + '/reviewing'
+          } if claimPeriod.status in ['Submitted'] ,
+          {
+            text: "Complete review",
+            attributes: { id: 'reviewed-button'},
+            href: baseUrl + '/reviewed'
+          } if claimPeriod.status in ['Reviewing DISABLED'] ,
+          {
+            text: "Approve",
+            attributes: { id: 'approve-button'},
+            href: baseUrl + '/approved'
+          } if claimPeriod.status in ['Reviewing', 'Submitted'],
+          {
+            text: "Reject",
+            attributes: { id: 'reject-button'},
+            href: baseUrl + '/rejected'
+          }if claimPeriod.status in ['Submitted', 'Reviewed', 'Reviewing']
+        ] | cleanList
+      }) if claimPeriod.status not in ['Approved', 'Migrated'] }}
+    {% endif %}
+    <form action="{{ baseUrl }}" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        {{ govukButton({
+          text: "Regenerate claim",
+          classes: "govuk-button--warning action-button",
+          preventDoubleClick: true,
+          attributes: { id: 'regenerate-button'}
+        }) if claimPeriod.status in ['Pending'] }}
+    </form>
+
+  </div>
+  {% if viewType == 'trainee-claims'%}
+    <div class="govuk-grid-column-full">
+        <h2 class="govuk-heading-m govuk-!-display-inline">Trainee claims</h2>
+        {{ miniFilter({
+            columnClasses: "govuk-grid-column-three-quarters",
+            resetLink: baseUrl,
+            includeTextFilter: true,
+            includeStatusFilter: true,
+            meta: claimItems.meta
+        }) }}
+        {% if claimItems.data.length > 0 %}
+        {% set rows = [] %}
+        {% for item in claimItems.data %}
+          {% set href %}/training-providers/{{trainingProvider.id}}/trainees/{{item.trainee.id}}{% endset %}
+          {% set link %}
+            <a href="{{href}}" class="govuk-link">
+              {{item.trainee.contactName if item.trainee.contactName else item.trainee.matsuNumber}}
+            </a>
+          {% endset %}
+
+          {% set rows = (rows.push([
+            { text: item.smartItem.smartCategory.category },
+            { text: item.smartItem.description },
+            { html: link },
+            { text: item.weeksClaimed },
+            { text: item.paymentAmount | currencyUK}
+          ]), rows) %}
+        {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            {  text: "Category", attributes: { "aria-sort": "none", "data-name": "smartItem.smartCategory.category" } },
+            {  text: "Item", attributes: { "aria-sort": "none", "data-name": "smartItem.description" }  },
+            {  text: "Trainee name", attributes: { "aria-sort": "none", "data-name": "trainee.contactName" }  },
+            {  text: "Weeks claimed", attributes: { "aria-sort": "none", "data-name": "weeksClaimed" }  },
+            {  text: "Amount", attributes: { "aria-sort": "none", "data-name": "paymentAmount" }  }
+          ],
+          rows: rows,
+          caption: 'Table showing all trainee claims, column headers with buttons are sortable',
+          meta: claimItems.meta
+      }) }}
+      {% else %}
+            <p class="govuk-heading-s">There are no trainee claims </p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if viewType == 'balancing-claims'%}
+
+    <div class="govuk-grid-column-full">
+        <h2 class="govuk-heading-m">Balancing Claims</h2>
+        {% if claimBalancingItems.data.length > 0 %}
+          {% set rows = [] %}
+          {% for item in claimBalancingItems.data %}
+            {%set bcLink%}
+              {%  if not "absence" in item.comment | lower and user.isAdmin %}
+                <a href="{{baseUrl}}/balancing-claim/trainee/{{item.trainee.id}}/{{item.id}}" class="govuk-link">{{item.amount | currencyUK}}</a>
+              {% else %}
+                {{item.amount | currencyUK}}
+              {% endif %}
+            {%endset%}
+
+            {% set href %}/training-providers/{{trainingProvider.id}}/trainees/{{item.trainee.id}}{% endset %}
+            {% set teLink %}
+              <a href="{{href}}" class="govuk-link">
+                {{item.trainee.contactName if item.trainee.contactName else item.trainee.matsuNumber}}
+              </a>
+            {% endset %}
+
+            {% set rows = (rows.push([
+              { text: item.smartItem.smartCategory.category },
+              { text: item.smartItem.description },
+              { html: teLink },
+              { text: item.comment },
+              { html: bcLink}
+            ]), rows) %}
+          {% endfor %}
+
+        {{ sortableTable({
+            head: [
+              {  text: "Category", attributes: { "aria-sort": "none", "data-name": "smartItem.smartCategory.category" } },
+              {  text: "Item", attributes: { "aria-sort": "none", "data-name": "smartItem.description" }  },
+              {  text: "Trainee name", attributes: { "aria-sort": "none", "data-name": "trainee.contactName" }  },
+              {  text: "Comment" },
+              {  text: "Amount", attributes: { "aria-sort": "none", "data-name": "amount" }  }
+            ],
+            rows: rows,
+            caption: 'Table showing all balancing claims, column headers with buttons are sortable',
+            meta: claimBalancingItems.meta
+        }) }}
+      {% else %}
+            <p class="govuk-heading-s">There are no balancing claims </p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+ {% if viewType == 'other-claims'%}
+
+    <div class="govuk-grid-column-full">
+        <h2 class="govuk-heading-m">Other Claims</h2>
+        {% if claimOtherItems.data.length > 0 %}
+        {% set rows = [] %}
+        {% for item in claimOtherItems.data %}
+          {% if item.smartItem %}
+            {% set rows = (rows.push([
+              { text: item.smartItem.smartCategory.category},
+              { text: item.smartItem.description },
+              { text: item.traineesClaimed },
+              { text: item.weeksClaimed },
+              { text: item.unitsClaimed},
+              { text: item.rateAmount },
+              { text: item.paymentAmount | currencyUK}
+            ]), rows) %}
+          {% else %}
+            {%set ocLink%}
+              <a href="{{baseUrl}}/other-claim/{{item.id}}" class="govuk-link">Other</a>
+            {% endset %}
+            {% set rows = (rows.push([
+              { html: ocLink },
+              { html: ocLink },
+              { text: item.traineesClaimed },
+              { text: item.weeksClaimed },
+              { text: item.unitsClaimed},
+              { text: item.rateAmount },
+              { text: item.paymentAmount | currencyUK}
+            ]), rows) %}
+          {% endif %}
+        {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            {  text: "Category", attributes: { "aria-sort": "none", "data-name": "smartItem.smartCategory.category" } },
+            {  text: "Item", attributes: { "aria-sort": "none", "data-name": "smartItem.description" }  },
+            {  text: "Trainees" },
+            {  text: "Weeks" },
+            {  text: "Units" },
+            {  text: "Rate" },
+            {  text: "Amount", attributes: { "aria-sort": "none", "data-name": "paymentAmount" }  }
+          ],
+          rows: rows,
+          caption: 'Table showing all other claims, column headers with buttons are sortable',
+          meta: claimBalancingItems.meta
+      }) }}
+      {% else %}
+            <p class="govuk-heading-s">There are no other claims </p>
+      {% endif %}
+    </div>
+  {% endif %}
+ {% if viewType == 'si-summary'%}
+    <div class="govuk-grid-column-full">
+        <h2 class="govuk-heading-m">Trainee claims summary</h2>
+
+        {% if claimSiSummaryItems.length > 0 %}
+        {% set rows = [] %}
+        {% for category, items in claimSiSummaryItems |  groupby("smartCategory")  %}
+          {% for item in items %}
+            {% set rows = (rows.push([
+              { text: item.smartItemDescription },
+              {
+                text: item.smartItemWeeks if item.smartItemPaymentType == 'Weekly' else  item.smartItemCount ,
+                classes: 'govuk-!-text-align-right'
+              },
+              { text: item.smartItemTotal | currencyUK, classes: 'govuk-!-text-align-right'}
+            ]), rows) %}
+          {% endfor %}
+
+            {% set rows = (rows.push([
+              { text: items[0].smartCategory + ' Subtotal', classes: 'govuk-!-font-weight-bold' },
+              {
+                text: items[0].smartCategoryWeeks if items[0].smartCategory == 'SMarT 1' else  items[0].smartCategoryCount ,
+                classes: 'govuk-!-font-weight-bold govuk-!-text-align-right'
+              },
+              { text: items[0].smartCategoryTotal | currencyUK, classes: 'govuk-!-font-weight-bold govuk-\!-text-align-right'}
+            ]), rows) %}
+        {% endfor %}
+
+     {{ govukTable({
+        caption: 'Table displaying trainee claims',
+        captionClasses: 'govuk-table__caption--m govuk-visually-hidden',
+        firstCellIsHeader: false,
+        head: [
+            {  text: "Description"},
+            {  text: "Units",classes: 'govuk-!-text-align-right'},
+            {  text: "Total Cost", classes: 'govuk-!-text-align-right'}
+          ],
+        rows: rows
+      }) }}
+
+      {% else %}
+            <p class="govuk-heading-s">There are no trainee claims </p>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% block afterScript %}
+  <script nonce='{{ cspNonce }}'>
+    document.addEventListener('DOMContentLoaded', function () {
+      new MOJFrontend.ButtonMenu({
+        container: $(".moj-button-menu"),
+        mq: "(min-width: 200em)",
+        buttonText: "Manage claim",
+        menuClasses: "moj-button-menu__wrapper--right",
+      });
+    })
+  </script>
+  {% endblock %}
+</div>

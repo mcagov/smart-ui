@@ -1,0 +1,18 @@
+{% set titleText = 'Manage SMarT meta data' %}
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/admin-nav/macro.njk" import adminNav %}
+
+{{ adminNav({ active: 'summary' }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{titleText}}</h1>
+      <p>Admins are able to manage the meta-data that drives the service.</p>
+      <p>Choose from the sub-menu above to drill into specific data.</p>
+    </div>
+  </div>
+
+{% endblock %}

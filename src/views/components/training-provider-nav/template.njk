@@ -1,0 +1,54 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set items = [
+{
+    text: 'Details',
+    href: '/training-providers/' + params.trainingProvider.id,
+    active: true if params.active == 'details' else false,
+    attributes: { id: 'tp-details' }
+},{
+    text: 'Forecasts',
+    href: '/training-providers/' + params.trainingProvider.id + '/forecasts',
+    active: true if params.active == 'forecasts' else false,
+    attributes: { id: 'tp-forecasts' }
+}, {
+    text: 'Claims',
+    href: '/training-providers/' + params.trainingProvider.id + '/claims',
+    active: true if params.active == 'claims' else false,
+    attributes: { id: 'tp-claims' }
+}, {
+    text: 'Trainees',
+    href: '/training-providers/' + params.trainingProvider.id + '/trainees',
+    active: true if params.active == 'trainees' else false,
+    attributes: { id: 'tp-trainees' }
+}, {
+    text: 'Enrolments',
+    href: '/training-providers/' + params.trainingProvider.id + '/enrolments',
+    active: true if params.active == 'enrolments' else false,
+    attributes: { id: 'tp-enrolments' }
+}, {
+    text: 'Training',
+    href: '/training-providers/' + params.trainingProvider.id + '/trainings?status=Active',
+    active: true if params.active == 'training' else false,
+    attributes: { id: 'tp-training' }
+}, {
+    text: 'Comments',
+    href: '/training-providers/' + params.trainingProvider.id + '/comments?resolved=false',
+    active: true if params.active == 'comments' else false,
+    attributes: { id: 'tp-comments' }
+}, {
+    text: 'Attachments',
+    href: '/training-providers/' + params.trainingProvider.id + '/attachments',
+    active: true if params.active == 'attachments' else false,
+    attributes: { id: 'tp-attachments' }
+}, {
+    text: 'Users',
+    href: '/training-providers/' + params.trainingProvider.id + '/users',
+    active: true if params.active == 'users' else false,
+    attributes: { id: 'tp-users' }
+}] %}
+
+{{ mojSubNavigation({
+    label: 'Training Provider Sub navigation',
+    items: items
+}) }}

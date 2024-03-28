@@ -1,0 +1,20 @@
+{% from "tag/macro.njk" import govukTag %}
+
+{% set status = params.status %}
+
+{% set tagColour = 'govuk-tag' %}
+
+{% if status == 'Submitted' %}
+    {% set tagColour = 'govuk-tag--yellow' %}
+{% elseif status == 'Reviewing' or status == 'Reviewed' %}
+    {% set tagColour = 'govuk-tag--blue' %}
+{% elseif status == 'Approved' %}
+    {% set tagColour = 'govuk-tag--green' %}
+{% elseif status == 'Rejected' %}
+    {% set tagColour = 'govuk-tag--red' %}
+{% endif %}
+
+{{ govukTag({
+    text: params.status,
+    classes: tagColour
+}) }}

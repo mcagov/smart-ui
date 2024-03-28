@@ -1,0 +1,50 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "components/trainingstatus/macro.njk" import smartsTrainingStatus %}
+{% set rows = [] %}
+
+{% for claim in params.claims %}
+		{%set tableLink%}
+		<a href="/providers/claims/{{claim.register.id}}/overview" class="govuk-link">{{claim.register.trainingInfo.title}}</a>
+		{%endset%}
+
+    {% set rows = (rows.push([
+    { html: tableLink},
+    { text: claim.currentPeriod},
+    { text: claim.forecastTraineeWeeks },
+    { text: claim.totalAbsentWeeks },
+    { text: claim.forecastTotal | currencyUK },
+    { text: claim.lastClaimTotal | currencyUK },
+    { text: claim.totalClaimed | currencyUK }
+    ]), rows) %}
+{% endfor %}
+{{ govukTable({
+  caption: params.title,
+  captionClasses: "govuk-table__caption--m",
+  firstCellIsHeader: false,
+  head: [
+	      {
+	        text: "Title"
+	      },
+	      {
+	         text: "Period 2021/2022"
+	      },
+	      {
+	        text: "Trainee weeks"
+	      },
+	      {
+          text: "Absences weeks"
+        },
+	      {
+	        text: "Forecast"
+	      },
+	      {
+	        text: "Last claim"
+	      },
+	      {
+	        text: "Total claimed"
+	      }
+	    ],
+  rows: rows
+}) }}
+
+

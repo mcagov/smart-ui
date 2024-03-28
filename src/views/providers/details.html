@@ -1,0 +1,94 @@
+{% set titleText = 'Training provider details'%}
+{% if user.role == 'admin' and trainingProvider.id %}
+    {% set titleText = 'Training provider details for ' + trainingProvider.companyName%}
+{% endif %}
+
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {{ govukInput({
+              label: {  text: 'Company name'  },
+              id: 'company-name',
+              name: 'company-name',
+              classes: 'govuk-input--width-30',
+              spellcheck: false,
+              value: trainingProvider.companyName if trainingProvider.companyName else '',
+              errorMessage: 'company-name' | getError(errors)
+            }) }}
+
+            {{ govukInput({
+              label: {  text: 'Company number'  },
+              hint: {  text: 'Must be between 6 and 8 digits long'  },
+              id: 'company-number',
+              name: 'company-number',
+              classes: 'govuk-input--width-10',
+              inputmode: 'numeric',
+              pattern: '[0-9]*',
+              value: trainingProvider.companyNumber if trainingProvider.companyNumber else '',
+              errorMessage: 'company-number' | getError(errors)
+            }) }}
+
+            {{ govukInput({
+              label: { text: 'DNS number' },
+              id: 'duns-number',
+              name: 'duns-number',
+              classes: 'govuk-input--width-10',
+              spellcheck: false,
+              value: trainingProvider.dunsNumber if trainingProvider.dunsNumber else '',
+              errorMessage: 'duns-number' | getError(errors)
+            }) }}
+
+            {{ govukInput({
+              label: { text: 'Max number of trainees' },
+              id: 'max-trainees',
+              name: 'max-trainees',
+              classes: 'govuk-input--width-10',
+              spellcheck: false,
+              value: trainingProvider.maxNoTrainees if trainingProvider.maxNoTrainees else '',
+              errorMessage: 'max-trainees' | getError(errors)
+            }) }}
+
+            {{ govukInput({
+              label: { text: 'Phone number' },
+              hint: { text: 'Must be a minimum of 11 digits, can include spaces and country code' },
+              id: 'phone-number',
+              name: 'phone-number',
+              classes: 'govuk-input--width-20',
+              inputmode: 'numeric',
+              pattern: '^[+]?[0-9 ()]*',
+              value: trainingProvider.phone if trainingProvider.phone else '',
+              errorMessage: 'phone-number' | getError(errors)
+            }) }}
+
+            {{ govukInput({
+              label: {  text: 'Email' },
+              id: 'email',
+              name: 'email',
+              classes: 'govuk-input--width-30',
+              spellcheck: false,
+              value: trainingProvider.email if trainingProvider.email else '',
+              errorMessage: 'email' | getError(errors)
+            }) }}
+
+            {{ govukTextarea({
+                name: "vessel-names",
+                id: "vessel-names",
+                label: {  text: "Names of any vessels used for training"  },
+                classes: 'govuk-input--width-30',
+                value: trainingProvider.vesselNames if trainingProvider.vesselNames else '',
+                errorMessage: 'vessel-names' | getError(errors)
+            }) }}
+
+            {{ govukButton({
+              text: 'Save and continue'
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

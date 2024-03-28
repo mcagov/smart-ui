@@ -1,0 +1,138 @@
+{% set titleText = 'Forecasts' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/forecasts-nav/macro.njk" import forecastsNav %}
+{{ forecastsNav({ trainingProvider: trainingProvider, active: 'forecasts' , user:user , activeTp: activeTp }) }}
+<div class="govuk-grid-row">
+    {% set statusItems = [
+        { value: '',  text: '--- status ---'  },
+        { value: 'Pending',  text: 'Pending' },
+        { value: 'Submitted',  text: 'Submitted' },
+        { value: 'Approved', text: 'Approved' },
+        { value: 'Rejected', text: 'Rejected' }
+    ] | selectValue(forecasts.meta.queries.status) %}
+
+    {% set forecastTypes = [
+        { value: '',  text: '--- forecast type ---'  },
+        { value: 'annual',  text: 'Annual' },
+        { value: 'monthly',  text: 'Monthly' }
+    ] | selectValue(forecasts.meta.queries.forecastType) %}
+
+    {% set years = getYearsOptions(currentPaymentSchedule.financialYear + 1) %}
+
+    {% set customFilters %}
+
+        {{ govukSelect({
+            id: "status",
+            name: "status",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: { "data-name": "status", "data-events": '["change"]' },
+            label: {
+              text: 'Filter forecasts by status',
+              classes: 'govuk-visually-hidden'
+            },
+            items: statusItems | selectValue(forecasts.meta.queries.status)
+        }) }}
+
+        {{ govukSelect({
+            id: "forecastType",
+            name: "forecastType",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: { "data-name": "forecastType", "data-events": '["change"]' },
+            label: {
+              text: 'Filter forecasts by type',
+              classes: 'govuk-visually-hidden'
+            },
+            items: forecastTypes | selectValue(forecasts.meta.queries.forecastType)
+        }) }}
+
+        {{ govukSelect({
+            id: "financialYear",
+            name: "financialYear",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: { "data-name": "financialYear", "data-events": '["change"]' },
+            label: {
+              text: 'Filter forecasts by year',
+              classes: 'govuk-visually-hidden'
+            },
+            items: years | selectValue(forecasts.meta.queries.financialYear)
+        }) }}
+
+        {{ govukSelect({
+            id: "financialPeriod",
+            name: "financialPeriod",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: {"data-name": "financialPeriod" },
+            label: {
+              text: 'Filter forecasts by period',
+              classes: 'govuk-visually-hidden'
+            },
+            items: [
+                { value: '',  text: '--- period ---'  },
+                { value: '1',  text: 'P01' },
+                { value: '2',  text: 'P02' },
+                { value: '3',  text: 'P03' },
+                { value: '4',  text: 'P04' },
+                { value: '5',  text: 'P05' },
+                { value: '6',  text: 'P06' },
+                { value: '7',  text: 'P07' },
+                { value: '8',  text: 'P08' },
+                { value: '9',  text: 'P09' },
+                { value: '10',  text: 'P10' },
+                { value: '11',  text: 'P11' },
+                { value: '12',  text: 'P12' }
+            ] | selectValue(forecasts.meta.queries.financialPeriod)
+        }) }}
+
+    {% endset %}
+
+    {{ listFilter({
+        columnClasses: "govuk-grid-column-full",
+        resetLink: "/forecasts/pending",
+        meta: forecasts.meta,
+        customFilters: customFilters
+    }) }}
+
+    <div class="govuk-grid-column-full">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        {% set rows = [] %}
+        {% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+        {% for item in forecasts.data %}
+            {% set tpHref = "/training-providers/" + item.trainingProvider.id + "/forecasts/" + item.forecastType | lower + "/" + item.financialYear %}
+            {% set tpLink %}<a href="{{tpHref}}" class="govuk-link">{{item.trainingProvider.companyName}}</a>{% endset %}
+            {% set forecastHref = "/training-providers/" + item.trainingProvider.id + "/forecasts/" + item.forecastType | lower + "/" + item.financialYear  + "/" + item.financialPeriod %}
+            {% set forecastLink %}<a href="{{forecastHref}}" class="govuk-link">{{item.financialPeriod | financialPeriodFormat}}</a>{% endset %}
+            {% set rows = (rows.push([
+                { html: tpLink },
+                { text: item.financialYear | financialYearFormat},
+                { html: forecastLink },
+                { text: item.forecastType },
+                { text: item.status },
+                { text: item.periodAmount | currencyUK }
+            ]), rows) %}
+        {% endfor %}
+
+        {{ sortableTable({
+            head: [
+                { text: 'Training provider', attributes: { "aria-sort": "none", "data-name": "trainingProvider.companyName" } },
+                { text: 'Year', attributes: { "aria-sort": "none", "data-name": "financialYear" } },
+                { text: 'Period', attributes: { "aria-sort": "none", "data-name": "financialYear" } },
+                { text: 'Type' },
+                { text: 'Status' },
+                { text: 'Amount' }
+            ],
+            rows: rows,
+            caption: 'Table showing forecasts, column headers with buttons are sortable',
+            meta: forecasts.meta
+        }) }}
+    </div>
+</div>
+
+{% endblock %}

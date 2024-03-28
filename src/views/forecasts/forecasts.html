@@ -1,0 +1,66 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Forecasts for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Forecasts'%}
+{% endif %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% if user.role == 'admin' %}
+  {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+  {{ trainingProviderNav({ active: 'forecasts', trainingProvider: trainingProvider }) }}
+{% endif %}
+
+{% from "components/forecasts-nav/macro.njk" import forecastsNav %}
+{# {{ forecastsNav({ trainingProvider: trainingProvider, active: 'summary' , user:user , activeTp: activeTp}) }} #}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {{ govukButton({
+        text: 'Open annual forecast for current year',
+        href: '/training-providers/' + trainingProvider.id + '/forecasts/annual/' + currentPaymentSchedule.financialYear  ,
+        attributes: { id: 'open-annual-current-button'}
+      }) }}
+
+      {% if currentPaymentSchedule.financialPeriod >= 9 %}
+      <br>
+      {{ govukButton({
+        text: 'Open annual forecast for next year',
+        href: '/training-providers/' + trainingProvider.id + '/forecasts/annual/' + (currentPaymentSchedule.financialYear + 1) ,
+        attributes: { id: 'open-annual-next-button'}
+      }) }}
+      {% endif %}
+      <br>
+      {{ govukButton({
+        text: 'Open monthly forecast for current period',
+        href: '/training-providers/' + trainingProvider.id + '/forecasts/monthly/' + currentPaymentSchedule.financialYear + '/' + currentPaymentSchedule.financialPeriod ,
+        attributes: { id: 'open-monthly-button'}
+      }) }}
+
+      {% set tableHtml %}
+        {% if availableYears and availableYears | length > 0 %}
+        <p class="govuk-body">
+          These are all the forecasts for
+          <span class="govuk-!-font-weight-bold">{{ trainingProvider.companyName }}</span>
+          by year and period.
+        </p>
+        {% include "./table.html" %}
+        {% else %}
+        <p class="govuk-body">
+          There are no forecasts available for <span class="govuk-!-font-weight-bold">{{ trainingProvider.companyName }}</span>, try creating a forecast.
+        </p>
+        {% endif %}
+      {% endset %}
+
+      {{ govukDetails({
+        summaryText: "View forecasts for previous periods",
+        html: tableHtml
+      }) }}
+    </div>
+  </div>
+
+{% endblock %}

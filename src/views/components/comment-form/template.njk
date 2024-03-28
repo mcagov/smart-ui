@@ -1,0 +1,41 @@
+{% from "components/textarea/macro.njk" import govukTextarea %}
+{% from "components/button/macro.njk" import govukButton %}
+
+{% set msg ='' %}
+{% if params.resourceUrl%}
+    {% if '/trainees/' in  params.resourceUrl%}
+        {% set msg ='Only enter comments specific to this trainee. ' %}
+    {% elif '/claims/' in  params.resourceUrl %}
+        {% set msg ='Only provide comments relevant to claims, not trainees. ' %}
+    {% endif %}
+{% endif %}
+
+<form action="{{ params.resourceUrl }}/comments{{ '/' + params.commentId if params.commentId }}{{ '/reply' if params.reply }}" id="add-comment-form" method="post">
+    <input type="hidden" name="_csrf" value="{{ params.csrfToken }}">
+    {{ govukTextarea({
+        name: "message",
+        id: "message",
+        errorMessage: params.errorMessage,
+        value: params.value,
+        rows: 3,
+        label: {
+            text: params.label if params.label else 'Add a new comment',
+            classes: "govuk-label--s"
+        },
+        hint: {
+            text: msg + "Do not include personal or financial information, like a National Insurance number or credit card details."
+        }
+    }) }}
+
+    {{ govukButton({
+        text: "Save",
+        preventDoubleClick: true,
+        attributes: { id: "save-button" }
+    }) }}
+    {{ govukButton({
+        text: "Cancel",
+        classes: "govuk-button--secondary",
+        href: (params.resourceUrl if params.resourceUrl) + "/comments",
+        attributes: { id: "cancel-button" }
+    }) }}
+</form>

@@ -1,0 +1,70 @@
+
+<h1 class="govuk-heading-l">{{titleText}}</h1>
+
+{% if resourceUrl %}
+{{ govukBackLink({
+    text: "Back to " + resourceSubject,
+    href: resourceUrl
+}) }}
+{% elseif user.role == 'admin' and trainingProvider %}
+
+{% if user.role == 'admin' %}
+  {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+  {{ trainingProviderNav({ active: 'attachments', trainingProvider: trainingProvider }) }}
+{% endif %}
+
+{% endif %}
+<div class="govuk-grid-row">
+    {% set statusItems = [
+        { value: '',  text: '--- status ---'  },
+        { value: 'Pending',  text: 'Pending' },
+        { value: 'Uploaded',  text: 'Uploaded'  },
+        { value: 'Deleted',  text: 'Deleted' }
+    ] | selectValue(attachments.meta.queries.status) %}
+
+    {% set typeItems = [{ value: '',  text: '--- type ---' }] %}
+
+    {% for type in attachmentTypes %}
+        {% set typeItems = (typeItems.push({ text: type.description, value: type.fileType }), typeItems) %}
+    {% endfor %}
+
+    {% set customFilters %}
+        {{ govukSelect({
+            id: "fileType",
+            name: "fileType",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: {"data-name": "fileType" },
+            label: {
+              text: 'Filter attachments by file type',
+              classes: 'govuk-visually-hidden'
+            },
+            items: typeItems| selectValue(attachments.meta.queries.fileType)
+        }) }}
+    {% endset %}
+
+    {{ listFilter({
+        columnClasses: "govuk-grid-column-full",
+        resetLink: '/training-providers/' + trainingProvider.id + "/attachments",
+        textFilterLabel: 'Enter text to search the attachments',
+        includeStatusFilter: true,
+        status: { items: statusItems },
+        meta: attachments.meta,
+        customFilters: customFilters
+    }) }}
+
+    <div class="govuk-grid-column-full">
+
+        {% from "components/attachments-table/macro.njk" import smartAttachmentsTable %}
+
+        {% if attachments.data | isArray and attachments.data.length > 0 %}
+            {{ smartAttachmentsTable({ attachments: attachments }) }}
+        <p>
+            Attachments are linked to specific resources in the service, for example a "trainee" or "audit evidence".
+        {% else %}
+            <p class="govuk-heading-m">There are no attachments</p>
+        {% endif %}
+
+
+    </div>
+</div>

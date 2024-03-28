@@ -1,0 +1,27 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Summary for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Summary'%}
+{% endif %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    <h2 class="govuk-heading-m">Company details</h2>
+    {% from 'components/trainingprovidersummary/macro.njk' import trainingProviderSummary %}
+    {{ trainingProviderSummary({
+      trainingProvider: trainingProvider,
+      return: '/training-providers/' + trainingProvider.id + '/summary',
+      clientCompanies: clientCompanies,
+      user: user
+    }) }}
+    {{ govukButton({
+        text: 'Submit',
+        href: '/training-providers/' + trainingProvider.id + '/status/Active?return=/training-providers'
+    }) }}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% set titleText = 'Your activation link is no longer valid' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-xl">{{titleText}}</h1>
+            <p class="govuk-body">
+                Sorry your account activation token is no longer valid. This can happen if:
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>you clicked your activation link after creating your account</li>
+                <li>your activation link expired</li>
+                <li>the URL is incorrect</li>
+            </ul>
+            <p class="govuk-body">
+                Activation links expire after 7 days.
+            </p>
+
+            {% set signInMsg %}
+            If you have already completed your account activation you can <a href="/signin">signin</a> to use SMarT services.
+            {% endset %}
+            {{ govukInsetText({ html: signInMsg }) }}
+
+            <p class="govuk-body">
+                If you still need to complete your account creation you'll need to <a href="/resend-activation">resend another</a> activation token.
+            </p>
+
+            {% set helpHtml %}
+            If you're having problem signing up you can leave <a href="/feedback" class="govuk-link" target="_blank">feedback</a> or contact <a href="/support" class="govuk-link" target="_blank">support</a> for help.
+            {% endset %}
+
+            {{ govukDetails({
+              summaryText: "Still having issues?",
+              html: helpHtml
+            }) }}
+        </div>
+    </div>
+{% endblock %}

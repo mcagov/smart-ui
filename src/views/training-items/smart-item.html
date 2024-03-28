@@ -1,0 +1,58 @@
+{% set titleText = 'Add Smart Item' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/training-items/" + trainingItem.id
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    </div>
+
+    {{ listFilter({
+      columnClasses: "govuk-grid-column-two-thirds",
+      resetLink: "/training-items/" + trainingItem.id + "/smart-item",
+      includeStatusFilter: true,
+      includeTextFilter: true,
+      textFilterLabel: 'Enter text to search smart items',
+      meta: smartItems.meta
+    }) }}
+
+    <div class="govuk-grid-column-full">
+      {% set baseUrl = params.baseUrl %}
+      {% set rows = [] %}
+      {% for item in smartItems.data %}
+        {%set tableLink%}
+        <a href="/smart-items/{{item.id}}" class="govuk-link">{{item.description}}</a>
+        {%endset%}
+        {% set rows = (rows.push([
+          { html: tableLink },
+          { text: item.smartCategory.category },
+          { text: govukTag({ text: item.status, classes: item.status | getStatusCssClass }) },
+          { text: govukButton({
+              text: 'Add',
+              href: '/training-items/' + trainingItem.id + '/add-smart-item/'+item.id ,
+              classes: 'govuk-!-margin-top-0 govuk-!-margin-bottom-0 govuk-!-padding-top-2 govuk-!-padding-bottom-1'
+          })}
+        ]), rows) %}
+      {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            { text: 'Description', attributes: { "aria-sort": "none", "data-name": "description" } },
+            { text: 'Smart Category', attributes: { "aria-sort": "none", "data-name": "smartCategory.category" } },
+            { text: 'Status' },
+            { text: '' }
+          ],
+          rows: rows,
+          caption: 'Table showing smart items, column headers with buttons are sortable',
+          meta: smartItems.meta
+      }) }}
+    </div>
+  </div>
+{% endblock %}

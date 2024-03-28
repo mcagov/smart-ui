@@ -1,0 +1,60 @@
+{% from "summary-list/macro.njk" import govukSummaryList %}
+{% set trainingProvider = params.trainingProvider %}
+{% set updateUrl = '/training-providers/' + trainingProvider.id + '/trainees/' + params.absence.trainee.id  + '/absences/' + params.absence.id + '/details' %}
+
+{{ govukSummaryList({
+    rows: [
+        {
+            key: { text: "Trainee" },
+            value: { text: params.absence.trainee.contactName if params.absence.trainee.contactName else params.absence.trainee.matsuNumber, classes: "summary-trainee-name" },
+            actions: {
+            items: [
+                {
+                    href: updateUrl,
+                    text: "Change",
+                    visuallyHiddenText: " trainee name"
+                }
+            ]
+        }
+        },
+        {
+            key: { text: "Start date" },
+            value: { text: params.absence.startDate | dateUKFormat, classes: "summary-start-date" },
+            actions: {
+            items: [
+                {
+                    href: updateUrl,
+                    text: "Change",
+                    visuallyHiddenText: " start date"
+                }
+            ]
+        }
+        },
+        {
+            key: { text: "End date" },
+            value: { text: params.absence.endDate | dateUKFormat, classes: "summary-end-date"  },
+            actions: {
+            items: [
+                {
+                    href: updateUrl,
+                    text: "Change",
+                    visuallyHiddenText: " end date"
+                }
+            ]
+        }
+        },
+        {
+            key: { text: "Duration" },
+            value: { text: params.absence.duration + ' days', classes: "summary-duration"  },
+            actions: {
+            items: [
+                {
+                    href: updateUrl,
+                    text: "Change",
+                    visuallyHiddenText: " duration"
+                }
+            ]
+        }
+        }
+    ]
+}) }}

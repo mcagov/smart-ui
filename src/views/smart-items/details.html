@@ -1,0 +1,106 @@
+{% set titleText = ('Update ' if smartItem.id else 'Add ' ) + ' SMarT item'  %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {% set items = [] %}
+            {% for smartCategory in smartCategories %}
+                {% set items = (items.push( {  text: smartCategory.text,  value: smartCategory.id }), items) %}
+            {% endfor %}
+
+            {{ govukSelect({
+                id: 'smartCategory',
+                name: 'smartCategory',
+                label: {
+                    text: 'Smart Category',
+                    classes: "govuk-label--m"
+                },
+                items: items | selectValue(smartItem.smartCategory.id)
+            }) }}
+
+            {{ govukInput({
+                label: {
+                    text: 'Description',
+                    classes: "govuk-label--m"
+                },
+                id: 'description',
+                name: 'description',
+                classes: "govuk-input--width-20",
+                spellcheck: false,
+                value: smartItem.description,
+                errorMessage: 'description' | getError(errors)
+            }) }}
+
+            {{ govukSelect({
+                id: 'paymentType',
+                name: 'paymentType',
+                label: {
+                    text: 'Payment Type',
+                    classes: "govuk-label--m"
+                },
+                items: [
+                    { value: 'Single Payment',  text: 'Single Payment' },
+                    { value: 'Instalment',  text: 'Instalment' },
+                    { value: 'Weekly',  text: 'Weekly' },
+                    { value: 'On Completion',  text: 'On Completion' }
+                ] | selectValue(smartItem.paymentType)
+            }) }}
+
+            {{ govukInput({
+                label: {
+                    text: 'Number Of Instalments',
+                    classes: "govuk-label--m"
+                },
+                id: 'numberOfInstalments',
+                name: 'numberOfInstalments',
+                classes: "govuk-input--width-20",
+                spellcheck: false,
+                value: smartItem.numberOfInstalments,
+                errorMessage: 'numberOfInstalments' | getError(errors)
+            }) }}
+
+            {{ govukSelect({
+                id: 'status',
+                name: 'status',
+                label: {
+                    text: 'Status',
+                    classes: "govuk-label--m"
+                },
+                items: [
+                    { value: 'Active', text: 'Active' },
+                    { value: 'Deactivated', text: 'Deactivated' }
+                ]
+            }) }}
+
+            {{ govukInput({
+                label: {
+                    text: 'Item Order',
+                    classes: "govuk-label--m"
+                },
+                id: 'itemOrder',
+                name: 'itemOrder',
+                classes: "govuk-input--width-20",
+                spellcheck: false,
+                value: smartItem.itemOrder,
+                errorMessage: 'itemOrder' | getError(errors)
+            }) }}
+
+            {{ govukButton({
+                text: 'Save and continue',
+                attributes: {"id": "save-button" }
+            }) }}
+            {{ govukButton({
+                text: 'Cancel',
+                classes: "govuk-button--secondary",
+                href: "/smart-items"
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

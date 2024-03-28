@@ -1,0 +1,37 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "tag/macro.njk" import govukTag %}
+
+{% set rows = [] %}
+{% for trainee in params.trainees.data %}
+    {% set tp_link = "/training-providers/" + trainee.trainingProvider.id + "/trainees/" + trainee.id %}
+    {% set tableLink %}
+        <a href="{{ tp_link }}" class="govuk-link">{{ trainee.contactName if trainee.contactName else trainee.matsuNumber }}</a>
+    {% endset %}
+    {% set rows = (rows.push([
+        { html: tableLink },
+        { text: trainee.trainingProvider.companyName } if params.showTrainingProvider,
+        { text: trainee.dateOfBirth | dateUKFormat },
+        { text: trainee.postcode },
+        { text: trainee.smart1WeeksClaimed } if params.showSm1WeeksClaimed,
+        { text: govukTag({
+            text: trainee.status,
+            classes: trainee.status | getStatusCssClass
+        }) }
+    ] | cleanList ), rows) %}
+{% endfor %}
+
+
+{% from "components/sortable-table/macro.njk" import sortableTable %}
+{{ sortableTable({
+    head: [
+        { text: 'Name', attributes: { "aria-sort": "none", "data-name": "contactName" } },
+        { text: 'Training provider', attributes: { "aria-sort": "none", "data-name": "trainingProvider.companyName" } } if params.showTrainingProvider,
+        { text: 'Date Of Birth', attributes: { "aria-sort": "none", "data-name": "dateOfBirth" } },
+        { text: 'Postcode', attributes: { "aria-sort": "none", "data-name": "postcode" } },
+        { text: 'Weeks Claimed' } if params.showSm1WeeksClaimed,
+        { text: 'Status' }
+    ] | cleanList ,
+    rows: rows,
+    caption: 'Table showing trainees, column headers with buttons are sortable',
+    meta: params.trainees.meta
+}) }}

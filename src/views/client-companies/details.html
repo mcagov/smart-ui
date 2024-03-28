@@ -1,0 +1,43 @@
+{% set titleText = ('Update ' if clientCompany.id else 'Add ') + ' client company' %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {{ govukInput({
+                label: { text: 'Name' },
+                id: 'name',
+                name: 'name',
+                classes: "govuk-input--width-20",
+                spellcheck: false,
+                value: clientCompany.companyName,
+                errorMessage: 'name' | getError(errors)
+            }) }}
+
+            {{ govukInput({
+                label: { text: 'Number' },
+                id: 'number',
+                name: 'number',
+                classes: "govuk-input--width-20",
+                spellcheck: false,
+                value: clientCompany.companyNumber,
+                errorMessage: 'number' | getError(errors)
+            }) }}
+
+            {{ govukButton({
+                text: 'Save and continue',
+                attributes: {"id": "save-button" }
+            }) }}
+            {{ govukButton({
+                text: 'Cancel',
+                classes: "govuk-button--secondary",
+                href: "/client-companies"
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

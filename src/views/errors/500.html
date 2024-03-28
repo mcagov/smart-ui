@@ -1,0 +1,19 @@
+{% set titleText = 'Sorry, the service is unavailable' %}
+
+{% extends "layout.html" %}
+
+{% set mainClasses = "govuk-main-wrapper--l" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+        <p class="govuk-body">
+            Try coming back later.
+        </p>
+        <p class="govuk-body">
+            Otherwise try going back to Smarts <a href="/" class="govuk-link">home</a>.
+        </p>
+    </div>
+</div>
+{% endblock %}

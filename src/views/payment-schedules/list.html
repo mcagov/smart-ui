@@ -1,0 +1,88 @@
+{% set titleText = 'Payment Schedules for ' + financialYear | financialYearFormat %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if user.role == 'admin' %}
+  {% from "components/admin-nav/macro.njk" import adminNav %}
+  {{ adminNav({ active: 'payment-schedules' }) }}
+{% else %}
+  {% from "components/company-nav/macro.njk" import companyNav %}
+  {{ companyNav({ trainingProvider: trainingProvider, active: 'payment-schedules' }) }}
+{% endif %}
+
+<div class="govuk-grid-row">
+
+{% if user.role == 'admin' %}
+  {% set yearItems = [{ value: '',  text: '--- financial year ---'  }] %}
+  {% for year in availableYears.reverse() %}
+    {% set yearItems = (yearItems.push({ value: year|string, text: year|string| financialYearFormat }), yearItems) %}
+  {% endfor %}
+
+  {% set customFilters %}
+    {{ govukSelect({
+      id: "financialYear",
+        name: "financialYear",
+        classes: "mca-filter",
+        formGroup: { classes: "govuk-!-display-inline" },
+        attributes: { "data-name": "financialYear" },
+        label: {
+            text: 'Filter payment schedules by year',
+            classes: 'govuk-visually-hidden'
+        },
+        items: yearItems | selectValue(financialYear)
+    }) }}
+  {% endset %}
+
+  {{ listFilter({
+    columnClasses: "govuk-grid-column-two-thirds",
+    resetLink: "/payment-schedules",
+    includeTextFilter: false,
+    meta: paymentSchedules.meta,
+    customFilters: customFilters
+  }) }}
+{% else %}
+    <div class="govuk-grid-column-two-thirds">
+    {% set navYears = range(currentPaymentSchedule.financialYear + 1, currentPaymentSchedule.financialYear - 5 , -1 ) %}
+    {% from "components/years-nav/macro.njk" import yearsNav %}
+    {{ yearsNav({ availableYears: navYears, active: financialYear, baseUrl:'?financialYear=' }) }}
+    </div>
+{% endif %}
+
+
+    <div class="govuk-grid-column-full">
+     <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      {% set baseUrl = params.baseUrl %}
+      {% set rows = [] %}
+      {% for item in paymentSchedules.data %}
+        {% set rows = (rows.push([
+            { text: item.financialYear | financialYearFormat },
+            { text: item.financialPeriod | financialPeriodFormat},
+            { text: item.weeksText, attributes: { 'nowrap': ''} },
+            { text: item.weekEndingSundayDate | dateUKFormat},
+            { text: item.tpClaimToMatsuDate | dateUKFormat},
+            { text: item.matsuSubmitInvoiceDate | dateUKFormat },
+            { text: item.dftPaymentToMatsuDate | dateUKFormat},
+            { text: item.matsuPaymentToTpDate | dateUKFormat}
+          ]), rows) %}
+      {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            { text: 'Year'},
+            { text: 'Period', attributes: { "aria-sort": "none", "data-name": "financialPeriod" } },
+            { text: 'Week' },
+            { text: 'Week Ending (Sunday)'},
+            { text: 'TP submit claims MaTSU by Friday' },
+            { text: 'MaTSU submit Invoice by Friday' },
+            { text: 'MCA payment to MaTSU by Friday' },
+            { text: 'MaTSU payment to TP by Friday' }
+          ],
+          rows: rows,
+          caption: 'Table showing payment schedules, column headers with buttons are sortable',
+          meta: paymentSchedules.meta
+      }) }}
+    </div>
+  </div>
+{% endblock %}

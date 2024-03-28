@@ -1,0 +1,28 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set items = [] %}
+{% for year in params.availableYears %}
+    {% set items = (items.push({
+        text: year | financialYearFormat,
+        href: params.baseUrl + year,
+        active: true if params.active == year else false,
+        value: type.fileType
+        }), items) %}
+
+{% endfor %}
+
+
+<nav class="moj-sub-navigation" aria-label="Years Sub navigation">
+  <ul class="moj-sub-navigation__list">
+    <li class="moj-sub-navigation__item">Available years:</li>
+    {%- for item in items %}
+      <li class="moj-sub-navigation__item">
+        <a class="moj-sub-navigation__link" {{ 'aria-current="page"' | safe if item.active }} href="{{ item.href }}">
+          {{- item.html | safe if item.html else item.text -}}
+        </a>
+      </li>
+    {% endfor -%}
+
+  </ul>
+
+</nav>

@@ -1,0 +1,121 @@
+{% set titleText = 'Update enrolment' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/smart-date/macro.njk" import smartDate %}
+
+{{ govukBackLink({
+    text: "Back to " + trainee.contactName,
+    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments'
+}) }}
+
+<div class='govuk-grid-row'>
+    <div class='govuk-grid-column-two-thirds'>
+        <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            <h2 class="govuk-heading-m">Enrolment summary</h2>
+            {% if enrolment.status == 'Migrated' %}
+            <p class="govuk-heading-s"> Migrated enrolments cannot be updated.</p>
+            {% else%}
+            {{ govukSummaryList({
+                rows: [
+                    {
+                        key: { text: 'Training item' },
+                        value: { text: enrolment.training.trainingItem.description }
+                    },
+                    {
+                        key: { text: 'Trainee' },
+                        value: { text: enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}
+                    },
+                    {
+                        key: { text: 'D/L/Q' },
+                        value: {  text: enrolment.discipline.discipline + '/' + enrolment.level.level + '/' +  enrolment.qualification.qualification}
+                    } if not enrolment.training.trainingItem.isLegacy,
+                    {
+                        key: { text: 'Started' },
+                        value: { html:
+                            smartDate({
+                                id: 'start-date',
+                                value: enrolment.startDate,
+                                inline: true,
+                                errors: errors
+                            })
+                        }
+                    },
+                    {
+                        key: { text: 'End Date'  },
+                        value: { html:
+                            smartDate({
+                                id: 'end-date',
+                                value: enrolment.expectedEndDate,
+                                inline: true,
+                                errors: errors
+                            })
+                        }
+                    },
+                    {
+                        key: { text: 'CoC number'  },
+                        value: { html:
+                            govukInput({
+                                classes: "govuk-input--width-10",
+                                id: "coc-number",
+                                name: "coc-number",
+                                value: enrolment.cocNumber,
+                                errorMessage: 'cocNumber' | getError(errors)
+                            })
+                        }
+                    } if enrolment.status == 'Completed',
+                    {
+                        key: { text: 'CoC issued'  },
+                        value: { html:
+                            smartDate({
+                                id: 'coc-issued-date',
+                                value: enrolment.cocIssuedDate,
+                                inline: true,
+                                errors: errors
+                            })
+                        }
+                    } if enrolment.status == 'Completed',
+                    {
+                        key: { text: 'NoE issued'  },
+                        value: { html:
+                            smartDate({
+                                id: 'noe-issued-date',
+                                value: enrolment.noeIssuedDate,
+                                inline: true,
+                                errors: errors
+                            })
+                        }
+                    } if enrolment.status == 'Completed',
+                    {
+                        key: { text: "Status" },
+                        value: { html:
+                            enrolmentStatusSelect({ value: enrolment.status ,adminEdit: true  })
+                        }
+                    } if enrolment.status not in ['Migrated', 'Transferred', 'Transferring', 'Transferred_in'],
+                    {
+                        key: { text: "Status" },
+                        value: { text: govukTag({  text: enrolment.status, classes: enrolment.status | getStatusCssClass }) }
+                    } if enrolment.status in ['Migrated', 'Transferred', 'Transferring', 'Transferred_in']
+                ] | cleanList
+            }) }}
+
+            {{ govukButton({
+                text: "Submit",
+                preventDoubleClick: true
+            }) }}
+
+            {{ govukButton({
+                text: "Cancel",
+                classes: "govuk-button--secondary",
+                href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments"
+            }) }}
+
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% set baseUrl = '/training-providers/' + params.trainingProviderId %}
+{% set rows = [] %}
+{% for absence in params.absences.data %}
+    {% set trainee = absence.trainee %}
+    {%set tableLink%}
+    <a href='{{baseUrl}}/trainees/{{trainee.id}}/absences/{{absence.id}}/details' class='govuk-link'>{{absence.duration}}</a>
+    {%endset%}
+    {% set rows = (rows.push([
+        { html: tableLink },
+        { text: absence.trainee.contactName if absence.trainee.contactName else absence.trainee.matsuNumber } if params.withTrainee,
+        { text: absence.startDate | dateUKFormat },
+        { text: absence.endDate | dateUKFormat }
+    ]| cleanList), rows) %}
+{% endfor %}
+
+{% if (rows | length) == 0 %}
+    <p>No absences have been recorded</p>
+{% else %}
+    {% from "components/sortable-table/macro.njk" import sortableTable %}
+    {{ sortableTable({
+        head: [
+            { text: "Days", attributes: { "aria-sort": "none", "data-name": "duration" } },
+            { text: 'Trainee', attributes: { "aria-sort": "none", "data-name": "trainee.contactName" }  } if params.withTrainee,
+            { text: "Start date", attributes: { "aria-sort": "none", "data-name": "startDate" }  },
+            { text: "End date", attributes: { "aria-sort": "none", "data-name": "endDate" } }
+        ] | cleanList,
+        rows: rows,
+        caption: 'Table showing absences, column headers with buttons are sortable',
+        meta: params.absences.meta
+    }) }}
+{% endif %}

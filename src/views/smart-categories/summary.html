@@ -1,0 +1,48 @@
+{% set titleText = 'SMarT Category'%}
+
+{% extends "layout.html" %}
+{% block content %}
+
+  {{ govukBackLink({
+      text: "Back",
+      href: "/smart-categories"
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{titleText}}</h1>
+      {{ govukSummaryList({
+          rows: [
+            {
+              classes: 'smart-category-name',
+              key: {  text: "Category"  },
+              value: {  text: smartCategory.category  },
+              actions: {
+                items: [{
+                  href: "/smart-categories/" + smartCategory.id + "/details",
+                  text: "Change",
+                  visuallyHiddenText: " category"
+                }]
+              }
+          },{
+            classes: 'smart-category-status',
+            key: {  text: "Status"  },
+              value: {
+                text: govukTag({
+                  text: smartCategory.status,
+                  classes: smartCategory.status | getStatusCssClass
+                })
+              },
+              actions: {
+              items: [{
+                href: "/smart-categories/" + smartCategory.id + "/details",
+                text: "Change",
+                visuallyHiddenText: " status"
+              }]
+            }
+          }]
+      }) }}
+    </div>
+  </div>
+
+{% endblock %}

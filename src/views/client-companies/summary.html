@@ -1,0 +1,43 @@
+{% set titleText = 'Client company' %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+  {{ govukBackLink({
+      text: "Back",
+      href: "/client-companies"
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      {{ govukSummaryList({
+          rows: [
+            {
+              classes: 'client-company-name',
+              key: {  text: "Name"  },
+              value: {  text: clientCompany.companyName  },
+              actions: {
+                items: [{
+                  href: "/client-companies/" + clientCompany.id + "/details",
+                  text: "Change",
+                  visuallyHiddenText: " category"
+                }]
+              }
+          },{
+            classes: 'client-company-number',
+            key: {  text: "Number"  },
+            value: {  text: clientCompany.companyNumber  },
+            actions: {
+            items: [{
+              href: "/client-companies/" + clientCompany.id + "/details",
+              text: "Change",
+              visuallyHiddenText: " status"
+            }]
+          }
+          }]
+      }) }}
+    </div>
+  </div>
+
+{% endblock %}

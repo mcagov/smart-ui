@@ -1,0 +1,97 @@
+{% set titleText = forecastType| capitalize + '  forecast for ' + trainingProvider.companyName %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+{% set baseUrl = '/training-providers/' + trainingProvider.id + '/forecasts/' + forecastType %}
+
+{% from "components/forecasts-nav/macro.njk" import forecastsNav %}
+{{ forecastsNav({ trainingProvider: trainingProvider, active: forecastType,  user:user , activeTp: activeTp }) }}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% from "components/years-nav/macro.njk" import yearsNav %}
+    {{ yearsNav({ availableYears: availableYears, active: financialYear.meta.year, baseUrl:baseUrl + '/' }) }}
+
+  {% if financialYear.data | length %}
+    {% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+    {% set rows = [] %}
+    {% for forecast in financialYear.data %}
+        {%set tableLink%}
+        <a href="{{baseUrl}}/{{forecast.financialYear}}/{{forecast.financialPeriod}}" class="govuk-link">{{forecast.financialPeriod|financialPeriodFormat}}</a>
+        {%endset%}
+        {% set rows = (rows.push([
+          { text:  forecast.financialYear |financialYearFormat},
+          { html: tableLink },
+          { text: (forecast.periodAmount if forecast.periodAmount else '0') | currencyUK },
+          { text:  forecast.forecastOn | dateUKFormat},
+          { text:  govukTag({
+            text: forecast.status,
+            classes: forecast.status | getStatusCssClass
+        }) }
+        ] ), rows) %}
+    {% endfor %}
+
+    {{ sortableTable({
+        head: [
+          { text: "Year" },
+          { text: "Period" },
+          { text: "Payment" },
+          { text: "Forecast on" },
+          { text: "Status" }
+        ]  ,
+        rows: rows,
+        caption: 'Table showing forecasts',
+        meta: financialYear.meta
+    }) }}
+    {% else %}
+    <p>
+      No {{forecastType}} forecasts found for year {{financialYear.meta.year|financialYearFormat}}
+      {% set forecastMissing = true %}
+    </p>
+    {% endif %}
+</div>
+    <div class="govuk-grid-column-one-third">
+    <h2 class="govuk-heading-m">Actions</h2>
+    {% set formUrl = baseUrl + "/" + financialYear.meta.year %}
+    {% if forecastType == 'monthly' %}
+      {% set formUrl = formUrl + "/" + currentPaymentSchedule.financialPeriod %}
+    {% endif %}
+    <form action="{{ formUrl }}" method="post">
+      {% if canGenerateForecast(forecastType, financialYear.meta.year , financialYear.meta.period, currentPaymentSchedule.financialYear, currentPaymentSchedule.financialPeriod, forecastMissing) %}
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        {{ govukButton({
+          text: "Regenerate the " + forecastType + " forecast" if financialYear.data | length  else "Generate forecast for " + financialYear.meta.year|financialYearFormat,
+          classes: "govuk-button--warning action-button" if financialYear.data | length  else "action-button",
+          preventDoubleClick: true,
+          attributes: { id: 'regenerate-button'}
+        }) if financialYear.data | hasPending or financialYear.data | length == 0 or forecastType == 'monthly' }}
+        {{ govukButton({
+          name: 'view-logs-button',
+          text: "View logs",
+          value: 'view-logs',
+          classes: "govuk-button--secondary action-button",
+          href: '/training-providers/' + trainingProvider.id + '/forecasts/view-logs',
+          preventDoubleClick: true,
+          attributes: { id: 'view-logs-button'}
+        }) }}
+    </form>
+    {% endif %}
+    {% if user.isAdmin %}
+      {{ govukButton({
+        text: "Approve the " + financialYear.meta.year + " forecast",
+        href: formUrl + '/approved',
+        classes: "action-button",
+        attributes: { id: 'submit-button' }
+      }) if financialYear.data | hasPending }}
+    {% endif %}
+  </div>
+{% endblock %}
+{% block pageScript %}
+<script nonce='{{ cspNonce }}'>
+    const financialYear = {{ financialYear | dump | safe }}
+    console.log(financialYear)
+</script>
+{% endblock %}

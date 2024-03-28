@@ -1,0 +1,53 @@
+{% from "summary-list/macro.njk" import govukSummaryList %}
+{% from "tag/macro.njk" import govukTag %}
+
+{% set training = params.training %}
+{% set trainees = params.trainees %}
+{% set return = '' %}
+{% if params.return %}
+    {% set return = '?return=' + params.return %}
+{% endif %}
+
+{% set baseUrl = '/training-providers/' + params.trainingProviderId + '/trainings/' + training.id +'/' %}
+
+{{ govukSummaryList({
+    rows: [
+        {
+            key: { text: 'Legacy' },
+            value: { text: 'This training item should not be used in the future' },
+            actions: { items: [] }
+        } if training.trainingItem.isLegacy,
+        {
+            key: { text: 'Training Item' },
+            value: { text: training.trainingItem.description },
+            actions: { items: [] }
+        },
+        {
+            key: { text: "Status" },
+            value: { text: govukTag({
+                text: training.status,
+                classes: training.status | getStatusCssClass
+            }) },
+            actions: {
+            items: [
+                {
+                    href: baseUrl + 'change-status',
+                    text: "Change",
+                    visuallyHiddenText: " status"
+                }
+            ]
+        }
+        },
+        {
+            key: { text: 'Disciplines' },
+            value: {  text: training.trainingItem.disciplines | summariseArray('discipline')  },
+            actions: { items: [] }
+        },
+        {
+            key: { text: 'Levels' },
+            value: {  text: training.trainingItem.levels | summariseArray('level')  },
+            actions: { items: [] }
+        }
+    ] | cleanList
+}) }}
+

@@ -1,0 +1,57 @@
+{% from "file-upload/macro.njk" import govukFileUpload %}
+{% from "button/macro.njk" import govukButton %}
+{% from "error-summary/macro.njk" import govukErrorSummary %}
+{% from "multi-file-upload/macro.njk" import mojMultiFileUpload %}
+
+
+{% macro documentUpload(params) %}
+
+<!--//@formatter:off -->
+<script nonce='{{ params.cspNonce }}'>
+  const resourceAttachments = {{ params.attachments | dump | safe }}
+</script>
+<!--//@formatter:on -->
+
+<script nonce='{{ params.cspNonce }}'>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof MOJFrontend.MultiFileUpload !== 'undefined' && typeof MCGAFrontend.Attachments !== 'undefined') {
+          MCGAFrontend.attachments = new MCGAFrontend.Attachments({
+            attachments: resourceAttachments,
+            fileType: '{{ params.fileType }}',
+            resourceUrl: '{{ params.resourceUrl }}',
+            enableAV: {{ params.enableAV }},
+            csrf: '{{ params.csrfToken }}'
+          })
+          MCGAFrontend.attachments.init()
+        }
+  })
+</script>
+
+{% set uploadHtml %}
+    {{ govukFileUpload({
+        id: "attachments",
+        name: "attachments",
+        classes: 'moj-multi-file-upload__input',
+        label: {
+          text: "Upload a " + params.docDescription,
+          classes: 'govuk-label--m'
+        },
+        attributes: { multiple: '' },
+        errorMessage: params.errorMessage
+      }) }}
+
+    {{ govukButton({
+        text: 'Upload file',
+        classes: 'govuk-button--secondary moj-multi-file-upload__button'
+    }) }}
+{% endset %}
+
+{{ mojMultiFileUpload({
+  uploadedFiles: {
+    heading: { text: 'Files uploaded' },
+    items: params.uploadedFiles
+  },
+  uploadHtml: uploadHtml
+}) }}
+
+{% endmacro %}

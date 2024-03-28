@@ -1,0 +1,118 @@
+{% set titleText = ('Edit' if balancingClaim.id else 'Create') + ' balancing claim' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+    {% from "components/smart-date/macro.njk" import smartDate %}
+    {{ govukBackLink({
+        text: "Back to claim",
+        href: "/training-providers/" + trainingProviderId + "/claims/years/" + year + "/periods/" + period+ "/balancing-claims"
+    }) }}
+    <div class='govuk-grid-row'>
+        <div class='govuk-grid-column-two-thirds'>
+            <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+            <form class="form" action="" method="post">
+                <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+            {{ govukSummaryList({
+                rows: [
+                    {
+                        key: { text: 'Trainee' },
+                        value: { text: trainee.contactName  if trainee.contactName else trainee.matsuNumber },
+                        actions: { items: [] }
+                    },
+                                        {
+                        key: { text: 'Trainee date of birth' },
+                        value: { text: trainee.dateOfBirth | dateUKFormat },
+                        actions: { items: [] }
+                    }
+                ]
+            }) }}
+            {# <p>Select the claim that you wish to make a balancing claim for, then enter the amount of the balancing claim
+            </p> #}
+                {% set items = [{ value: '',  text: '--- claim ---' }] %}
+                {% for bcTraineeClaim in bcTraineeClaims %}
+                    {% set items = (items.push({ text:
+                    bcTraineeClaim.financialYear + '/' +
+                    bcTraineeClaim.financialPeriod + ' - ' +
+                    bcTraineeClaim.smartItemDescription + ' - ' + bcTraineeClaim.paymentAmount, value: bcTraineeClaim.smartItemId }), items) %}
+                {% endfor %}
+                {{ govukSelect({
+                    id: 'bcTraineeClaim',
+                    name: 'bcTraineeClaim',
+                    label: {
+                        text: 'Choose claim',
+                        classes: "govuk-label--s"
+                    },
+                    items: items | selectValue(balancingClaim.smartItem.id),
+                    errorMessage: params.errorMessage
+                }) }}
+
+                {{ govukInput({
+                    label: {
+                        text: "Balancing Claim Weeks",
+                        classes: "govuk-label--s" },
+                    classes: "govuk-input--width-10",
+                    id: "bcWeeksClaimed",
+                    name: "bcWeeksClaimed",
+                    value: balancingClaim.weeksClaimed,
+                    errorMessage: 'bcWeeksClaimed' | getError(errors)
+                }) }}
+
+                {{ govukInput({
+                    label: {
+                        text: "Balancing Claim Amount",
+                        classes: "govuk-label--s" },
+                    classes: "govuk-input--width-10",
+                    id: "bcAmount",
+                    name: "bcAmount",
+                    value: balancingClaim.amount,
+                    prefix: {
+                        text: "£"
+                    },
+                    errorMessage: 'bcAmount' | getError(errors)
+                }) }}
+
+                {{ govukWarningText({
+                    text: "The suggested amount matches the total claimed in the selected period. Enter the actual amount of the balancing claim. ",
+                    iconFallbackText: "Warning"
+                })}}
+
+                {{ govukTextarea({
+                name: "bcComment",
+                id: "bcComment",
+                value: balancingClaim.comment,
+                errorMessage: 'bcComment' | getError(error),
+                label: {
+                    text: "Comment",
+                    classes: "govuk-label--s"
+                },
+                hint: {
+                    text: "Please describe the reason for this balancing claim."
+                }
+                }) }}
+
+                    <div class="govuk-form-group">
+                        {{ govukButton({
+                            text: "Submit",
+                            preventDoubleClick: true
+                        }) }}
+
+                        {{ govukButton({
+                            text: "Cancel",
+                            classes: "govuk-button--secondary",
+                            href: "/training-providers/" + trainingProviderId + "/claims/years/" + year + "/periods/" + period+ "/balancing-claims"
+                        }) }}
+
+                        {% if balancingClaim.id %}
+                        {{ govukButton({
+                            text: "Delete",
+                            classes: "govuk-button--warning",
+                            href: "/training-providers/" + trainingProviderId + "/claims/years/" + year + "/periods/" + period+ "/balancing-claim/trainee/" +  trainee.id + "/" + balancingClaim.id + "/delete"
+                        }) }}
+                        {%endif%}
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endblock %}

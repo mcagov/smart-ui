@@ -1,0 +1,35 @@
+{% from "table/macro.njk" import govukTable %}
+
+ {% set rows = [] %}
+ {% for claim in params.claims %}
+		{%set tableLink%}
+		<a href="/providers/trainees/{{claim.id}}/overview" class="govuk-link">{{claim.info.ref}}</a>
+		{%endset%}
+     {% set rows = (rows.push([
+     { html: tableLink},
+     { text: claim.weeksClaimed },
+     { text: claim.weeksAbsent },
+     { text: claim.totalClaimed | currencyUK }
+     ]), rows) %}
+ {% endfor %}
+
+ {{ govukTable({
+   caption: params.title,
+   captionClasses: "govuk-table__caption--m",
+   firstCellIsHeader: false,
+   head: [
+ 	      {
+ 	        text: "Ref"
+ 	      },
+ 	      {
+ 	        text: "Weeks claimed"
+ 	      },
+ 	      {
+ 	        text: "Weeks absent"
+ 	      },
+ 	      {
+ 	        text: "Total amount"
+ 	      }
+ 	    ],
+   rows: rows
+ }) }}

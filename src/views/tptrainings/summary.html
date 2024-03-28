@@ -1,0 +1,26 @@
+{% set titleText = 'Training summary'%}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    {% from "components/trainingsummary/macro.njk" import trainingSummary %}
+    {{ trainingSummary({
+      training: trainingProviderTraining,
+      trainingProviderId: trainingProvider.id,
+      trainees: trainees,
+      clientCompanies: clientCompanies
+    }) }}
+    <h2 class="govuk-heading-m">SMarT Funding</h2>
+    {% from "components/trainingratetable/macro.njk" import trainingRateTable %}
+    {{ trainingRateTable({ trainingRates: trainingRates }) }}
+    {{ govukButton({
+      text: "Submit",
+      preventDoubleClick: true,
+      href: '/training-providers/' + trainingProvider.id  + '/trainings/' + trainingProviderTraining.id + '/status/Active?return=/training-providers/' + trainingProvider.id + '/trainings'
+    }) }}
+  </div>
+</div>
+{% endblock %}

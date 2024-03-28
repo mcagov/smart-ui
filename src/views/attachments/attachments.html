@@ -1,0 +1,30 @@
+
+{% if resourceUrl %}
+    {% set titleText = 'Manage attachments'%}
+{% else %}
+    {% set titleText = 'Attachments'%}
+{% endif %}
+
+{% if user.role == 'admin' %}
+    {% if trainee.contactName%}
+        {% set titleText = titleText + ' for ' + trainee.contactName %}
+    {% elif trainee.matsuNumber %}
+        {% set titleText = titleText + ' for ' + trainee.matsuNumber %}
+    {% elif trainingProvider.companyName %}
+        {% set titleText = titleText + ' for ' + trainingProvider.companyName %}
+    {% endif %}
+{% endif %}
+
+{% extends "layout.html" %}
+
+{% set canchange = true %}
+
+{% block content %}
+
+{% if resourceUrl %}
+    {% include "./manage.html" %}
+{% else %}
+    {% include "./list.html" %}
+{% endif %}
+
+{% endblock %}

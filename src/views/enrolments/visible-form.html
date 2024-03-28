@@ -1,0 +1,90 @@
+{% from "components/discipline-select/macro.njk" import disciplineSelect %}
+{% from "components/level-select/macro.njk" import levelSelect %}
+{% from "components/qualification-select/macro.njk" import qualificationSelect %}
+
+{{ disciplineSelect({
+    items: disciplines,
+    value: enrolment.disciplineId,
+    errorMessage: 'discipline' | getError(errors)
+}) }}
+
+{{ levelSelect({
+    items: levels,
+    value: enrolment.levelId,
+    errorMessage: 'level' | getError(errors)
+}) }}
+
+{{ qualificationSelect({
+    items: qualifications,
+    value: enrolment.qualificationId,
+    errorMessage: 'qualification' | getError(errors)
+}) }}
+
+{{ govukRadios({
+    classes: "govuk-radios--small govuk-radios--inline",
+    idPrefix: 'experienced',
+    name: 'experienced',
+    fieldset: {
+        legend: {  text: "Is an experienced seafarer?"  }
+    },
+    hint: {  text: "This applies if they have previously worked for the MOD or in fishing"  },
+    items: [ {
+        value: "true",
+        text: "Yes",
+        checked: true if enrolment.isExperiencedSeafarer | isTrue
+    }, {
+        value: "false",
+        text: "No",
+        checked: true if enrolment.isExperiencedSeafarer | isFalse
+    }]
+}) }}
+
+{{ govukRadios({
+    classes: "govuk-radios--small govuk-radios--inline",
+    idPrefix: 'graduate',
+    name: 'graduate',
+    fieldset: {
+        legend: {  text: "Is a graduate engineer and their discipline is Engineering or ETO?"  }
+    },
+    items: [ {
+        value: "true",
+        text: "Yes",
+        checked: true if enrolment.isGraduateEngineer | isTrue
+    }, {
+        value: "false",
+        text: "No",
+        checked: true if enrolment.isGraduateEngineer | isFalse
+    }]
+}) }}
+
+{{ govukRadios({
+    classes: "govuk-radios--small govuk-radios--inline",
+    idPrefix: 'includeCovid',
+    name: 'includeCovid',
+    fieldset: {
+        legend: {  text: "Include COVID items?"  }
+    },
+    items: [ {
+        value: "true",
+        text: "Yes",
+        checked: true if enrolment.includeCovid | isTrue
+    }, {
+        value: "false",
+        text: "No",
+        checked: true if enrolment.includeCovid | isFalseOrNotSet
+    }]
+}) }}
+
+{{ smartDate({
+    id: 'start-date',
+    value: enrolment.startDate,
+    legend: 'When does the training start?',
+    errors: errors
+}) }}
+
+{{ smartDate({
+    id: 'end-date',
+    value: enrolment.expectedEndDate,
+    legend: 'When is the training expected to finish?',
+    errors: errors
+}) }}

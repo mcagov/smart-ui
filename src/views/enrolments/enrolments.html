@@ -1,0 +1,87 @@
+{% set titleText = 'Enrolments for ' + (trainee.contactName if trainee.contactName else trainee.matsuNumber) %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if user.role == 'admin' %}
+    {{ govukBackLink({
+        text: "Back to " + trainingProvider.companyName,
+        href: '/training-providers/' + trainingProvider.id + '/trainees'
+    }) }}
+{% endif %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% from 'components/trainee-nav/macro.njk' import traineeNav %}
+{{ traineeNav({
+    active: 'enrolments',
+    trainingProviderId: trainingProvider.id,
+    trainee: trainee,
+    titleText: titleText,
+    user: user }) }}
+
+{% if enrolments.data | isArray and enrolments.data.length > 0 or enrolments.meta.queries %}
+    <div class="govuk-grid-row">
+        {% set customFilters %}
+            {{ enrolmentStatusSelect({ value: enrolments.meta.queries.status, filter: true }) }}
+        {% endset %}
+
+        {# {% if user.role == 'admin' %} #}
+        {% set customButtons %}
+        <div class="govuk-checkboxes__item govuk-checkboxes--small ">
+            <input type="checkbox" class="govuk-checkboxes__input mca-filter"
+            id="allTps" name="allTps" value="true" {{'checked' if allTps === 'true'}}>
+            <label class="govuk-label govuk-checkboxes__label" for="allTps">
+                include all Training Providers
+            </label>
+        </div>
+        {% endset %}
+        {# {% endif %} #}
+
+        {{ listFilter({
+            columnClasses: "govuk-grid-column-two-thirds",
+            resetLink: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments',
+            status: { items: statusItems },
+            meta: enrolments.meta,
+            textFilterLabel: 'Enter text to search the enrolments by trainee name',
+            customFilters: customFilters,
+            customButtons: customButtons,
+            allTps: allTps
+        }) }}
+
+        <div class="govuk-grid-column-one-third">
+            <label class="govuk-label govuk-label--m">Actions</label>
+            {{ govukButton({
+                text: 'Enrol on training',
+                href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments/create'
+            }) if trainee.status  == 'Active' }}
+        </div>
+    </div>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                {% from 'components/enrolments-table/macro.njk' import enrolmentsTable %}
+                {{ enrolmentsTable({
+                    items: enrolments,
+                    tpId: trainingProvider.id,
+                    baseUrl: '/training-providers/' + trainingProvider.id,
+                    isTp: (user.isTP === true),
+                    allTps: allTps
+                }) }}
+            </div>
+        </div>
+{% else %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <p class="govuk-heading-l">{{ trainee.contactName  if trainee.contactName else trainee.matsuNumber }} is not currently enrolled on any training</p>
+        {{ govukButton({
+            text: 'Enrol on training',
+            href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments/create'
+        }) if trainee.status  == 'Active' }}
+    </div>
+</div>
+{% endif %}
+
+
+
+{% endblock %}

@@ -1,0 +1,53 @@
+{% set titleText = 'Client companies' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/admin-nav/macro.njk" import adminNav %}
+
+{{ adminNav({ active: 'client-companies' }) }}
+
+<div class="govuk-grid-row">
+    {{ listFilter({
+      columnClasses: "govuk-grid-column-two-thirds",
+      resetLink: "/client-companies",
+      includeTextFilter: true,
+      meta: clientCompanies.meta
+    }) }}
+
+    <div class="govuk-grid-column-one-third">
+        <label class="govuk-label govuk-label--m">Actions</label>
+        {{ govukButton({
+          text: 'Add a client company',
+          href: '/client-companies/create',
+          attributes: { id: 'add-button' }
+        }) }}
+    </div>
+
+    <div class="govuk-grid-column-full">
+        <h1 id="page-title" class="govuk-heading-l govuk-visually-hidden">{{titleText}}</h1>
+        {% set baseUrl = params.baseUrl %}
+        {% set rows = [] %}
+        {% for item in clientCompanies.data %}
+          {% set tableLink %}
+          <a href="/client-companies/{{item.id}}" class="govuk-link">{{item.companyName}}</a>
+          {% endset %}
+          {% set rows = (rows.push([
+            { html: tableLink },
+            { text: item.companyNumber }
+          ]), rows) %}
+        {% endfor %}
+
+        {{ sortableTable({
+            head: [
+              { text: 'Name', attributes: { "aria-sort": "none", "data-name": "companyName" } },
+              { text: 'Number', attributes: { "aria-sort": "none", "data-name": "companyNumber" } }
+            ],
+            rows: rows,
+            caption: 'Table showing all client companies, column headers with buttons are sortable',
+            meta: clientCompanies.meta
+        }) }}
+    </div>
+</div>
+{% endblock %}

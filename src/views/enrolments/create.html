@@ -1,0 +1,65 @@
+{% set titleText = 'Enrol ' + (trainee.contactName  if trainee.contactName else trainee.matsuNumber)  + ' onto training' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <form class="form" action="" method="post" id="enrolment-form">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {% if errors %}
+                {% include "./visible-form.html" %}
+            {% elseif noTraining and training.data.length == 0 %}
+                <p class="govuk-heading-m">No training is available for your enrolment criteria, try a reset and then different criteria.</p>
+                {% include "./visible-form.html" %}
+            {% elseif training.data.length > 0 %}
+                {% include "./hidden-form.html" %}
+                {% include "./training-form.html" %}
+            {% else %}
+                {% include "./visible-form.html" %}
+            {% endif %}
+
+            {{ govukButton({
+                name: 'submit',
+                attributes: { id: 'submit' },
+                value: 'save',
+                text: 'Continue'
+            }) }}
+            {{ govukButton({
+                name: 'return',
+                value: 'return',
+                text: 'Cancel',
+                href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id,
+                classes: "govuk-button--secondary"
+            }) }}
+            {{ govukButton({
+                name: 'reset',
+                attributes: { id: 'reset-button' },
+                value: 'reset',
+                text: 'Reset',
+                href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments/create',
+                classes: "govuk-button--secondary"
+            }) }}
+        </form>
+    </div>
+</div>
+<script nonce='{{ cspNonce }}'>
+  function resetForm() {
+    document.getElementById('discipline').value = ""
+    document.getElementById('level').value = ""
+    // document.getElementById('qualification').value = ""
+    // document.getElementById('enrolment-form').submit()
+    document.getElementById('submit').click()
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const reset = document.getElementById('reset-button')
+    if (reset) {
+      reset.setAttribute('href','#')
+      reset.addEventListener('click', (e) => { resetForm() })
+    }
+  })
+</script>
+{% endblock %}

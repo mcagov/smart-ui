@@ -1,0 +1,40 @@
+  {% set formUrl = '/training-providers/' + trainingProvider.id + '/forecasts/' + forecastType + '/'  + items.meta.year %}
+
+  {% if forecastType == 'monthly' %}
+    {% set formUrl = formUrl + '/' + items.meta.period %}
+  {% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">Forecast for {{ items.meta.year }}{{'/' + items.meta.period if forecastType == 'monthly'}}</h1>
+      {% if not canGenerateForecast(forecastType, items.meta.year , items.meta.period, currentPaymentSchedule.financialYear, currentPaymentSchedule.financialPeriod, true) %}
+        <p>The {{forecastType}} forecast for the {{ items.meta.year }}{{'/' + items.meta.period if forecastType == 'monthly'}} has not yet been generated and it is now too late to generate it</p>
+          {{ govukButton({
+          text: "Back",
+          classes: "govuk-button--secondary",
+          href: '/training-providers/' + trainingProvider.id + '/forecasts/' + forecastType,
+          attributes: { id: 'cancel-button' }
+        }) }}
+      {% else %}
+
+      <form action="{{ formUrl }}" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        <p>The forecast for this {{'period' if forecastType == 'monthly' else 'year'}} has not yet been generated, would you like to generate it now?</p>
+        <p>The forecast will be automatically populated based upon the training enrolments and absences that have been marked against the trainees that you manage.</p>
+        <p>Once generated you will have the option to make adjustments and regenerate the forecast in the future.</p>
+        {{ govukButton({
+          text: "Generate forecast",
+          preventDoubleClick: true,
+          attributes: { id: 'generate-button' }
+        }) }}
+        {{ govukButton({
+          text: "Cancel",
+          classes: "govuk-button--secondary",
+          href: '/training-providers/' + trainingProvider.id + '/forecasts',
+          attributes: { id: 'cancel-button' }
+        }) }}
+      </form>
+      {% endif %}
+    </div>
+  </div>

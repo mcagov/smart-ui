@@ -1,0 +1,154 @@
+
+{% set titleText = 'Trainee details'  %}
+
+{% extends "layout.html" %}
+{% block content %}
+  <link href="/public/css/accessible-autocomplete.min.css" media="all" rel="stylesheet" type="text/css"/>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      <form class="form" action="" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        {% if trainee.matsuNumber %}
+          <div class="govuk-form-group">
+            <label class="govuk-label">Dummy NI</label>
+            <p>{{ trainee.matsuNumber }}</p>
+          </div>
+        {% endif %}
+
+        {{ govukInput({
+          id: 'contact-name',
+          name: 'contact-name',
+          label: {  text: 'Name' },
+          classes: "govuk-!-width-three-quarters",
+          spellcheck: false,
+          value: trainee.contactName if trainee.contactName else '',
+          errorMessage: 'contact-name' | getError(errors)
+        }) }}
+
+        {% set EEAStateMembershipItems = [
+          { value: "", text: "-- select an option --"},
+          { text: "──────────────────────────────", disabled: true },
+          { value: "GB", text: "United Kingdom of Great Britain and Northern Ireland" },
+          { text: "──────────────────────────────", disabled: true }
+        ] %}
+        {% for country in smartEligibleCountries %}
+          {% if country.alpha2 !== 'GB' %}
+            {% set EEAStateMembershipItems = (EEAStateMembershipItems.push({value: country.alpha2, text: country.name}), EEAStateMembershipItems) %}
+          {% endif %}
+        {% endfor %}
+
+        {{ govukSelect({
+          id: 'nationality',
+          name: 'nationality',
+          label: {  text: "Trainee's nationality" },
+          hint: {  text: 'The trainee must be an EEA state member' },
+          items: EEAStateMembershipItems | selectValue(trainee.nationality),
+          errorMessage: 'nationality' | getError(errors)
+        }) }}
+
+        {{ govukInput({
+          id: 'place-of-birth',
+          name: 'place-of-birth',
+          label: {  text: 'Place Of Birth' },
+          hint: {  text: 'City or town where the trainee was born ' },
+          classes: "govuk-!-width-three-quarters",
+          value: trainee.placeOfBirth if trainee.placeOfBirth else '',
+          errorMessage: 'place-of-birth' | getError(errors)
+        }) }}
+
+        {{ smartDate({
+          id: 'dob',
+          value: trainee.dateOfBirth,
+          legend: 'Date of birth',
+          hint: 'For example, 31 3 1980',
+          errorMessage: 'dob' | getError(errors)
+        }) }}
+
+        {{ govukRadios({
+          idPrefix: "gender",
+          name: "gender",
+          fieldset: {  legend: {  text: "Trainee gender" } },
+          hint: { text: 'This is optional and only used for reporting purposes'  },
+          errorMessage: 'gender' | getError(errors),
+          items: [
+            { value: "Female", text: "Female" },
+            { value: "Male",  text: "Male" },
+            { value: "PreferNotToSay",  text: "Prefer not to say"  }
+          ] | selectValue(trainee.gender)
+        }) }}
+
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Client company" },
+              value: { text: trainee.clientCompany.companyName }
+            }
+          ]
+        }) }}
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="company-autocomplete-container">Enter the name of the client company, if the trainee is registered with one</label>
+          <input type="hidden" name="company" id="company" value=" {{ trainee.clientCompany.id}}">
+          <div id="company-autocomplete-container"></div>
+        </div>
+
+        {{ govukButton({
+          text: 'Save and continue',
+          attributes: {"id": "save-button" },
+          preventDoubleClick: true
+        }) }}
+        {% set cancelLink %}
+          /training-providers/{{trainingProvider.id}}/trainees{% if trainee.id %}/{{trainee.id}}{% endif%}
+        {% endset %}
+        {{ govukButton({
+          text: 'Cancel',
+          classes: "govuk-button--secondary",
+          href: cancelLink
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}
+{% block pageScript %}
+  <script nonce='{{cspNonce}}'>
+    function filterClientCompanies(query, populateResults) {
+      request({
+        'url': `/api/client-companies?searchText=${query}`,
+        'method': 'GET'
+      }, function (xhr) {
+        populateResults(JSON.parse(xhr.responseText).data)
+      }, function (xhr) {
+        setPageError(xhr.responseText)
+      })
+    }
+
+    const autocompleteContainer = document.querySelector('#company-autocomplete-container')
+    if (autocompleteContainer) {
+      accessibleAutocomplete({
+        element: document.querySelector('#company-autocomplete-container'),
+        id: 'company-autocomplete',
+        placeholder: 'Please start typing the name of the company and results will start appearing',
+        minLength: 1,
+        templates: {
+          inputValue: (value) => {
+            return value && value.companyName
+          },
+          suggestion: (value) => {
+            return value && value.companyName
+          }
+        },
+        source: filterClientCompanies,
+        onConfirm: (item) => {
+          if (!isUndefined(item)) {
+            document.getElementsByClassName('govuk-summary-list__value')[0].textContent = item.companyName
+            document
+              .getElementById("company")
+              .value = item.id
+          }
+        }
+      })
+    }
+  </script>
+{% endblock %}

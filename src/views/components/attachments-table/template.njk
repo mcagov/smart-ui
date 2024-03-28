@@ -1,0 +1,51 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "tag/macro.njk" import govukTag %}
+{% from "details/macro.njk" import govukDetails %}
+
+{% set rows = [] %}
+{% for item in params.attachments.data %}
+    {% set resourceLink %}
+        <a href='{{ item.resourceUrl }}' class="govuk-link">{{item.resourceName}}</a>
+    {% endset %}
+
+    {% if item.status == 'OK' or item.status == 'Uploaded' %}
+        {% set fileLink %}
+            <a href='{{ item.resourceUrl }}/attachments/{{item.id}}' class="govuk-link" target="_blank">{{ item.fileName }}</a>
+        {% endset %}
+    {% elif item.status == 'FAIL' %}
+        {% set fileLink %}
+            {{ govukDetails({
+                summaryText: item.fileName,
+                text: item.errorReason
+                }) }}
+        {% endset %}
+    {% else %}
+        {% set fileLink %}
+            {{ item.fileName }}
+        {% endset %}
+    {% endif %}
+
+    {% set rows = (rows.push([
+        { html: resourceLink },
+        { html: fileLink },
+        { text: item.userName },
+        { text: item.fileType },
+        { text: item.expiry | dateUKFormat },
+        { text: govukTag({ text: item.status, classes: item.status | getStatusCssClass }) }
+    ]), rows) %}
+{% endfor %}
+
+{% from "components/sortable-table/macro.njk" import sortableTable %}
+{{ sortableTable({
+    head: [
+        { text: "Resource" },
+        { text: "File", attributes: { "aria-sort": "none", "data-name": "fileName" } },
+        { text: "User" },
+        { text: "Type", attributes: { "aria-sort": "none", "data-name": "fileType" } },
+        { text: "Expires", attributes: { "aria-sort": "none", "data-name": "expiry" } },
+        { text: "Status" }
+    ],
+    rows: rows,
+    caption: 'Table showing attachments, column headers with buttons are sortable',
+    meta: params.attachments.meta
+}) }}

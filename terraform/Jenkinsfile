@@ -1,0 +1,130 @@
+// this madness is to get around the fact you can not have dynamic choices in a declarative Jenkinsfile
+properties([
+    parameters([
+        choice(name: 'TF_WORKSPACE', choices: ['dev','preprod','live'], description: 'Pick deployment environment'),
+        [$class: 'ChoiceParameter',
+            choiceType: 'PT_SINGLE_SELECT',
+            description: 'smart-ui version to deploy',
+            name: 'TF_VAR_smart_ui_version',
+            script: [
+                $class: 'ScriptlerScript',
+                scriptlerScriptId:'GetVersionList.groovy',
+                parameters: [
+                    [name:'serviceName', value: 'smart-ui']
+                ]
+            ]
+        ]
+    ])
+])
+
+pipeline {
+    agent {
+        docker {
+            image '676563297163.dkr.ecr.eu-west-2.amazonaws.com/jenkins-terraform-ci:latest'
+            alwaysPull true
+            label 'smart-small-agent'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
+    options {
+        ansiColor('xterm')
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr:'40'))
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        AWS_DEFAULT_REGION = 'eu-west-2'
+        AWS_REGION = 'eu-west-2'
+    }
+
+    stages {
+
+        stage('skip if git event') {
+            when {
+                triggeredBy "BranchEventCause"
+            }
+            steps {
+                script {
+                    buildName "SKIPPED - as it was triggered by git"
+                    echo "skipping build as its a git event"
+                    currentBuild.result = 'SUCCESS'
+                }
+            }
+        }
+
+        stage('deploy') {
+            when {
+                not {
+                    triggeredBy "BranchEventCause"
+                }
+            }
+            steps {
+                script {
+                    wrap([$class: 'BuildUser']) {
+                        env.BUILDER = sh (script:'[[ -z "${BUILD_USER}" ]] && echo -n "$(git show -s --pretty=%ae)" || echo -n "${BUILD_USER}"',returnStdout: true).trim()
+                    }
+                    env.SLACK_ID = getSlackid.forEmail "${env.BUILDER}"
+
+                    if (!["dev", "preprod", "live"].contains(env.TF_WORKSPACE)) {
+                        error("Unknown TF_WORKSPACE '${env.TF_WORKSPACE}' - should be dev, preprod or live")
+                    }
+
+                    buildName "${TF_WORKSPACE}-${TF_VAR_smart_ui_version}"
+
+                    def bucket =  getSmartBucketForTerraform.forEnv "${env.TF_WORKSPACE}"
+                    def account =  getSmartAwsAccount.forEnv "${env.TF_WORKSPACE}"
+                    def changed = false
+
+                    withAWS(roleAccount:account, role:'CrossAccount-Deployer', region: "${AWS_REGION}") {
+                        withCredentials([gitUsernamePassword(credentialsId: 'mca-bot-gh')]) {
+                            changed = DeployService.deploy(this, bucket)
+
+                        }
+                    }
+                    if(changed){
+                         env.DEPLOY_MESSAGE = "deployed smart-ui version ${TF_VAR_smart_ui_version} to ${TF_WORKSPACE} on EKS"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            script {
+                if ( env.DEPLOY_MESSAGE && ! env.DEPLOY_MESSAGE.isEmpty() ) {
+                    slackSend (color: '#00FF00', message: '', attachments: [
+                        [
+                            text:   '<@' + env.SLACK_ID + '>\n' +
+                                    env.DEPLOY_MESSAGE + '\nBuild - ' +
+                                    '<' + env.BUILD_URL + '|' +
+                                    env.JOB_NAME.replaceAll('/', ' » ') +
+                                    ' #' + env.BUILD_NUMBER + '>\n' ,
+                            color: '#00FF00'
+                       ]
+                    ])
+                }
+            }
+        }
+        failure {
+            slackSend (color: '#FF0000', message: '', attachments: [
+                [
+                    text:   '<@' + env.SLACK_ID + '>\n' +
+                            ' A build you (' + env.BUILDER + ') started has failed\n' +
+                            '<' + env.BUILD_URL + '|' +
+                            env.JOB_NAME.replaceAll('/', ' » ') +
+                            ' #' + env.BUILD_NUMBER + '>\n' ,
+                    color: '#FF0000'
+                ]
+            ])
+            emailext (
+                subject: "[JENKINS MCAUK] FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+                        <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+                to: 'mcauk@catapult.cx',
+                recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider'], [$class: 'CulpritsRecipientProvider']]
+            )
+        }
+    }
+    }

@@ -1,0 +1,44 @@
+{% set titleText = 'My details' %}
+
+{% extends "layout.html" %}
+
+{% set noBreadcrumb = "true" %}
+
+{% block content %}
+
+{% if user.role == 'admin' %}
+  {% from "components/admin-nav/macro.njk" import adminNav %}
+  {{ adminNav({ active: 'payment-schedules' }) }}
+{% else %}
+  {% from "components/company-nav/macro.njk" import companyNav %}
+  {{ companyNav({ trainingProvider: trainingProvider, active: 'my-details' }) }}
+{% endif %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l govuk-visually-hidden" id="page-title">{{titleText}}</h1>
+        <table class="govuk-table" aria-describedby="page-title">
+            <caption class="govuk-table__caption">Currently logged in as </caption>
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Name</th>
+                <td class="govuk-table__cell">{{ user.name }}</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Email</th>
+                <td class="govuk-table__cell">{{ user.preferred_username }}</td>
+            </tr>
+            </tr>
+            {# <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Phone</th>
+                <td class="govuk-table__cell">{{ user.phone }}</td>
+            </tr> #}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="govuk-grid-column-one-third">
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,136 @@
+<form action="/feedback" id="feedback-form" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+    <input type="hidden" id="resolution" name="resolution">
+
+    {{ govukRadios({
+      idPrefix: "satisfaction",
+      name: "satisfaction",
+      classes: "govuk-radios--small",
+      fieldset: {
+        legend: {
+          text: "Satisfaction survey",
+          classes: "govuk-label--s"
+        }
+      },
+      hint: {
+        text: "Overall, how did you feel about the service you received today?"
+      },
+      errorMessage: 'satisfaction' | getError(error),
+      items: [
+        {
+          value: 'Very satisfied',
+          text: "Very satisfied",
+          checked: true if data.satisfaction == "Very satisfied" else false
+        }, {
+          value: 'Satisfied',
+          text: "Satisfied",
+          checked: true if data.satisfaction == "Satisfied" else false
+        }, {
+          value: 'Neither satisfied or dissatisfied',
+          text: "Neither satisfied or dissatisfied",
+          checked: true if data.satisfaction == "Neither satisfied or dissatisfied" else false
+        }, {
+          value: 'Dissatisfied',
+          text: "Dissatisfied",
+          checked: true if data.satisfaction == "Dissatisfied" else false
+        }, {
+          value: 'Very dissatisfied',
+          text: "Very dissatisfied",
+          checked: true if data.satisfaction == "Very dissatisfied" else false
+        }
+      ]
+    }) }}
+
+    {{ govukInput({
+      label: {
+        text: "Summary of feedback",
+          classes: "govuk-label--s"
+      },
+      hint: {
+        text: "A brief overview of your feedback"
+      },
+      classes: "govuk-input--width-20",
+      id: "summary",
+      name: "summary",
+      value: data.summary if data.summary,
+      errorMessage: 'summary' | getError(error),
+      attributes: { spellcheck: "false" }
+    }) }}
+
+    {{ govukTextarea({
+      name: "description",
+      id: "description",
+      value: data.description if data.description,
+      errorMessage: 'description' | getError(error),
+      label: {
+        text: "How could we improve this service?",
+          classes: "govuk-label--s"
+      },
+      hint: {
+        text: "Do not include personal or financial information, like a National Insurance number or credit card details."
+      }
+    }) }}
+
+    {% if user and not isAdmin %}
+        {% set text = 'Can we automatically include your name (' + user.name + ') and email (' + user.preferred_username + ')?' %}
+        {{ govukRadios({
+          idPrefix: "includePersonal",
+          name: "includePersonal",
+          classes: "govuk-radios--inline govuk-radios--small",
+          errorMessage: 'includePersonal' | getError(error),
+          fieldset: {
+            legend: {
+              text: text,
+              classes: "govuk-label--s"
+            }
+          },
+          hint: {
+            text: "We may wish to contact you to discuss your feedback further, your information will not be shared with anyone."
+          },
+          items: [
+            {
+              value: "true",
+              text: "Yes",
+              checked: true if data.includePersonal == "true" else false
+            },
+            {
+              value: "false",
+              text: "No",
+              checked: true if data.includePersonal == "false" else false
+            }
+          ]
+        }) }}
+    {% endif %}
+
+    {% if not isAdmin %}
+        {{ govukRadios({
+          idPrefix: "includeEnvironment",
+          name: "includeEnvironment",
+          classes: "govuk-radios--inline govuk-radios--small",
+          errorMessage: 'includeEnvironment' | getError(error),
+          fieldset: {
+            legend: {
+                text: "Can we automatically include data about your current environment, like the browser and page URL. This helps us understand your feedback better?",
+              classes: "govuk-label--s"
+            }
+          },
+          items: [
+            {
+              value: "true",
+              text: "Yes",
+              checked: true if data.includeEnvironment == "true" else false
+            },
+            {
+              value: "false",
+              text: "No",
+              checked: true if data.includeEnvironment == "false" else false
+            }
+          ]
+        }) }}
+    {% endif %}
+
+    <button type="submit" class="govuk-button govuk-!-margin-right-3">
+        Submit feedback
+    </button>
+    <a href="/" class="govuk-button govuk-button--secondary">Cancel and return</a>
+</form>

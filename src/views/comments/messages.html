@@ -1,0 +1,83 @@
+{% set titleText = 'All replies' %}
+
+{% extends "layout.html" %}
+{% from "moj/components/messages/macro.njk" import mojMessages %}
+{% from "components/comment-form/macro.njk" import commentForm %}
+
+{% block content %}
+    {{ govukBackLink({
+    text: "Back",
+    href: baseUrl
+}) }}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 id="page-title" class="govuk-heading-l">{{ titleText }}</h1>
+{{ govukSummaryList({
+    rows: [
+        {
+            key: { text: "Training provider" },
+            value: { text: comment.tpName}
+        } if user.isAdmin,
+        {
+            key: { text: "Subject" },
+            value: { text: comment.subject },
+            actions: {
+                items: [ {
+                    href: comment.resourceUrl,
+                    text: 'View ' + comment.resourceName if comment.resourceName else 'entity'
+                }]
+            }
+        } ,
+        {
+            key: { text: "Created By" },
+            value: { text: comment.userName if comment.userName else comment.userId   }
+        },
+        {
+            key: { text: "Last updated on" if comment.resolved | isFalse  else "Resolved on"},
+            value: { text: comment.updated | dateTimeUKFormat  },
+            actions: {
+                items: [ {
+                    href: baseUrl + "/" + comment.id + "/resolve",
+                    text: "Resolve",
+                    visuallyHiddenText: " comment"
+                }] if comment.resolved | isFalse  else []
+                }
+        },
+        {
+            key: { text: "Reply count" },
+            value: { text: comment.messageCount },
+                actions: {
+                items: [ {
+                    href: "#message_last",
+                    text: "Jump to most recent reply"
+                }]
+            }
+        }
+    ] | cleanList
+}) }}
+        </div>
+        {% set rows = [] %}
+        {% for message in messages.data %}
+            {% set rows = (rows.push(
+                {
+                    id: 'last' if loop.last,
+                    text:  message.message,
+                    type:  'sent' if 'to:AB' in message.labels else 'received',
+                    timestamp: message.created,
+                    sender: message.userName if message.userName else message.userId }
+                ), rows) %}
+        {% endfor %}
+        {{ mojMessages({items: rows} ) }}
+    </div>
+        {% if comment.resolved | isFalse and comment.resourceUrl %}
+        {{ commentForm({
+            resourceUrl: comment.resourceUrl,
+            commentId: comment.id,
+            csrfToken: csrfToken,
+            value: message,
+            reply: true,
+            label: 'Add a reply',
+            errorMessage: 'message' | getError(errors)
+        }) }}
+    {% endif %}
+</div>{% endblock %}

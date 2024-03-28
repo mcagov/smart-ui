@@ -1,0 +1,131 @@
+
+{% set titleText = 'View trainee\'s training' %}
+
+{% extends 'layout.html' %}
+
+{% block content %}
+{{ govukBackLink({
+    text: "Back to " + trainee.contactName,
+    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments'
+}) }}
+
+<div class='govuk-grid-row'>
+  <div class='govuk-grid-column-two-thirds'>
+    <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+    <h2 class="govuk-heading-m">Enrolment summary</h2>
+    {% set href %}/training-items/{{enrolment.training.trainingItem.id}}{% endset %}
+    {% set tiLink %}
+      <a href="{{href}}" class="govuk-link">
+        {{enrolment.training.trainingItem.description}}
+      </a>
+    {% endset %}
+{{ govukSummaryList({
+    rows: [
+      {
+          key: { text: 'Training item' },
+          value: { html: tiLink }
+      },
+      {
+          key: { text: 'Trainee' },
+          value: { text: enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}
+      },
+      {
+          key: { text: 'Weeks Claimed' },
+          value: { text: enrolment.trainee.smart1WeeksClaimed }
+      } if enrolment.trainee.smart1WeeksClaimed,
+      {
+          key: { text: 'Discipline' },
+          value: {  text: enrolment.discipline.discipline  }
+      } if not enrolment.training.trainingItem.isLegacy,
+      {
+          key: { text: 'Level' },
+          value: {  text: enrolment.level.level  }
+      } if not enrolment.training.trainingItem.isLegacy,
+      {
+          key: { text: 'Qualification' },
+          value: {  text: enrolment.qualification.qualification  }
+      } if not enrolment.training.trainingItem.isLegacy,
+      {
+          key: { text: 'Experienced?' },
+          value: {  text: 'Yes' if enrolment.isExperiencedSeafarer | isTrue else 'No' }
+      } if not enrolment.training.trainingItem.isLegacy,
+      {
+          key: { text: 'Graduate?' },
+          value: {  text:  'Yes' if enrolment.isGraduateEngineer | isTrue else 'No' }
+      } if not enrolment.training.trainingItem.isLegacy,
+      {
+          key: { text: 'Started' },
+          value: {  text: enrolment.startDate | dateUKFormat }
+      },
+      {
+          key: { text: 'Expected End Date' if enrolment.status == 'Active' else 'Ended'  },
+          value: {  text: enrolment.expectedEndDate | dateUKFormat },
+          actions: {
+            items: [
+                {
+                    href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/"  + enrolment.id + "",
+                    text: "Change",
+                    visuallyHiddenText: " status"
+                } if user.isAdmin and enrolment.status | isReactivateStatus
+             ] | cleanList
+          }
+      },
+      {
+          key: { text: 'Calculated duration' },
+          value: {  text: durationInWeeks | weeksFormat('weeks') }
+      },
+      {
+          key: { text: 'Job being offered' },
+          value: {  text: enrolment.isJobBeingOffered | yesNo }
+      } ,
+      {
+          key: { text: 'CoC number' },
+          value: {  text: enrolment.cocNumber }
+      } ,
+      {
+          key: { text: 'CoC issued on ' },
+          value: {  text: enrolment.cocIssuedDate  | dateUKFormat}
+      } ,
+      {
+          key: { text: 'NoE issued on ' },
+          value: {  text: enrolment.noeIssuedDate  | dateUKFormat}
+      } ,
+      {
+          key: { text: "Status" },
+          value: { text: govukTag({  text: enrolment.status, classes: enrolment.status | getStatusCssClass }) },
+          actions: {
+            items: [
+                {
+                    href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/"  + enrolment.id + "/changeLeaveStatus",
+                    text: "Change",
+                    visuallyHiddenText: " status"
+                } if user.isAdmin and enrolment.status | isLeaveStatus,
+                {
+                    href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/"  + enrolment.id + "/reactivateLeaveStatus",
+                    text: "Reactivate",
+                    visuallyHiddenText: " status"
+                } if user.isAdmin and enrolment | isSmart1 and  enrolment.status | isReactivateStatus,
+                {
+                    href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/"  + enrolment.id + "/rejectTransfer",
+                    text: "Reject Transfer",
+                    visuallyHiddenText: " status"
+                } if user.isAdmin and  enrolment.status | isTransferring
+             ] | cleanList
+          }
+      }
+    ] | cleanList
+}) }}
+  {{ govukButton({
+      text: "Back",
+      classes: "govuk-button--secondary",
+      href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments"
+  }) }}
+    {{ govukButton({
+      text: "Delete",
+      classes: "govuk-button--warning",
+      href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/" + enrolment.id + "/delete"
+  }) if user.isSuperAdmin or (user.isAdmin and enrolment.canEdit) }}
+  </div>
+</div>
+<script type="text/javascript" src="/public/js/accessible-autocomplete.min.js"></script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% set titleText = 'Edit a comment' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/comment-form/macro.njk" import commentForm %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+        {% from "components/comment-summary/macro.njk" import commentSummary %}
+
+        {{ commentSummary({
+            comment: comment,
+            withMessage: true,
+            user: user
+        }) }}
+    </div>
+</div>
+{% endblock %}

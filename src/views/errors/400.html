@@ -1,0 +1,37 @@
+{% set titleText = 'Bad Request' %}
+
+{% extends "layout.html" %}
+
+{% set mainClasses = "govuk-main-wrapper--l" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+
+        <p class="govuk-body">
+            You have incorrectly requested a page or service.
+        </p>
+        {% if error.message %}
+        <p class="govuk-error-message">
+            {{error.message}}
+        </p>
+        {% endif %}
+
+        <p class="govuk-body">
+            {% if backUrl %}
+                {{ govukBackLink({
+                    text: "Back",
+                    href: backUrl,
+                    classes: "js-go-back"
+                }) }}
+            {% else %}
+                {{ govukBackLink({
+                    text: "Back",
+                    classes: "js-go-back"
+                }) }}
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}
