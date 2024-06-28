@@ -21,7 +21,7 @@ function saveSsmValue {
   echo "saved ${output_path}"
 }
 
-docker-compose down
+docker compose down
 rm -rf "${NGINX_CERTS_DIR}"/*
 saveSsmValue "/local/tls/cert" "${NGINX_CERTS_DIR}/service.local.smart.mcga.uk-cert.pem"
 saveSsmValue "/local/tls/issuer" "${NGINX_CERTS_DIR}/service.local.smart.mcga.uk-issuer.pem"

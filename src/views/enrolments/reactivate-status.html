@@ -45,9 +45,17 @@
 {{ govukSummaryList({
     card: {
     title: {
-      text: "Actions depending on a claim having being made since the enrolment status was changed from Active"}
+      text: "Actions depending on an enrolment having being updated or a claim having being made since the enrolment status was changed from Active"}
   },
   rows: [
+    {
+      key: {
+        text: "Enrolment updated"
+      },
+      value: {
+        text: "if ANY update has been made to the enrolment then the trainee will be re-enrolled on the same trainee programme and the weekly instalments will continue to be claimed to the maximum amount allowed. The start date for the new enrolment will be the date the status was changed to Left."
+      }
+    },
     {
       key: {
         text: "Claim not made"
@@ -56,7 +64,7 @@
         text: "the status of the existing enrolment will be changed to Active and the weekly instalments will continue to be claimed to the maximum amount allowed."
       }
     },
-        {
+    {
       key: {
         text: "Claim made"
       },
