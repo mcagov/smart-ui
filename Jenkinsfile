@@ -1,9 +1,8 @@
 pipeline {
     agent {
         docker {
-            image '676563297163.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:20.10.0'
+            image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:20.10.0'
             alwaysPull true
-            label 'smart-large-agent'
             args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
         }
     }
@@ -26,18 +25,18 @@ pipeline {
         UI_URL = 'https://service.local.smart.mcga.uk'
         HOST = 'service.local.smart.mcga.uk'
 
-        DOCKER = credentials('devtools/docker-hub')
+        //DOCKER = credentials('devtools/docker-hub')
 
-        SONAR_ORG = "${env.JOB_NAME.toLowerCase().split('/')[0]}"
-        SONAR_PROJECT = "${env.JOB_NAME.toLowerCase().split('/')[1]}"
-        SONAR_TOKEN = credentials('devtools/sonar-token')
+//         SONAR_ORG = "${env.JOB_NAME.toLowerCase().split('/')[0]}"
+//         SONAR_PROJECT = "${env.JOB_NAME.toLowerCase().split('/')[1]}"
+//         SONAR_TOKEN = credentials('devtools/sonar-token')
 
         LOGGER_TYPE = 'file'
         LOGGER_LEVEL = 'info'
         LOGGER_COLOURIZE = 'false'
         COMPOSE_INTERACTIVE_NO_CLI = '1'
 
-        DOCKER_REGISTRY = '676563297163.dkr.ecr.eu-west-2.amazonaws.com'
+        DOCKER_REGISTRY = '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
         DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain '
         DOCKER_BUILDKIT = '1'
 
@@ -105,7 +104,7 @@ pipeline {
                     env.DOCKER_IMAGE_NAME = sh (script:'node -p "require(\'./package.json\').name" | cut -d "/" -f 2 ', returnStdout: true).trim()
                     env.GIT_REPO = sh (script:'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
 
-                buildName "${NEXT_VERSION}"
+                //buildName "${NEXT_VERSION}"
 
                 }
             }
@@ -247,37 +246,37 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            jiraSendBuildInfo site: 'mcauk.atlassian.net'
-            cleanWs(cleanWhenNotBuilt: true,
-                deleteDirs: true,
-                patterns: [
-                    [pattern: '~/.docker', type: 'INCLUDE'],
-                    [pattern: '~/.netrc', type: 'INCLUDE'],
-                    [pattern: '.npmrc', type: 'INCLUDE']])
-            junit allowEmptyResults: true, skipPublishingChecks: true, testResults: '**/reports/*-junit.xml'
-            junit allowEmptyResults: true, skipPublishingChecks: true, testResults: 'wdio-output/*.xml'
-        }
-        failure {
-            slackSend (color: '#FF0000', message: '', attachments: [
-                [
-                    text:   '<@' + env.SLACK_ID + '>\n' +
-                            ' A build you (' + env.BUILDER + ') started has failed\n' +
-                            '<' + env.BUILD_URL + '|' +
-                            env.JOB_NAME.replaceAll('/', ' » ') +
-                            ' #' + env.BUILD_NUMBER + '>\n' ,
-                    color: '#FF0000'
-                ]
-            ])
-            emailext (
-                subject: "[JENKINS MCAUK] FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
-                        <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
-                to: 'mcauk@catapult.cx',
-                mimeType: 'text/html',
-                recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider'], [$class: 'CulpritsRecipientProvider']]
-            )
-        }
-    }
-        }
+//     post {
+//         always {
+//             jiraSendBuildInfo site: 'mcauk.atlassian.net'
+//             cleanWs(cleanWhenNotBuilt: true,
+//                 deleteDirs: true,
+//                 patterns: [
+//                     [pattern: '~/.docker', type: 'INCLUDE'],
+//                     [pattern: '~/.netrc', type: 'INCLUDE'],
+//                     [pattern: '.npmrc', type: 'INCLUDE']])
+//             junit allowEmptyResults: true, skipPublishingChecks: true, testResults: '**/reports/*-junit.xml'
+//             junit allowEmptyResults: true, skipPublishingChecks: true, testResults: 'wdio-output/*.xml'
+//         }
+//         failure {
+//             slackSend (color: '#FF0000', message: '', attachments: [
+//                 [
+//                     text:   '<@' + env.SLACK_ID + '>\n' +
+//                             ' A build you (' + env.BUILDER + ') started has failed\n' +
+//                             '<' + env.BUILD_URL + '|' +
+//                             env.JOB_NAME.replaceAll('/', ' » ') +
+//                             ' #' + env.BUILD_NUMBER + '>\n' ,
+//                     color: '#FF0000'
+//                 ]
+//             ])
+//             emailext (
+//                 subject: "[JENKINS MCAUK] FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+//                 body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+//                         <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+//                 to: 'mcauk@catapult.cx',
+//                 mimeType: 'text/html',
+//                 recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider'], [$class: 'CulpritsRecipientProvider']]
+//             )
+//         }
+//     }
+}

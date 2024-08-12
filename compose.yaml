@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   smart-api-db:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-api-test-db:1.0.176
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api-test-db:1.0.176
     ports:
       - '${EXPOSED_POSTGRES_PORT-7432}:${POSTGRES_PORT-5432}'
     environment:
@@ -21,7 +21,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.462
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.462
     ports:
       - '8080:8080'
       - '8082:8082'
@@ -70,7 +70,7 @@ services:
     memswap_limit: 4g
 
   smart-comments-db:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-test-db:1.0.5
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-test-db:1.0.5
     ports:
       - '8432:5432'
     environment:
@@ -90,7 +90,7 @@ services:
     memswap_limit: 1g
 
   smart-comments-api:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-api:1.0.46
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-api:1.0.46
     ports:
       - '${COMMENTS_API_PORT-9080}:8080'
       - '${COMMENTS_API_MANAGEMENT_PORT-9082}:8082'
@@ -135,7 +135,7 @@ services:
     memswap_limit: 1g
 
   smart-attachments-db:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-test-db:1.0.2
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-test-db:1.0.2
     ports:
       - '9432:5432'
     environment:
@@ -155,7 +155,7 @@ services:
     memswap_limit: 1g
 
   smart-attachments-api:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-api:1.0.58
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-api:1.0.58
     ports:
       - '7080:8080'
       - '7082:8082'
@@ -229,7 +229,7 @@ services:
     memswap_limit: 1g
 
   redis:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/redis:6.2
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/redis:6.2
     ports:
       - '6379:6379'
     environment:
@@ -270,7 +270,7 @@ services:
 
   # used for ci testing
   smart-ui:
-    image: 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:latest
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:latest
     hostname: smart-ui
     build:
       context: .
