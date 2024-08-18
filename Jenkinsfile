@@ -104,7 +104,7 @@ pipeline {
                     env.DOCKER_IMAGE_NAME = sh (script:'node -p "require(\'./package.json\').name" | cut -d "/" -f 2 ', returnStdout: true).trim()
                     env.GIT_REPO = sh (script:'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
 
-                //buildName "${NEXT_VERSION}"
+                buildName "${NEXT_VERSION}"
 
                 }
             }
