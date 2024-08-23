@@ -1,4 +1,4 @@
-FROM 676563297163.dkr.ecr.eu-west-2.amazonaws.com/node:20.10.0
+FROM 009543623063.dkr.ecr.eu-west-2.amazonaws.com/node:20.10.0
 
 ARG UI_VERSION=""
 

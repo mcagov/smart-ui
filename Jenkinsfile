@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image '676563297163.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:20.10.0'
+            image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:20.10.0'
             alwaysPull true
             label 'smart-large-agent'
             args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
@@ -37,7 +37,7 @@ pipeline {
         LOGGER_COLOURIZE = 'false'
         COMPOSE_INTERACTIVE_NO_CLI = '1'
 
-        DOCKER_REGISTRY = '676563297163.dkr.ecr.eu-west-2.amazonaws.com'
+        DOCKER_REGISTRY = '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
         DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain '
         DOCKER_BUILDKIT = '1'
 

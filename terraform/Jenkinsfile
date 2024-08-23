@@ -20,7 +20,7 @@ properties([
 pipeline {
     agent {
         docker {
-            image '676563297163.dkr.ecr.eu-west-2.amazonaws.com/jenkins-terraform-ci:latest'
+            image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-terraform-ci:latest'
             alwaysPull true
             label 'smart-small-agent'
             args '-v /var/run/docker.sock:/var/run/docker.sock'
