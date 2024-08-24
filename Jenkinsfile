@@ -238,11 +238,11 @@ pipeline {
                     wait: true
                 )
             }
-            post {
-                always {
-                    jiraSendDeploymentInfo environmentId: 'dev', environmentName: 'smart-dev', environmentType: 'development'
-                }
-            }
+//             post {
+//                 always {
+//                     jiraSendDeploymentInfo environmentId: 'dev', environmentName: 'smart-dev', environmentType: 'development'
+//                 }
+//             }
         }
     }
 
