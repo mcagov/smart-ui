@@ -396,7 +396,10 @@ pipeline {
                         env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                     }
 
+sh 'echo "Jenkins user running the job: $(whoami)"'
+sh 'find /home/jenkins/ -user jenkins'
                     sh 'npm ci'
+                    sh 'echo "Jenkins user running the job: $(whoami)"'
 
                     // Get next version
                     env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
