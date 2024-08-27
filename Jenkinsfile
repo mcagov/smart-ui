@@ -398,7 +398,7 @@ pipeline {
 
 sh 'echo "Jenkins user running the job: $(whoami)"'
 sh 'ls -lrt /home'
-sh 'chown -R 1000:1000 "/home/jenkins/.npm'
+sh 'chown -R 1000:1000 /home/jenkins/.npm'
 sh 'find /home/jenkins/ -user jenkins'
                     sh 'npm ci'
                     sh 'echo "Jenkins user running the job: $(whoami)"'
