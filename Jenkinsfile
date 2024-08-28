@@ -94,6 +94,7 @@ pipeline {
                         sh 'ls -alrt /home/jenkins/.npm'
 
                         sh 'find /home/jenkins/ -user jenkins'
+                        sh 'mkdir /home/jenkins/.npm/_cacache'
 
 
                     sh 'npm config get cache'
