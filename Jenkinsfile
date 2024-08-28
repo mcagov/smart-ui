@@ -1,9 +1,8 @@
 pipeline {
     agent {
         docker {
-            image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:20.10.0'
+                        image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
             alwaysPull true
-            label 'smart-large-agent'
             args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
         }
     }
@@ -26,11 +25,10 @@ pipeline {
         UI_URL = 'https://service.local.smart.mcga.uk'
         HOST = 'service.local.smart.mcga.uk'
 
-        DOCKER = credentials('devtools/docker-hub')
-
-        SONAR_ORG = "${env.JOB_NAME.toLowerCase().split('/')[0]}"
-        SONAR_PROJECT = "${env.JOB_NAME.toLowerCase().split('/')[1]}"
-        SONAR_TOKEN = credentials('devtools/sonar-token')
+        //DOCKER = credentials('devtools/docker-hub')
+        // SONAR_ORG = "${env.JOB_NAME.toLowerCase().split('/')[0]}"
+        // SONAR_PROJECT = "${env.JOB_NAME.toLowerCase().split('/')[1]}"
+        // SONAR_TOKEN = credentials('devtools/sonar-token')
 
         LOGGER_TYPE = 'file'
         LOGGER_LEVEL = 'info'
@@ -69,6 +67,8 @@ pipeline {
         JAVA_ENV='local'
 
         NODE_OPTIONS="--experimental-vm-modules --experimental-specifier-resolution=node"
+        BRANCH_NAME = 'develop'
+        AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
     }
 
     stages {
@@ -77,12 +77,12 @@ pipeline {
                 script {
                     scmSkip(deleteBuild: true, skipPattern:'.*\\[skip ci\\].*')
 
-                    // get the build user
+                    // Get the build user
                     wrap([$class: 'BuildUser']) {
                         env.BUILDER = sh (script:'[[ -z "${BUILD_USER}" ]] && echo -n "$(git show -s --pretty=%ae)" || echo -n "${BUILD_USER}"', returnStdout: true).trim()
                     }
 
-                    env.SLACK_ID = getSlackid.forEmail "${env.BUILDER}"
+                    // env.SLACK_ID = getSlackid.forEmail "${env.BUILDER}"
 
                     sh 'rm -rf node_modules'
                     sh 'npm --userconfig .npmrc set email mcauk@catapult.cx'
@@ -95,9 +95,18 @@ pipeline {
                         env.OKTA_SCOPE_TP = sh(script:'''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                     }
 
-                    sh 'npm ci'
+                        sh 'echo "Jenkins user running the job: $(whoami)"'
+                        sh 'mkdir /home/jenkins/.npm/_cacache'
 
-                    // get next version
+                        sh 'ls -alrt /home/jenkins'
+                        sh 'ls -alrt /home/jenkins/.npm'
+
+                        sh 'find /home/jenkins/ -user jenkins'
+
+                    sh 'npm config get cache'
+                    sh 'npm ci --cache="/home/jenkins/.npm"'
+
+                    // Get next version
                     env.PACKAGE_NAME = sh (script:'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
                     env.BASE_VERSION = sh (script:'node -p -e "require(\'./package.json\').version"| grep -o \'^[0-9]*\\.[0-9]*\'', returnStdout: true).trim()
                     env.LATEST_VERSION = sh (script:'npm view $(node -p "require(\'./package.json\').name")@"~${BASE_VERSION}" version --json | grep \'"\' | cut -d \'"\' -f 2 | sort --version-sort --reverse| head -n 1', returnStdout: true).trim()
@@ -204,21 +213,21 @@ pipeline {
                     String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true) // Get image digest
                     def imageDigest = vulnerabilityReport.getImageDigest(describeImageJson);
 
-                    println("Waiting for the image scan to kick start ...");
+                    println("Waiting for the image scan to kick start ...")
                     sh 'sleep 60' // Add some delay
 
                     def describeImageScanStatus = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} &>/dev/null", returnStatus: true)
                     if (describeImageScanStatus == 0) {
                         String describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json ", returnStdout: true)
-                        def scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson);
+                        def scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
                         while (!scanStatus.equalsIgnoreCase("ACTIVE")) { // Wait until image scan status becomes ACTIVE
-                            println("Waiting for image scan to complete...");
+                            println("Waiting for image scan to complete...")
                             sh 'sleep 30' // Add some delay
                             describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
-                            scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson);
+                            scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
                         }
-                        def findingResult = vulnerabilityReport.getVulnerabilityReport(describeImageScanJson);
-                        println(findingResult);
+                        def findingResult = vulnerabilityReport.getVulnerabilityReport(describeImageScanJson)
+                        println(findingResult)
                         env.VULNERABILITIES = findingResult
                         sh 'cat <<< "${VULNERABILITIES}" > vulnerabilities.log'
                         archiveArtifacts artifacts: 'vulnerabilities.log'
@@ -239,45 +248,45 @@ pipeline {
                     wait: true
                 )
             }
-            post {
-                always {
-                    jiraSendDeploymentInfo environmentId: 'dev', environmentName: 'smart-dev', environmentType: 'development'
-                }
-            }
+            // post {
+            //     always {
+            //         jiraSendDeploymentInfo environmentId: 'dev', environmentName: 'smart-dev', environmentType: 'development'
+            //     }
+            // }
         }
     }
 
-    post {
-        always {
-            jiraSendBuildInfo site: 'mcauk.atlassian.net'
-            cleanWs(cleanWhenNotBuilt: true,
-                deleteDirs: true,
-                patterns: [
-                    [pattern: '~/.docker', type: 'INCLUDE'],
-                    [pattern: '~/.netrc', type: 'INCLUDE'],
-                    [pattern: '.npmrc', type: 'INCLUDE']])
-            junit allowEmptyResults: true, skipPublishingChecks: true, testResults: '**/reports/*-junit.xml'
-            junit allowEmptyResults: true, skipPublishingChecks: true, testResults: 'wdio-output/*.xml'
-        }
-        failure {
-            slackSend (color: '#FF0000', message: '', attachments: [
-                [
-                    text:   '<@' + env.SLACK_ID + '>\n' +
-                            ' A build you (' + env.BUILDER + ') started has failed\n' +
-                            '<' + env.BUILD_URL + '|' +
-                            env.JOB_NAME.replaceAll('/', ' » ') +
-                            ' #' + env.BUILD_NUMBER + '>\n' ,
-                    color: '#FF0000'
-                ]
-            ])
-            emailext (
-                subject: "[JENKINS MCAUK] FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
-                        <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
-                to: 'mcauk@catapult.cx',
-                mimeType: 'text/html',
-                recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider'], [$class: 'CulpritsRecipientProvider']]
-            )
-        }
-    }
+    // post {
+    //     always {
+    //         jiraSendBuildInfo site: 'mcauk.atlassian.net'
+    //         cleanWs(cleanWhenNotBuilt: true,
+    //             deleteDirs: true,
+    //             patterns: [
+    //                 [pattern: '~/.docker', type: 'INCLUDE'],
+    //                 [pattern: '~/.netrc', type: 'INCLUDE'],
+    //                 [pattern: '.npmrc', type: 'INCLUDE']])
+    //         junit allowEmptyResults: true, skipPublishingChecks: true, testResults: '**/reports/*-junit.xml'
+    //         junit allowEmptyResults: true, skipPublishingChecks: true, testResults: 'wdio-output/*.xml'
+    //     }
+    //     failure {
+    //         slackSend(color: '#FF0000', message: '', attachments: [
+    //             [
+    //                 text:   '<@' + env.SLACK_ID + '>\n' +
+    //                         ' A build you (' + env.BUILDER + ') started has failed\n' +
+    //                         '<' + env.BUILD_URL + '|' +
+    //                         env.JOB_NAME.replaceAll('/', ' » ') +
+    //                         ' #' + env.BUILD_NUMBER + '>\n',
+    //                 color: '#FF0000'
+    //             ]
+    //         ])
+    //         emailext(
+    //             subject: "[JENKINS MCAUK] FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+    //             body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+    //                     <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+    //             to: 'mcauk@catapult.cx',
+    //             mimeType: 'text/html',
+    //             recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider'], [$class: 'CulpritsRecipientProvider']]
+    //         )
+    //     }
+    // }
         }
