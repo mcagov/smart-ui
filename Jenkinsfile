@@ -391,7 +391,7 @@ sh 'echo "Jenkins user running the job: $(whoami)"'
 sh 'ls -lrt /home'
 
 sh 'find /home/jenkins/ -user jenkins'
-sh 'sudo chown -R $(whoami) ~/.npm'
+sh 'chown -R $(whoami) ~/.npm'
                     sh 'npm ci'
                     sh 'echo "Jenkins user running the job: $(whoami)"'
 
