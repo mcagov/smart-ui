@@ -299,7 +299,7 @@
 pipeline {
     agent {
                     docker {
-                        image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:100'
+                        image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
                         alwaysPull true
                         args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
                     }
@@ -387,11 +387,12 @@ pipeline {
                         env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                     }
 
-sh 'echo "Jenkins user running the job: $(whoami)"'
-sh 'ls -lrt /home'
+                        sh 'echo "Jenkins user running the job: $(whoami)"'
+                        sh 'ls -lrt /home'
 
-sh 'find /home/jenkins/ -user jenkins'
-                    //sh 'npm ci'
+                        sh 'find /home/jenkins/ -user jenkins'
+
+                    sh 'npm ci'
                     sh 'echo "Jenkins user running the job: $(whoami)"'
 
                     // Get next version
