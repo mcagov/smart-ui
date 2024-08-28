@@ -391,8 +391,7 @@ sh 'echo "Jenkins user running the job: $(whoami)"'
 sh 'ls -lrt /home'
 
 sh 'find /home/jenkins/ -user jenkins'
-sh 'chown -R $(whoami) ~/.npm'
-                    sh 'npm ci'
+                    //sh 'npm ci'
                     sh 'echo "Jenkins user running the job: $(whoami)"'
 
                     // Get next version
