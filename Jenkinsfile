@@ -90,12 +90,12 @@ pipeline {
                     }
 
                         sh 'echo "Jenkins user running the job: $(whoami)"'
+                        sh 'mkdir /home/jenkins/.npm/_cacache'
+
                         sh 'ls -alrt /home/jenkins'
                         sh 'ls -alrt /home/jenkins/.npm'
 
                         sh 'find /home/jenkins/ -user jenkins'
-                        sh 'mkdir /home/jenkins/.npm/_cacache'
-
 
                     sh 'npm config get cache'
                     sh 'npm ci --cache="/home/jenkins/.npm"'
