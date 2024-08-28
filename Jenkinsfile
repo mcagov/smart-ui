@@ -90,7 +90,8 @@ pipeline {
                     }
 
                         sh 'echo "Jenkins user running the job: $(whoami)"'
-                        sh 'ls -lrt /home'
+                        sh 'ls -alrt /home/jenkins'
+                        sh 'ls -alrt /home/jenkins/.npm'
 
                         sh 'find /home/jenkins/ -user jenkins'
 
