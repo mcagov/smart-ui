@@ -94,8 +94,9 @@ pipeline {
 
                         sh 'find /home/jenkins/ -user jenkins'
 
-                    sh 'npm ci --cache="/home/jenkins/.npm"'
+
                     sh 'npm config get cache'
+                    sh 'npm ci --cache="/home/jenkins/.npm"'
 
                     // Get next version
                     env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
