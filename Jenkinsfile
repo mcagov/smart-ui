@@ -115,6 +115,7 @@ pipeline {
                         sh 'ls -alrt /home/jenkins/.npm'
 
                         sh 'find /home/jenkins/ -user jenkins'
+                        sh 'rmdir /home/jenkins/.npm'
                         sh 'npm install npm@latest'
                         sh 'npm --version'
 
