@@ -104,6 +104,7 @@ pipeline {
                         sh 'find /home/jenkins/ -user jenkins'
 
                     sh 'npm config get cache'
+                    sh 'npm install'
                     sh 'npm ci --cache="/home/jenkins/.npmdir"'
 
                     // Get next version
