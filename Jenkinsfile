@@ -118,7 +118,7 @@ pipeline {
                         sh 'find /home/jenkins/ -user jenkins'
                         //sh 'rm -rf /home/jenkins/.npm'
                         //sh 'npm install npm@latest'
-                        sh 'npm --version'
+                        //sh 'npm --version'
 
 //                     sh 'npm config set cache /home/jenkins/.npmdir --global'
                     //sh 'source npm_config_cache=/home/jenkins/.npmdir'
