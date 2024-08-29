@@ -123,7 +123,7 @@ pipeline {
 //                     sh 'npm config set cache /home/jenkins/.npmdir --global'
                     //sh 'source npm_config_cache=/home/jenkins/.npmdir'
                     //sh 'npm install'
-                    sh 'npm ci'
+                    sh 'npm i'
 
                     // Get next version
                     env.PACKAGE_NAME = sh (script:'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
