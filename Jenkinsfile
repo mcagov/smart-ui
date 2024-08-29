@@ -96,7 +96,7 @@ pipeline {
                     }
 
                         sh 'echo "Jenkins user running the job: $(whoami)"'
-                        //sh 'mkdir /home/jenkins/.npm/_cacache'
+                        sh 'mkdir /home/jenkins/.npmdir'
 
                         sh 'ls -alrt /home/jenkins'
                         sh 'ls -alrt /home/jenkins/.npm'
@@ -104,7 +104,7 @@ pipeline {
                         sh 'find /home/jenkins/ -user jenkins'
 
                     sh 'npm config get cache'
-                    sh 'npm ci --cache="/home/jenkins/.npm"'
+                    sh 'npm ci --cache="/home/jenkins/.npmdir"'
 
                     // Get next version
                     env.PACKAGE_NAME = sh (script:'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
