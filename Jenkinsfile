@@ -103,9 +103,9 @@ pipeline {
 
                         sh 'find /home/jenkins/ -user jenkins'
 
-                    sh 'npm config get cache'
-                    sh 'npm install --cache="/home/jenkins/.npmdir'
-                    sh 'npm ci --cache="/home/jenkins/.npmdir"'
+                    sh 'npm config set cache /home/jenkins/.npmdir --global'
+                    sh 'npm install'
+                    sh 'npm ci'
 
                     // Get next version
                     env.PACKAGE_NAME = sh (script:'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
