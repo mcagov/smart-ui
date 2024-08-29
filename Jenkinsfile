@@ -111,7 +111,7 @@ pipeline {
                         sh 'echo "Jenkins user running the job: $(whoami)"'
                         //sh 'mkdir /home/jenkins/.npmdir'
 
-                        sh 'ls -alrt /home/app'
+                        //sh 'ls -alrt /home/app'
                         sh 'ls -alrt /home/jenkins'
                         sh 'ls -alrt /home/jenkins/.npm'
 
