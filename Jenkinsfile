@@ -102,6 +102,7 @@ pipeline {
                         sh 'ls -alrt /home/jenkins/.npm'
 
                         sh 'find /home/jenkins/ -user jenkins'
+                        sh 'npm --version'
 
 //                     sh 'npm config set cache /home/jenkins/.npmdir --global'
                     sh 'source npm_config_cache=/home/jenkins/.npmdir'
