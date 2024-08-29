@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-                    docker {
-                        image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
-                        alwaysPull true
-                        args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
-                    }
-                }
+    agent any
 
     options {
         timestamps()
@@ -64,9 +58,25 @@ pipeline {
 
     stages {
 
-
+            stage('Authenticate to ECR') {
+                  steps {
+                            withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                                script {
+                                     def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
+                                     sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                                sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
+                                }
+                            }
+                        }
+                    }
         stage('setup') {
-
+            agent {
+                docker {
+                                image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
+                    alwaysPull true
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
+                }
+            }
             steps {
                 script {
                     scmSkip(deleteBuild: true, skipPattern: '.*\\[skip ci\\].*')
@@ -90,15 +100,17 @@ pipeline {
                     }
 
                         sh 'echo "Jenkins user running the job: $(whoami)"'
-                        sh 'mkdir /home/jenkins/.npm/_cacache'
 
                         sh 'ls -alrt /home/jenkins'
                         sh 'ls -alrt /home/jenkins/.npm'
 
                         sh 'find /home/jenkins/ -user jenkins'
 
-                    sh 'npm config get cache'
-                    sh 'npm ci --cache="/home/jenkins/.npm"'
+                    sh 'npm cache clean --force'
+                    sh 'rm -rf node_modules package-lock.json'
+                    sh 'npm install'
+                    sh 'npm publish'
+                    //sh 'npm ci'
 
                     // Get next version
                     env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
@@ -117,19 +129,19 @@ pipeline {
             steps {
                 script {
                     env.COMPOSE_PROFILES = 'default,api'
-                    sh 'docker compose pull'
-                    sh 'docker compose up -d'
+                    sh 'docker-compose pull'
+                    sh 'docker-compose up -d'
                     // Make sure the API has finished the migration and seed scripts
                     sh 'sleep 10s'
-                    sh 'docker compose ps'
+                    sh 'docker-compose ps'
                     sh 'gulp'
                     sh 'npm test'
                 }
             }
             post {
                 always {
-                    sh 'docker compose logs --no-color > docker-test-logs.txt'
-                    sh 'docker compose down || true'
+                    sh 'docker-compose logs --no-color > docker-test-logs.txt'
+                    sh 'docker-compose down || true'
                     // TODO fixme
                     // recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
                     // qualityGates: [
@@ -144,22 +156,22 @@ pipeline {
                 script {
                     env.COMPOSE_PROFILES = 'full'
                     sh 'gulp'
-                    sh 'docker compose build'
-                    sh 'docker compose up -d'
+                    sh 'docker-compose build'
+                    sh 'docker-compose up -d'
                     // Make sure the API has finished the migration and seed scripts
                     sh 'sleep 20s'
-                    sh 'docker compose ps'
+                    sh 'docker-compose ps'
                     sh 'npm run wdio-headless'
                 }
             }
             post {
                 always {
-                    sh 'docker compose ps'
-                    sh 'docker compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt'
-                    sh 'docker compose logs smart-api --no-color > docker-ui-test-api-logs.txt'
-                    sh 'docker compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
-                    sh 'docker compose logs nginx --no-color > docker-ui-test-nginx-logs.txt'
-                    sh 'docker compose down || true'
+                    sh 'docker-compose ps'
+                    sh 'docker-compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt'
+                    sh 'docker-compose logs smart-api --no-color > docker-ui-test-api-logs.txt'
+                    sh 'docker-compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
+                    sh 'docker-compose logs nginx --no-color > docker-ui-test-nginx-logs.txt'
+                    sh 'docker-compose down || true'
                     // step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/cobertura-coverage.xml'])
                 }
             }
