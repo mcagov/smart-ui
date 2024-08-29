@@ -122,6 +122,7 @@ pipeline {
 
                      //sh 'npm config set cache /home/jenkins/.npmdir --global'
                     //sh 'source npm_config_cache=/home/jenkins/.npmdir'
+                    sh 'npm cache clean --force'
                     sh 'npm install'
                     sh 'npm ci'
 
