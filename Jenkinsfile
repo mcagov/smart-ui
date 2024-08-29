@@ -109,19 +109,12 @@ pipeline {
                     }
 
                         sh 'echo "Jenkins user running the job: $(whoami)"'
-                        ///sh 'mkdir /home/jenkins/.npmdir'
 
-                        //sh 'ls -alrt /home/app'
                         sh 'ls -alrt /home/jenkins'
                         sh 'ls -alrt /home/jenkins/.npm'
 
                         sh 'find /home/jenkins/ -user jenkins'
-                        //sh 'rm -rf /home/jenkins/.npm'
-                        //sh 'npm install npm@latest'
-                        //sh 'npm --version'
 
-                     //sh 'npm config set cache /home/jenkins/.npmdir --global'
-                    //sh 'source npm_config_cache=/home/jenkins/.npmdir'
                     sh 'npm cache clean --force'
                     sh 'rm -rf node_modules package-lock.json'
                     sh 'npm install'
