@@ -190,7 +190,6 @@ pipeline {
             when { branch 'master' }
             steps {
                 script {
-                sh 'npm install'
                     sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
                     sh 'gulp buildInfo'
 
