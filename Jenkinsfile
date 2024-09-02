@@ -61,7 +61,6 @@ pipeline {
         JAVA_ENV='local'
 
         NODE_OPTIONS="--experimental-vm-modules --experimental-specifier-resolution=node"
-        BRANCH_NAME = 'develop'
         AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
     }
 
