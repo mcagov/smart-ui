@@ -1,6 +1,6 @@
 FROM 009543623063.dkr.ecr.eu-west-2.amazonaws.com/node:latest
 
-ARG UI_VERSION=""
+ARG UI_VERSION="0.2.1"
 
 RUN \
     --mount=type=secret,id=npmrc,dst=/home/app/.npmrc,uid=1000,required=true  \
