@@ -116,7 +116,7 @@ pipeline {
 
                     sh 'npm cache clean --force'
                     sh 'rm -rf node_modules package-lock.json'
-                    sh 'npm install @mca/common-logger@2.0.2'
+                    //sh 'npm install @mca/common-logger@2.0.2'
                     sh 'npm install'
                     sh 'npm publish'
                     //sh 'npm ci'
@@ -197,7 +197,7 @@ pipeline {
                     sh 'npm publish'
                     sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
                     withCredentials([usernamePassword(credentialsId: 'mca-bot-gh', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                        sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO#*//}.git v${NEXT_VERSION}'
+                        sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/mcagov/smart-ui.git v${NEXT_VERSION}'
                     }
                 }
             }
