@@ -187,21 +187,21 @@ pipeline {
 //             }
 //         }
 
-//         stage('npm publish') {
-//             when { branch 'master' }
-//             steps {
-//                 script {
-//                     sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
-//                     sh 'gulp buildInfo'
-//
-//                     sh 'npm publish'
-//                     sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
-//                     withCredentials([usernamePassword(credentialsId: 'mca-bot-gh', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-//                         sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO#*//}.git v${NEXT_VERSION}'
-//                     }
-//                 }
-//             }
-//         }
+        stage('npm publish') {
+            when { branch 'master' }
+            steps {
+                script {
+                    sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
+                    sh 'gulp buildInfo'
+
+                    sh 'npm publish'
+                    sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
+                    withCredentials([usernamePassword(credentialsId: 'mca-bot-gh', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO#*//}.git v${NEXT_VERSION}'
+                    }
+                }
+            }
+        }
 
         stage('docker-publish') {
             when { branch 'master' }
