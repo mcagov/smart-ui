@@ -19,7 +19,7 @@ pipeline {
         UI_URL = 'https://service.local.smart.mcga.uk'
         HOST = 'service.local.smart.mcga.uk'
 
-        //DOCKER = credentials('devtools/docker-hub')
+        // DOCKER = credentials('devtools/docker-hub')
         // SONAR_ORG = "${env.JOB_NAME.toLowerCase().split('/')[0]}"
         // SONAR_PROJECT = "${env.JOB_NAME.toLowerCase().split('/')[1]}"
         // SONAR_TOKEN = credentials('devtools/sonar-token')
@@ -117,9 +117,9 @@ pipeline {
 //                     sh 'npm cache clean --force'
 //                     sh 'rm -rf node_modules package-lock.json'
                     //sh 'npm install @mca/common-logger@2.0.2'
-                    sh 'npm install'
-                    sh 'npm publish'
-                    //sh 'npm ci'
+                    //sh 'npm install'
+                    //sh 'npm publish'
+                    sh 'npm ci'
 
                     // Get next version
                     env.PACKAGE_NAME = sh (script:'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
