@@ -117,8 +117,8 @@ pipeline {
 //                     sh 'npm cache clean --force'
 //                     sh 'rm -rf node_modules package-lock.json'
                     //sh 'npm install @mca/common-logger@2.0.2'
-                    //sh 'npm install'
-                    //sh 'npm publish'
+                    sh 'npm install'
+                    sh 'npm publish'
                     sh 'npm ci'
 
                     // Get next version
