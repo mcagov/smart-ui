@@ -96,18 +96,11 @@ pipeline {
                         env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                     }
 
-                        sh 'echo "Jenkins user running the job: $(whoami)"'
-
-                        sh 'ls -alrt /home/jenkins'
-                        sh 'ls -alrt /home/jenkins/.npm'
-
-                        sh 'find /home/jenkins/ -user jenkins'
-
-                    sh 'npm cache clean --force'
-                    sh 'rm -rf node_modules package-lock.json'
-                    sh 'npm install'
-                    sh 'npm publish'
-                    //sh 'npm ci'
+                    //sh 'npm cache clean --force'
+                    //sh 'rm -rf node_modules package-lock.json'
+                    //sh 'npm install'
+                    //sh 'npm publish'
+                    sh 'npm ci'
 
                     // Get next version
                     env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
