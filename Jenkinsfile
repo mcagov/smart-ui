@@ -100,7 +100,7 @@ pipeline {
                     //sh 'rm -rf node_modules package-lock.json'
                     //sh 'npm install'
                     //sh 'npm publish'
-                    sh 'npm ci'
+                    sh 'npm install'
 
                     // Get next version
                     env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
