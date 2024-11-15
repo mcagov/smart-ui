@@ -251,6 +251,25 @@ pipeline {
         }
     }
 
+    post {
+            always {
+                script{
+
+                    def build_status = env.BUILD_STATUS
+
+                    sh """
+                    echo $build_status
+                    """
+
+                    if (build_status == 'FAILURE') {
+                        slackSend color: 'danger', message: "Deployment failed: ${env.BUILD_URL}"
+                    } else {
+                        slackSend color: 'good', message: "Deploment successful: ${env.BUILD_URL}"
+                    }
+                }
+            }
+        }
+
     // post {
     //     always {
     //         jiraSendBuildInfo site: 'mcauk.atlassian.net'
