@@ -96,7 +96,7 @@ pipeline {
                         env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                     }
 
-                    //sh 'npm cache clean --force'
+                    sh 'npm cache clean --force'
                     //sh 'rm -rf node_modules package-lock.json'
                     //sh 'npm install'
                     //sh 'npm publish'
