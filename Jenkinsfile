@@ -248,8 +248,8 @@ pipeline {
             //         jiraSendDeploymentInfo environmentId: 'dev', environmentName: 'smart-dev', environmentType: 'development'
             //     }
             // }
-        }
-    }
+//        }
+//    }
 
     post {
             always {
