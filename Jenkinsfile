@@ -231,18 +231,18 @@ pipeline {
             }
         }
 
-        stage('deploy') {
-            when { branch 'master' }
-            steps {
-                build(
-                    job: 'Deploy/SMarT/smart-eks-deploys/smart-ui/master',
-                    parameters: [
-                        string(name: 'TF_WORKSPACE', value: 'dev'),
-                        string(name: 'TF_VAR_smart_ui_version', value: "${env.DOCKER_IMAGE_NAME}:${env.NEXT_VERSION}")
-                    ],
-                    wait: true
-                )
-            }
+//         stage('deploy') {
+//             when { branch 'master' }
+//             steps {
+//                 build(
+//                     job: 'Deploy/SMarT/smart-eks-deploys/smart-ui/master',
+//                     parameters: [
+//                         string(name: 'TF_WORKSPACE', value: 'dev'),
+//                         string(name: 'TF_VAR_smart_ui_version', value: "${env.DOCKER_IMAGE_NAME}:${env.NEXT_VERSION}")
+//                     ],
+//                     wait: true
+//                 )
+//             }
             // post {
             //     always {
             //         jiraSendDeploymentInfo environmentId: 'dev', environmentName: 'smart-dev', environmentType: 'development'
