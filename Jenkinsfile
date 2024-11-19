@@ -1,19 +1,5 @@
 pipeline {
-    agent {
-        docker{
-                withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    script {
-                        def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
-                            sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                            // sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
-                             }
-                    }
-            image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci'
-            alwaysPull true
-            label 'smart-large-agent'
-            args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
-        }
-    }
+    agent any
 
     options {
         timestamps()
@@ -69,25 +55,25 @@ pipeline {
 
     stages {
 
-//       stage('Authenticate to ECR') {
-//              steps {
-//                             withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-//                                 script {
-//                                      def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
-//                                      sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
-//                                 // sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
-//                                 }
-//                             }
-//                         }
-//                     }
+      stage('Authenticate to ECR') {
+             steps {
+                            withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                                script {
+                                     def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
+                                     sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                                // sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
+                                }
+                            }
+                        }
+                    }
         stage('setup') {
-//             agent {
-//                 docker {
-//                     image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
-//                     alwaysPull true
-//                     args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
-//                 }
-//             }
+            agent {
+                docker {
+                    image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
+                    alwaysPull true
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
+                }
+            }
             steps {
                 script {
                     scmSkip(deleteBuild: true, skipPattern:'.*\\[skip ci\\].*')
@@ -114,6 +100,8 @@ pipeline {
 //                     sh 'rm -rf node_modules package-lock.json'
                     //sh 'npm install'
                     //sh 'npm publish'
+                    sh "pwd"
+                    sh "hostname"
                     sh 'npm ci'
 
                     // Get next version
