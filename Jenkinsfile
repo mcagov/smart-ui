@@ -101,7 +101,6 @@ pipeline {
                     //sh 'npm install'
                     //sh 'npm publish'
                     sh "pwd"
-                    sh "hostname"
                     sh 'npm ci'
 
                     // Get next version
