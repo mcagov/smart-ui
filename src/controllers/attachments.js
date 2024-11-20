@@ -60,7 +60,7 @@ export function create(req, res, next) {
 
   // default expiry for audit files - 10 years
   if (res.locals.resourceUrl.endsWith('audit')) {
-    body.expiry = moment().add(10, 'year').toISOString()
+    body.expiry = moment().add(90, 'days').toISOString()
   } else {
     body.expiry = moment().add(28, 'days').toISOString()
   }
