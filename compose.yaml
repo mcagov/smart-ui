@@ -141,7 +141,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_USER: ${POSTGRES_USER:-smart}
-      POSTGRES_DB: smart-comments
+      POSTGRES_DB: smart-attachments
     shm_size: ${SHM_SIZE-256m}
     profiles:
       - full
@@ -160,12 +160,15 @@ services:
       - '7080:8080'
       - '7082:8082'
     environment:
+      - ATTACHMENTS_BUCKET=${ATTACHMENTS_BUCKET}
+      - STAGING_BUCKET=${STAGING_BUCKET}
+      - EVENTS_QUEUE_URL=${EVENTS_QUEUE_URL}
       - SPRING_PROFILES_ACTIVE=${API_SPRING_PROFILES:-default}
-      - POSTGRES_HOST=smart-comments-db
+      - POSTGRES_HOST=smart-attachments-db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER:-smart}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRES_DB=smart-comments
+      - POSTGRES_DB=smart-attachments
       - SERVER_PORT=8080
       - DB_CONTEXT=local
       - JAVA_ENV=${JAVA_ENV:-local}
@@ -181,8 +184,9 @@ services:
       - OKTA_CLIENT_SECRET=${OKTA_CLIENT_SECRET}
       - OKTA_ACCESS_API_TOKEN=${OKTA_ACCESS_API_TOKEN}
       - ORG_CLAIM=trainingProviderId
-      - AWS_ACCESS_KEY_ID='123'
-      - AWS_SECRET_ACCESS_KEY='xyz'
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - AWS_REGION=${AWS_REGION:-eu-west-2}
       - AWS_PRIVATE_BUCKET=${AWS_PRIVATE_BUCKET}
       - AWS_ENDPOINT=https://service.local.smart.mcga.uk
