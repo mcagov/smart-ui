@@ -1,11 +1,9 @@
 pipeline {
     agent {
       docker {
+        image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
         alwaysPull true
         args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
-        image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
-        registryCredentialsId 'aws-jenkins-service-account-credentials'
-        registryUrl '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
       }
     }
     options {
