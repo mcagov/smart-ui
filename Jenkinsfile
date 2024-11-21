@@ -117,8 +117,10 @@ pipeline {
                     }
                 }
                 stage('test') {
+                    environment{
+                        COMPOSE_PROFILES = 'default,api'
+                    }
                     steps {
-                            env.COMPOSE_PROFILES = 'default,api'
                             sh 'docker-compose pull'
                             sh 'docker-compose up -d'
                             // Make sure the API has finished the migration and seed scripts
