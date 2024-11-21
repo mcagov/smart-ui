@@ -2,7 +2,6 @@ pipeline {
     agent {
         docker {
             image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
-            label 'base-container'
             registryUrl '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
             registryCredentialsId 'aws-jenkins-service-account-credentials'
             alwaysPull true
