@@ -121,7 +121,6 @@ pipeline {
                         COMPOSE_PROFILES = 'default,api'
                     }
                     steps {
-                            sh 'hostname'
                             sh 'pwd'
                             sh 'docker-compose pull'
                             sh 'docker-compose up -d'
