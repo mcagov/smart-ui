@@ -137,11 +137,11 @@ pipeline {
                 always {
                     sh 'docker-compose logs --no-color > docker-test-logs.txt'
                     sh 'docker-compose down || true'
-                    TODO fixme
-                    recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
-                    qualityGates: [
-                    [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
-                    [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
+//                     TODO fixme
+//                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
+//                     qualityGates: [
+//                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
+//                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
                 }
             }
         }
@@ -254,26 +254,26 @@ pipeline {
             //     }
             // }
 //        }
-    }
+    } // end of stages
 
     post {
-            always {
-                script{
+        always {
+            script{
 
-                    def build_status = env.BUILD_STATUS
+                def build_status = env.BUILD_STATUS
 
-                    sh """
-                    echo $build_status
-                    """
+                sh """
+                echo $build_status
+                """
 
-                    if (build_status == 'FAILURE') {
-                        slackSend color: 'danger', message: "Deployment failed: ${env.BUILD_URL}"
-                    } else {
-                        slackSend color: 'good', message: "Deployment successful: ${env.BUILD_URL}"
-                    }
+                if (build_status == 'FAILURE') {
+                    slackSend color: 'danger', message: "Deployment failed: ${env.BUILD_URL}"
+                } else {
+                    slackSend color: 'good', message: "Deployment successful: ${env.BUILD_URL}"
                 }
             }
         }
+    }
 
     // post {
     //     always {
@@ -308,4 +308,4 @@ pipeline {
     //         )
     //     }
     // }
-}
+} //end of pipeline
