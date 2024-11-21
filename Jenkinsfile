@@ -118,7 +118,6 @@ pipeline {
                 }
                 stage('test') {
                     steps {
-                        script {
                             env.COMPOSE_PROFILES = 'default,api'
                             sh 'docker-compose pull'
                             sh 'docker-compose up -d'
@@ -127,7 +126,6 @@ pipeline {
                             sh 'docker-compose ps'
                             sh 'gulp'
                             sh 'npm test'
-                        }
                     }
                     post {
                         always {
