@@ -54,19 +54,18 @@ pipeline {
     }
 
     stages {
-
-      stage('Authenticate to ECR') {
+        stage('Authenticate to ECR') {
              steps {
-                            withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                                script {
-                                     def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
-                                     sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                                // sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
-                                }
-                            }
-                        }
+                withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                         def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
+                         sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                    // sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
                     }
-        stage('setup') {
+                }
+            }
+        }
+        stage('build and test') {
             agent {
                 docker {
                     image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
@@ -75,76 +74,100 @@ pipeline {
                     reuseNode true
                 }
             }
-            steps {
-                script {
-                    scmSkip(deleteBuild: true, skipPattern:'.*\\[skip ci\\].*')
+            stages{
+                stage('setup'){
+                    steps {
+                        script {
+                            scmSkip(deleteBuild: true, skipPattern:'.*\\[skip ci\\].*')
 
-                    // Get the build user
-                    wrap([$class: 'BuildUser']) {
-                        env.BUILDER = sh(script: '[[ -z "${BUILD_USER}" ]] && echo -n "$(git show -s --pretty=%ae)" || echo -n "${BUILD_USER}"', returnStdout: true).trim()
+                            // Get the build user
+                            wrap([$class: 'BuildUser']) {
+                                env.BUILDER = sh(script: '[[ -z "${BUILD_USER}" ]] && echo -n "$(git show -s --pretty=%ae)" || echo -n "${BUILD_USER}"', returnStdout: true).trim()
+                            }
+
+                            // env.SLACK_ID = getSlackid.forEmail "${env.BUILDER}"
+
+                            sh 'rm -rf node_modules'
+                            sh 'npm --userconfig .npmrc set email mcauk@catapult.cx'
+                            withAWS(roleAccount: '009543623063', role: 'CrossAccount-Deployer', region: "${AWS_REGION}") {
+                                sh 'npm run ca:setup'
+                                env.OKTA_CLIENT_SECRET = credentials('dev/smart/okta_client_secret')
+                                env.OKTA_ACCESS_API_TOKEN = credentials('dev/smart/okta-api-token')
+                                env.LOCAL_AUTH_JWT_KEY = credentials('dev/smart/local_auth_jwt_key')
+                                env.OKTA_SCOPE_AB = sh(script: '''aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
+                                env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
+                            }
+
+                            sh 'npm cache clean --force'
+                            sh 'rm -rf node_modules package-lock.json'
+                            sh 'npm install'
+                            //sh 'npm publish'
+                            //sh "pwd"
+                            //sh 'npm ci'
+
+                            // Get next version
+                            env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
+                            env.BASE_VERSION = sh(script: 'node -p -e "require(\'./package.json\').version" | grep -o \'^[0-9]*\\.[0-9]*\'', returnStdout: true).trim()
+                            env.LATEST_VERSION = sh(script: 'npm view $(node -p "require(\'./package.json\').name")@"~${BASE_VERSION}" version --json | grep \'"\' | cut -d \'"\' -f 2 | sort --version-sort --reverse | head -n 1', returnStdout: true).trim()
+                            env.NEXT_VERSION = sh(script: '[[ -z "$LATEST_VERSION" ]] && echo "${BASE_VERSION}.0" || semver -i patch $LATEST_VERSION', returnStdout: true).trim()
+                            env.DOCKER_IMAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name" | cut -d "/" -f 2', returnStdout: true).trim()
+                            env.GIT_REPO = sh(script: 'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
+
+                            buildName "${NEXT_VERSION}"
+                        }
                     }
-
-                    // env.SLACK_ID = getSlackid.forEmail "${env.BUILDER}"
-
-                    sh 'rm -rf node_modules'
-                    sh 'npm --userconfig .npmrc set email mcauk@catapult.cx'
-                    withAWS(roleAccount: '009543623063', role: 'CrossAccount-Deployer', region: "${AWS_REGION}") {
-                        sh 'npm run ca:setup'
-                        env.OKTA_CLIENT_SECRET = credentials('dev/smart/okta_client_secret')
-                        env.OKTA_ACCESS_API_TOKEN = credentials('dev/smart/okta-api-token')
-                        env.LOCAL_AUTH_JWT_KEY = credentials('dev/smart/local_auth_jwt_key')
-                        env.OKTA_SCOPE_AB = sh(script: '''aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
-                        env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
+                }
+                stage('test') {
+                    steps {
+                        script {
+                            env.COMPOSE_PROFILES = 'default,api'
+                            sh 'docker-compose pull'
+                            sh 'docker-compose up -d'
+                            // Make sure the API has finished the migration and seed scripts
+                            sh 'sleep 10s'
+                            sh 'docker-compose ps'
+                            sh 'gulp'
+                            sh 'npm test'
+                        }
                     }
-
-                    sh 'npm cache clean --force'
-                    sh 'rm -rf node_modules package-lock.json'
-                    sh 'npm install'
-                    //sh 'npm publish'
-                    //sh "pwd"
-                    //sh 'npm ci'
-
-                    // Get next version
-                    env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
-                    env.BASE_VERSION = sh(script: 'node -p -e "require(\'./package.json\').version" | grep -o \'^[0-9]*\\.[0-9]*\'', returnStdout: true).trim()
-                    env.LATEST_VERSION = sh(script: 'npm view $(node -p "require(\'./package.json\').name")@"~${BASE_VERSION}" version --json | grep \'"\' | cut -d \'"\' -f 2 | sort --version-sort --reverse | head -n 1', returnStdout: true).trim()
-                    env.NEXT_VERSION = sh(script: '[[ -z "$LATEST_VERSION" ]] && echo "${BASE_VERSION}.0" || semver -i patch $LATEST_VERSION', returnStdout: true).trim()
-                    env.DOCKER_IMAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name" | cut -d "/" -f 2', returnStdout: true).trim()
-                    env.GIT_REPO = sh(script: 'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
-
-                    buildName "${NEXT_VERSION}"
+                    post {
+                        always {
+                            sh 'docker-compose logs --no-color > docker-test-logs.txt'
+                            sh 'docker-compose down || true'
+                        }
+                    }
                 }
             }
         }
 
-        stage('test') {
-            agent {
-                reuseNode true
-            }
-            steps {
-                script {
-                    env.COMPOSE_PROFILES = 'default,api'
-                    sh 'docker-compose pull'
-                    sh 'docker-compose up -d'
-                    // Make sure the API has finished the migration and seed scripts
-                    sh 'sleep 10s'
-                    sh 'docker-compose ps'
-                    sh 'gulp'
-                    sh 'npm test'
-                }
-            }
-            post {
-                always {
-                    sh 'docker-compose logs --no-color > docker-test-logs.txt'
-                    sh 'docker-compose down || true'
-//                     TODO fixme
-//                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
-//                     qualityGates: [
-//                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
-//                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
-                }
-            }
-        }
+//         stage('test') {
+//             agent {
+//                 reuseNode true
+//             }
+//             steps {
+//                 script {
+//                     env.COMPOSE_PROFILES = 'default,api'
+//                     sh 'docker-compose pull'
+//                     sh 'docker-compose up -d'
+//                     // Make sure the API has finished the migration and seed scripts
+//                     sh 'sleep 10s'
+//                     sh 'docker-compose ps'
+//                     sh 'gulp'
+//                     sh 'npm test'
+//                 }
+//             }
+//             post {
+//                 always {
+//                     sh 'docker-compose logs --no-color > docker-test-logs.txt'
+//                     sh 'docker-compose down || true'
+// //                     TODO fixme
+// //                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
+// //                     qualityGates: [
+// //                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
+// //                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
+//                 }
+//             }
+//         }
 
 //         stage('ui test') {
 //             steps {
