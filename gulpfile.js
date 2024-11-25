@@ -1,6 +1,6 @@
 import {deleteAsync} from 'del'
 import gulp from 'gulp'
-import dartSass from 'sass'
+import * as dartSass from 'sass'
 import gulpSass from 'gulp-sass'
 import nodemon from 'gulp-nodemon'
 import * as fs from 'node:fs';
