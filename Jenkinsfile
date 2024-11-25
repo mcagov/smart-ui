@@ -50,6 +50,9 @@ pipeline {
         API_SPRING_PROFILES = 'default, dev, test,local-auth'
         JAVA_ENV = 'local'
         NODE_OPTIONS = "--experimental-vm-modules --experimental-specifier-resolution=node"
+        ATTACHMENTS_BUCKET = 'mcauk-smart-dev-attachments'
+        STAGING_BUCKET='mcauk-smart-dev-staging-attachments'
+        EVENTS_QUEUE_URL="http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events"
         AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
     }
 
