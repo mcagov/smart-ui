@@ -141,7 +141,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_USER: ${POSTGRES_USER:-smart}
-      POSTGRES_DB: smart-comments
+      POSTGRES_DB: smart-attachments
     shm_size: ${SHM_SIZE-256m}
     profiles:
       - full
@@ -164,11 +164,11 @@ services:
       - STAGING_BUCKET=${STAGING_BUCKET}
       - EVENTS_QUEUE_URL=${EVENTS_QUEUE_URL}
       - SPRING_PROFILES_ACTIVE=${API_SPRING_PROFILES:-default}
-      - POSTGRES_HOST=smart-comments-db
+      - POSTGRES_HOST=smart-attachments-db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER:-smart}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRES_DB=smart-comments
+      - POSTGRES_DB=smart-attachments
       - SERVER_PORT=8080
       - DB_CONTEXT=local
       - JAVA_ENV=${JAVA_ENV:-local}
