@@ -7,6 +7,7 @@ describe('/api', function () {
     return request(app)
       .get(`/api/trainees/autocomplete?trainingProviderId=${trainingProviderId}&contactName=Cox`)
       .set('SMART-USER', 'mca.tp1@service.dev.smart.mcga.uk')
+      .trustLocalhost(true)
       .expect(200).then(results => {
         const trainee = results.body
         expect(trainee).toContainEqual(expect.objectContaining({ suggestion: 'Denis Cox' }))
