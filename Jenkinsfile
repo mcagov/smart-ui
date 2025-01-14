@@ -117,29 +117,29 @@ pipeline {
                         }
                     }
                 }
-//                 stage('test') {
-//                     environment{
-//                         COMPOSE_PROFILES = 'default,api'
-//                     }
-//                     steps {
-//                         withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-//                             sh 'pwd'
-//                             sh 'docker compose pull'
-//                             sh 'docker compose up -d'
-//                             // Make sure the API has finished the migration and seed scripts
-//                             sh 'sleep 30s'
-//                             sh 'docker compose ps'
-//                             sh 'gulp'
-//                             sh 'npm test'
-//                         }
-//                     }
-//                     post {
-//                         always {
-//                             sh 'docker compose logs --no-color > docker-test-logs.txt'
-//                             sh 'docker compose down || true'
-//                         }
-//                     }
-//                 }
+                stage('test') {
+                    environment{
+                        COMPOSE_PROFILES = 'default,api'
+                    }
+                    steps {
+                        withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh 'pwd'
+                            sh 'gulp'
+                            sh 'docker compose pull'
+                            sh 'docker compose up -d'
+                            // Make sure the API has finished the migration and seed scripts
+                            sh 'sleep 30s'
+                            sh 'docker compose ps'
+                            sh 'npm test'
+                        }
+                    }
+                    post {
+                        always {
+                            sh 'docker compose logs --no-color > docker-test-logs.txt'
+                            sh 'docker compose down || true'
+                        }
+                    }
+                }
 //            } //working here 140124
 //        } //working here 140124
 
