@@ -203,6 +203,7 @@ pipeline {
                 steps {
                     script {
                         sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
+                        sh 'pwd'
                         sh 'gulp buildInfo'
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
