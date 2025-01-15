@@ -204,7 +204,7 @@ pipeline {
                     script {
                         sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
                         sh 'pwd'
-                        sh 'gulp buildInfo'
+                        sh 'gulp'
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
                         withCredentials([usernamePassword(credentialsId: 'mca-bot-gh', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
