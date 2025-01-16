@@ -2,7 +2,7 @@
     "name": "@mca/smart-ui",
     "version": "0.2.0",
     "type": "module",
-    "repository": "https://github.com/mcga-gov-uk/smart-ui",
+    "repository": "https://github.com/mcagov/smart-ui",
     "author": "Catapult CX",
     "description": "SMarT UI",
     "scripts": {
