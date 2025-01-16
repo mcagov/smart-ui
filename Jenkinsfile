@@ -54,6 +54,7 @@ pipeline {
         STAGING_BUCKET='mcauk-smart-dev-staging-attachments'
         EVENTS_QUEUE_URL="http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events"
         AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
+        GIT_REPO = 'github.com/mcagov/smart-ui'
     }
 
     stages {
@@ -111,7 +112,7 @@ pipeline {
                             env.LATEST_VERSION = sh(script: 'npm view $(node -p "require(\'./package.json\').name")@"~${BASE_VERSION}" version --json | grep \'"\' | cut -d \'"\' -f 2 | sort --version-sort --reverse | head -n 1', returnStdout: true).trim()
                             env.NEXT_VERSION = sh(script: '[[ -z "$LATEST_VERSION" ]] && echo "${BASE_VERSION}.0" || semver -i patch $LATEST_VERSION', returnStdout: true).trim()
                             env.DOCKER_IMAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name" | cut -d "/" -f 2', returnStdout: true).trim()
-                            env.GIT_REPO = sh(script: 'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
+                            //env.GIT_REPO = sh(script: 'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
 
                             buildName "${NEXT_VERSION}"
                         }
@@ -208,7 +209,7 @@ pipeline {
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
                         withCredentials([usernamePassword(credentialsId: 'mca-bot-gh', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                            sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO.replace(/.*\/\//, "")}.git v${NEXT_VERSION}'
+                            sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO}.git v${NEXT_VERSION}'
                         }
                     }
                 }
