@@ -4,7 +4,7 @@
     "type": "module",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/mcagov/smart-ui"
+        "url": "git+https://github.com/mcga-gov-uk/smart-ui.git"
     },
     "author": "Catapult CX",
     "description": "SMarT UI",
