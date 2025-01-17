@@ -55,6 +55,7 @@ pipeline {
         EVENTS_QUEUE_URL="http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events"
         AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
         GIT_REPO = 'git@github.com:mcagov/smart-ui'
+        SSH_PRIVATE_KEY = '~/home/ec2-user/.ssh/id_ed25519'
     }
 
     stages {
