@@ -208,9 +208,9 @@ pipeline {
                         sh 'gulp'
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
-                        git push ([$class: 'GitPublisher',
-                                remoteUrls: 'git@github.com${GIT_REPO}.git v${NEXT_VERSION}',
-                                credentialsId: 'mca-github-ssh'])
+                        withCredentials([sshUsernamePrivateKey(credentialsId: 'mca-github-ssh', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
+                            sh 'git push https://${GIT_REPO}.git v${NEXT_VERSION}'
+                        }
                     }
                 }
             }
