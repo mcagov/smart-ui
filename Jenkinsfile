@@ -211,7 +211,6 @@ pipeline {
                         git push ([$class: 'GitPublisher',
                                 remoteUrls: 'git"github.com${GIT_REPO}.git v${NEXT_VERSION}',
                                 credentialsId: 'mca-github-ssh'])
-                        }
                     }
                 }
             }
