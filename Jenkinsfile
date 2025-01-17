@@ -66,6 +66,7 @@ pipeline {
                         def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
                         sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
                         sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
+                        sh "pwd"
                     }
                 }
             }
