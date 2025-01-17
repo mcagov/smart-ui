@@ -55,7 +55,7 @@ pipeline {
         EVENTS_QUEUE_URL="http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events"
         AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
         GIT_REPO = 'git@github.com:mcagov/smart-ui'
-        SSH_PRIVATE_KEY = '~/home/ec2-user/.ssh/id_ed25519'
+        SSH_PRIVATE_KEY = '.ssh/id_ed25519'
     }
 
     stages {
@@ -66,7 +66,6 @@ pipeline {
                         def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
                         sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
                         sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
-                        sh "pwd"
                     }
                 }
             }
