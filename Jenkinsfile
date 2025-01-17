@@ -54,7 +54,7 @@ pipeline {
         STAGING_BUCKET='mcauk-smart-dev-staging-attachments'
         EVENTS_QUEUE_URL="http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events"
         AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
-        GIT_REPO = 'github.com/mcagov/smart-ui'
+        GIT_REPO = 'git@github.com/mcagov/smart-ui'
     }
 
     stages {
@@ -209,7 +209,7 @@ pipeline {
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
                         withCredentials([sshUserPrivateKey(credentialsId: 'mca-github-ssh', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
-                            sh 'git push https://${GIT_REPO}.git v${NEXT_VERSION}'
+                            sh 'git push ${GIT_REPO}.git v${NEXT_VERSION}'
                         }
                     }
                 }
