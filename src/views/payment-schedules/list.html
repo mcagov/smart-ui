@@ -44,7 +44,7 @@
   }) }}
 {% else %}
     <div class="govuk-grid-column-two-thirds">
-    {% set navYears = range(currentPaymentSchedule.financialYear + 3, currentPaymentSchedule.financialYear - 5 , -1 ) %}
+    {% set navYears = range(currentPaymentSchedule.financialYear + 1, currentPaymentSchedule.financialYear - 5 , -1 ) %}
     {% from "components/years-nav/macro.njk" import yearsNav %}
     {{ yearsNav({ availableYears: navYears, active: financialYear, baseUrl:'?financialYear=' }) }}
     </div>
