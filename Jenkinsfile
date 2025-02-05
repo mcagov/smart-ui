@@ -146,9 +146,6 @@ pipeline {
 //        } //working here 140124
 
         stage('test') {
-            agent {
-                reuseNode true
-            }
             steps {
                 script {
                     env.COMPOSE_PROFILES = 'default,api'
