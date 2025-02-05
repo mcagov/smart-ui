@@ -141,59 +141,7 @@ pipeline {
                         }
                     }
                 }
-
-//         stage('test') {
-//             steps {
-//                 script {
-//                     env.COMPOSE_PROFILES = 'default,api'
-//                     sh 'docker compose pull'
-//                     sh 'docker compose up -d'
-//                     // Make sure the API has finished the migration and seed scripts
-//                     sh 'sleep 10s'
-//                     sh 'docker compose ps'
-//                     sh 'gulp'
-//                     sh 'npm test'
-//                 }
-//             }
-//             post {
-//                 always {
-//                     sh 'docker compose logs --no-color > docker-test-logs.txt'
-//                     sh 'docker compose down || true'
-//                     TODO fixme
-//                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
-//                     qualityGates: [
-//                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
-//                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
-//               }
-//            }
-//        }
-
-//         stage('ui test') {
-//             steps {
-//                 script {
-//                     env.COMPOSE_PROFILES = 'full'
-//                     sh 'gulp'
-//                     sh 'docker-compose build'
-//                     sh 'docker-compose up -d'
-//                     // Make sure the API has finished the migration and seed scripts
-//                     sh 'sleep 20s'
-//                     sh 'docker-compose ps'
-//                     sh 'npm run wdio-headless'
-//                 }
-//             }
-//             post {
-//                 always {
-//                     sh 'docker-compose ps'
-//                     sh 'docker-compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt'
-//                     sh 'docker-compose logs smart-api --no-color > docker-ui-test-api-logs.txt'
-//                     sh 'docker-compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
-//                     sh 'docker-compose logs nginx --no-color > docker-ui-test-nginx-logs.txt'
-//                     sh 'docker-compose down || true'
-//                     // step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/cobertura-coverage.xml'])
-//                 }
-//             }
-//         }
-
+            }
             stage('npm publish') {
                 when { branch 'master' }
                 steps {
@@ -257,7 +205,7 @@ pipeline {
             }
         }
     }
-    }
+
 
 //         stage('deploy') {
 //             when { branch 'master' }
