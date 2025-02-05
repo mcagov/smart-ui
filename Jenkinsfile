@@ -257,6 +257,7 @@ pipeline {
             }
         }
     }
+    }
 
 //         stage('deploy') {
 //             when { branch 'master' }
