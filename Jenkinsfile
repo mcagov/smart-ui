@@ -113,7 +113,7 @@ pipeline {
                             env.LATEST_VERSION = sh(script: 'npm view $(node -p "require(\'./package.json\').name")@"~${BASE_VERSION}" version --json | grep \'"\' | cut -d \'"\' -f 2 | sort --version-sort --reverse | head -n 1', returnStdout: true).trim()
                             env.NEXT_VERSION = sh(script: '[[ -z "$LATEST_VERSION" ]] && echo "${BASE_VERSION}.0" || semver -i patch $LATEST_VERSION', returnStdout: true).trim()
                             env.DOCKER_IMAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name" | cut -d "/" -f 2', returnStdout: true).trim()
-                            //env.GIT_REPO = sh(script: 'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
+                            env.GIT_REPO = sh(script: 'node -p -e "require(\'./package.json\').repository"', returnStdout: true).trim()
 
                             buildName "${NEXT_VERSION}"
                         }
@@ -200,9 +200,12 @@ pipeline {
                     script {
                         sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
                         sh 'pwd'
+                        sh 'gulp'
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
-                        sh 'git push ${GIT_REPO}.git v${NEXT_VERSION}'
+                        withCredentials([usernamePassword(credentialsId: 'mca-bot-ghp', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                            sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/mcagov/smart-ui.git v${NEXT_VERSION}'
+                        }
                     }
                 }
             }
