@@ -119,57 +119,54 @@ pipeline {
                         }
                     }
                 }
-//                 stage('test') {
-//                     environment{
-//                         COMPOSE_PROFILES = 'default,api'
-//                     }
-//                     steps {
-//                         withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-//                             sh 'pwd'
-//                             sh 'gulp'
-//                             sh 'docker compose pull'
-//                             sh 'docker compose up -d'
-//                             // Make sure the API has finished the migration and seed scripts
-//                             sh 'sleep 30s'
-//                             sh 'docker compose ps'
-//                             sh 'npm test'
-//                         }
-//                     }
-//                     post {
-//                         always {
-//                             sh 'docker compose logs --no-color > docker-test-logs.txt'
-//                             sh 'docker compose down || true'
-//                         }
-//                     }
-                //}
-//            } //working here 140124
-//        } //working here 140124
-
-        stage('test') {
-            steps {
-                script {
-                    env.COMPOSE_PROFILES = 'default,api'
-                    sh 'docker compose pull'
-                    sh 'docker compose up -d'
-                    // Make sure the API has finished the migration and seed scripts
-                    sh 'sleep 10s'
-                    sh 'docker compose ps'
-                    sh 'gulp'
-                    sh 'npm test'
+                stage('test') {
+                    environment{
+                        COMPOSE_PROFILES = 'default,api'
+                    }
+                    steps {
+                        withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh 'pwd'
+                            sh 'gulp'
+                            sh 'docker compose pull'
+                            sh 'docker compose up -d'
+                            // Make sure the API has finished the migration and seed scripts
+                            sh 'sleep 30s'
+                            sh 'docker compose ps'
+                            sh 'npm test'
+                        }
+                    post {
+                        always {
+                            sh 'docker compose logs --no-color > docker-test-logs.txt'
+                            sh 'docker compose down || true'
+                        }
+                    }
                 }
-            }
-            post {
-                always {
-                    sh 'docker compose logs --no-color > docker-test-logs.txt'
-                    sh 'docker compose down || true'
+
+//         stage('test') {
+//             steps {
+//                 script {
+//                     env.COMPOSE_PROFILES = 'default,api'
+//                     sh 'docker compose pull'
+//                     sh 'docker compose up -d'
+//                     // Make sure the API has finished the migration and seed scripts
+//                     sh 'sleep 10s'
+//                     sh 'docker compose ps'
+//                     sh 'gulp'
+//                     sh 'npm test'
+//                 }
+//             }
+//             post {
+//                 always {
+//                     sh 'docker compose logs --no-color > docker-test-logs.txt'
+//                     sh 'docker compose down || true'
 //                     TODO fixme
 //                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
 //                     qualityGates: [
 //                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
 //                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
-                }
-            }
-        }
+//               }
+//            }
+//        }
 
 //         stage('ui test') {
 //             steps {
