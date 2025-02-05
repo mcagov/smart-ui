@@ -203,7 +203,7 @@ pipeline {
                         sh 'gulp'
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
-                        withCredentials([usernamePassword(credentialsId: 'mca-bot-ghp', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        withCredentials([usernamePassword(credentialsId: 'mca-bot-gh', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                             sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/mcagov/smart-ui.git v${NEXT_VERSION}'
                         }
                     }
