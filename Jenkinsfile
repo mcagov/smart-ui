@@ -206,7 +206,6 @@ pipeline {
                     script {
                         sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
                         sh 'pwd'
-                        sh 'gulp'
                         sh 'npm publish'
                         sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
                         sh 'git push ${GIT_REPO}.git v${NEXT_VERSION}'
