@@ -133,6 +133,7 @@ pipeline {
                             sh 'docker compose ps'
                             sh 'npm test'
                         }
+                    }
                     post {
                         always {
                             sh 'docker compose logs --no-color > docker-test-logs.txt'
@@ -140,32 +141,6 @@ pipeline {
                         }
                     }
                 }
-
-    //         stage('test') {
-    //             steps {
-    //                 script {
-    //                     env.COMPOSE_PROFILES = 'default,api'
-    //                     sh 'docker compose pull'
-    //                     sh 'docker compose up -d'
-    //                     // Make sure the API has finished the migration and seed scripts
-    //                     sh 'sleep 10s'
-    //                     sh 'docker compose ps'
-    //                     sh 'gulp'
-    //                     sh 'npm test'
-    //                 }
-    //             }
-    //             post {
-    //                 always {
-    //                     sh 'docker compose logs --no-color > docker-test-logs.txt'
-    //                     sh 'docker compose down || true'
-    //                     TODO fixme
-    //                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
-    //                     qualityGates: [
-    //                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
-    //                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
-    //               }
-    //            }
-    //        }
 
                 stage('ui test') {
                     steps {
@@ -256,27 +231,7 @@ pipeline {
                     }
                 }
             }
-
-
-
-//         stage('deploy') {
-//             when { branch 'master' }
-//             steps {
-//                 build(
-//                     job: 'Deploy/SMarT/smart-eks-deploys/smart-ui/master',
-//                     parameters: [
-//                         string(name: 'TF_WORKSPACE', value: 'dev'),
-//                         string(name: 'TF_VAR_smart_ui_version', value: "${env.DOCKER_IMAGE_NAME}:${env.NEXT_VERSION}")
-//                     ],
-//                     wait: true
-//                 )
-//             }
-            // post {
-            //     always {
-            //         jiraSendDeploymentInfo environmentId: 'dev', environmentName: 'smart-dev', environmentType: 'development'
-            //     }
-            // }
-//        }
+        }
     } // end of stages
 
     post {
