@@ -136,8 +136,10 @@ pipeline {
                     }
                     post {
                         always {
-                            sh 'docker compose logs --no-color > docker-test-logs.txt'
-                            sh 'docker compose down || true'
+                            withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                                sh 'docker compose logs --no-color > docker-test-logs.txt'
+                                sh 'docker compose down || true'
+                            }
                         }
                     }
                 }
