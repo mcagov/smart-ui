@@ -141,122 +141,122 @@ pipeline {
                     }
                 }
 
-//         stage('test') {
-//             steps {
-//                 script {
-//                     env.COMPOSE_PROFILES = 'default,api'
-//                     sh 'docker compose pull'
-//                     sh 'docker compose up -d'
-//                     // Make sure the API has finished the migration and seed scripts
-//                     sh 'sleep 10s'
-//                     sh 'docker compose ps'
-//                     sh 'gulp'
-//                     sh 'npm test'
-//                 }
-//             }
-//             post {
-//                 always {
-//                     sh 'docker compose logs --no-color > docker-test-logs.txt'
-//                     sh 'docker compose down || true'
-//                     TODO fixme
-//                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
-//                     qualityGates: [
-//                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
-//                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
-//               }
-//            }
-//        }
+    //         stage('test') {
+    //             steps {
+    //                 script {
+    //                     env.COMPOSE_PROFILES = 'default,api'
+    //                     sh 'docker compose pull'
+    //                     sh 'docker compose up -d'
+    //                     // Make sure the API has finished the migration and seed scripts
+    //                     sh 'sleep 10s'
+    //                     sh 'docker compose ps'
+    //                     sh 'gulp'
+    //                     sh 'npm test'
+    //                 }
+    //             }
+    //             post {
+    //                 always {
+    //                     sh 'docker compose logs --no-color > docker-test-logs.txt'
+    //                     sh 'docker compose down || true'
+    //                     TODO fixme
+    //                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/cobertura-coverage.xml' ]], id: 'cobertura', name: 'Cobertura Coverage', sourceCodeRetention: 'EVERY_BUILD',
+    //                     qualityGates: [
+    //                     [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
+    //                     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])
+    //               }
+    //            }
+    //        }
 
-        stage('ui test') {
-            steps {
-                script {
-                    env.COMPOSE_PROFILES = 'full'
-                    sh 'gulp'
-                    sh 'docker-compose build'
-                    sh 'docker-compose up -d'
-                    // Make sure the API has finished the migration and seed scripts
-                    sh 'sleep 20s'
-                    sh 'docker-compose ps'
-                    sh 'npm run wdio-headless'
-                }
-            }
-            post {
-                always {
-                    sh 'docker-compose ps'
-                    sh 'docker-compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt'
-                    sh 'docker-compose logs smart-api --no-color > docker-ui-test-api-logs.txt'
-                    sh 'docker-compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
-                    sh 'docker-compose logs nginx --no-color > docker-ui-test-nginx-logs.txt'
-                    sh 'docker-compose down || true'
-                    // step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/cobertura-coverage.xml'])
-                }
-            }
-        }
-
-            stage('npm publish') {
-                when { branch 'master' }
-                steps {
-                    script {
-                        sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
-                        sh 'pwd'
-                        sh 'gulp'
-                        sh 'npm publish'
-                        sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
-                        sh 'git push origin v${NEXT_VERSION}'
+                stage('ui test') {
+                    steps {
+                        script {
+                            env.COMPOSE_PROFILES = 'full'
+                            sh 'gulp'
+                            sh 'docker-compose build'
+                            sh 'docker-compose up -d'
+                            // Make sure the API has finished the migration and seed scripts
+                            sh 'sleep 20s'
+                            sh 'docker-compose ps'
+                            sh 'npm run wdio-headless'
+                        }
+                    }
+                    post {
+                        always {
+                            sh 'docker-compose ps'
+                            sh 'docker-compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt'
+                            sh 'docker-compose logs smart-api --no-color > docker-ui-test-api-logs.txt'
+                            sh 'docker-compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
+                            sh 'docker-compose logs nginx --no-color > docker-ui-test-nginx-logs.txt'
+                            sh 'docker-compose down || true'
+                            // step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/cobertura-coverage.xml'])
+                        }
                     }
                 }
-            }
 
-            stage('docker-publish') {
-                when { branch 'master' }
-                steps {
-                    script {
-                        sh '''
-                        echo "Building docker image ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}"
-
-                        docker build ${DOCKER_OPTS} \
-                            -t "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" \
-                            --secret id=npmrc,src=.npmrc \
-                            --build-arg UI_VERSION=$NEXT_VERSION \
-                            .
-
-                        docker push "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}"
-                        '''
+                stage('npm publish') {
+                    when { branch 'master' }
+                    steps {
+                        script {
+                            sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
+                            sh 'pwd'
+                            sh 'gulp'
+                            sh 'npm publish'
+                            sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
+                            sh 'git push origin v${NEXT_VERSION}'
+                        }
                     }
                 }
-            }
 
-            stage('vulnerability-report') {
-                when { branch 'master' }
-                steps {
-                    script {
-                        String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true) // Get image digest
-                        def imageDigest = vulnerabilityReport.getImageDigest(describeImageJson);
+                stage('docker-publish') {
+                    when { branch 'master' }
+                    steps {
+                        script {
+                            sh '''
+                            echo "Building docker image ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}"
 
-                        println("Waiting for the image scan to kick start ...")
-                        sh 'sleep 60' // Add some delay
+                            docker build ${DOCKER_OPTS} \
+                                -t "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" \
+                                --secret id=npmrc,src=.npmrc \
+                                --build-arg UI_VERSION=$NEXT_VERSION \
+                                .
 
-                        def describeImageScanStatus = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} &>/dev/null", returnStatus: true)
-                        if (describeImageScanStatus == 0) {
-                            String describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
-                            def scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
-                            while (!scanStatus.equalsIgnoreCase("ACTIVE")) { // Wait until image scan status becomes ACTIVE
-                                println("Waiting for image scan to complete...")
-                                sh 'sleep 30' // Add some delay
-                                describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
-                                scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
+                            docker push "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}"
+                            '''
+                        }
+                    }
+                }
+
+                stage('vulnerability-report') {
+                    when { branch 'master' }
+                    steps {
+                        script {
+                            String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true) // Get image digest
+                            def imageDigest = vulnerabilityReport.getImageDigest(describeImageJson);
+
+                            println("Waiting for the image scan to kick start ...")
+                            sh 'sleep 60' // Add some delay
+
+                            def describeImageScanStatus = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} &>/dev/null", returnStatus: true)
+                            if (describeImageScanStatus == 0) {
+                                String describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
+                                def scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
+                                while (!scanStatus.equalsIgnoreCase("ACTIVE")) { // Wait until image scan status becomes ACTIVE
+                                    println("Waiting for image scan to complete...")
+                                    sh 'sleep 30' // Add some delay
+                                    describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
+                                    scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
+                                }
+                                def findingResult = vulnerabilityReport.getVulnerabilityReport(describeImageScanJson)
+                                println(findingResult)
+                                env.VULNERABILITIES = findingResult
+                                sh 'cat <<< "${VULNERABILITIES}" > vulnerabilities.log'
+                                archiveArtifacts artifacts: 'vulnerabilities.log'
                             }
-                            def findingResult = vulnerabilityReport.getVulnerabilityReport(describeImageScanJson)
-                            println(findingResult)
-                            env.VULNERABILITIES = findingResult
-                            sh 'cat <<< "${VULNERABILITIES}" > vulnerabilities.log'
-                            archiveArtifacts artifacts: 'vulnerabilities.log'
                         }
                     }
                 }
             }
-        }
-    }
+
 
 
 //         stage('deploy') {
