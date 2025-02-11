@@ -131,7 +131,7 @@ pipeline {
                             // Make sure the API has finished the migration and seed scripts
                             sh 'sleep 30s'
                             sh 'docker compose ps'
-                            sh 'docker-compose exec redis env'
+                            sh 'docker compose exec redis env'
                             sh 'npm test'
                         }
                     }
