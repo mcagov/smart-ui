@@ -44,7 +44,7 @@ pipeline {
         ENABLE_REDIS = 'false'
         REDIS_PASSWORD = 'V*.L=pL9B[kwM8d+'
         REDIS_HOST = 'service.local.smart.mcga.uk'
-        REDIS_TLS = 'true'
+        REDIS_TLS = 'false'
         REDIS_PORT = '6379'
         CUCUMBER_PUBLISH_ENABLED = 'false'
         API_SPRING_PROFILES = 'default, dev, test,local-auth'
