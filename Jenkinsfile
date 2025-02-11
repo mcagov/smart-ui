@@ -41,7 +41,7 @@ pipeline {
         OKTA_REDIRECT_URI = 'https://service.local.smart.mcga.uk/authorization-code/callback'
         OKTA_ISSUER_URL = 'https://id.mca.dev.catapult.cx/oauth2/aush2o6wpn3IG2U6o357'
         OKTA_CLIENT_ID = '0oah2o9o51KkYDlGJ357'
-        ENABLE_REDIS = 'true'
+        ENABLE_REDIS = 'false'
         REDIS_PASSWORD = 'V*.L=pL9B[kwM8d+'
         REDIS_HOST = 'service.local.smart.mcga.uk'
         REDIS_TLS = 'true'
