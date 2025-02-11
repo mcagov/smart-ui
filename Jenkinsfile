@@ -131,6 +131,7 @@ pipeline {
                             // Make sure the API has finished the migration and seed scripts
                             sh 'sleep 30s'
                             sh 'docker compose ps'
+                            sh 'docker-compose exec redis env'
                             sh 'npm test'
                         }
                     }
@@ -153,13 +154,11 @@ pipeline {
                             sh 'docker-compose up -d'
                             // Make sure the API has finished the migration and seed scripts
                             sh 'sleep 20s'
-                            sh 'docker-compose ps'
                             sh 'npm run wdio-headless'
                         }
                     }
                     post {
                         always {
-                            sh 'docker-compose ps'
                             sh 'docker-compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt'
                             sh 'docker-compose logs smart-api --no-color > docker-ui-test-api-logs.txt'
                             sh 'docker-compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
@@ -176,7 +175,6 @@ pipeline {
                         script {
                             sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
                             sh 'pwd'
-                            sh 'gulp'
                             sh 'npm publish'
                             sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
                             sh 'git push origin v${NEXT_VERSION}'

@@ -15,8 +15,10 @@ export function getTrainee (failSilent = false) {
       assert.ok(req.params.traineeId, 'req.params.traineeId is not set')
       res.locals.trainee = await trainees.get(getAccessToken(req), req.params.traineeId)
       next()
+      logger.debug(`Using trainee search for trainee - ${req.params.traineeId}`)
     } catch (err) {
       handleLookupError(err, next, failSilent)
+      logger.debug(`Unable to retrieve - ${req.params.traineeId}`)
     }
   }
 }
