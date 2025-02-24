@@ -167,7 +167,7 @@ pipeline {
 //                             // step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/cobertura-coverage.xml'])
 //                         }
 //                     }
-                }
+//                }
 
                 stage('npm publish') {
                     when { branch 'master' }
