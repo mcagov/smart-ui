@@ -28,7 +28,7 @@
         { text: 'Training provider', attributes: { "aria-sort": "none", "data-name": "trainingProvider.companyName" } } if params.showTrainingProvider,
         { text: 'Date Of Birth', attributes: { "aria-sort": "none", "data-name": "dateOfBirth" } },
         { text: 'Postcode', attributes: { "aria-sort": "none", "data-name": "postcode" } },
-        { text: 'Weeks Claimed' } if params.showSm1WeeksClaimed,
+        { text: 'Weeks Claimed', attributes: { "aria-sort": "none", "data-name": "smart1WeeksClaimed" } } if params.showSm1WeeksClaimed,
         { text: 'Status' }
     ] | cleanList ,
     rows: rows,

@@ -237,7 +237,7 @@ services:
     ports:
       - '6379:6379'
     environment:
-      - REDIS_PASSWORD=$REDIS_PASSWORD
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
       - ${PWD}/test/nginx/ssl/service.local.smart.mcga.uk-fullchain.pem:/usr/local/etc/redis/redis.crt
       - ${PWD}/test/nginx/ssl/service.local.smart.mcga.uk-key.pem:/usr/local/etc/redis/redis.key
