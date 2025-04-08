@@ -30,8 +30,12 @@
         {# {% if user.role == 'admin' %} #}
         {% set customButtons %}
         <div class="govuk-checkboxes__item govuk-checkboxes--small ">
-            <input type="checkbox" class="govuk-checkboxes__input mca-filter"
-            id="allTps" name="allTps" value="true" {{'checked' if allTps === 'true'}}>
+            <input type="checkbox"
+                   class="govuk-checkboxes__input mca-filter"
+                   id="allTps"
+                   name="allTps"
+                   value="true"
+                   {% if allTps === 'true'%}checked{% endif %}>
             <label class="govuk-label govuk-checkboxes__label" for="allTps">
                 include all Training Providers
             </label>
@@ -81,7 +85,13 @@
     </div>
 </div>
 {% endif %}
-
-
+{% block afterScript %}
+{% if user.role == 'admin' %}
+<script nonce='{{ cspNonce }}'>
+    const tpIdUser = {{ isTp | dump | safe }}
+    console.log(tpIdUser)
+</script>
+{% endif %}
+{% endblock %}
 
 {% endblock %}

@@ -12,16 +12,16 @@ describe('/training-providers/:id/claims', function () {
       .expect(200)
   })
 
-  it('should vew financial year page', function () {
+  it('should view financial year page', function () {
     return request(app)
-      .get(`/training-providers/${trainingProviderId}/claims/years/2021/periods/6`)
+      .get(`/training-providers/${trainingProviderId}/claims/years/2022`)
       .set('SMART-USER', 'jim@enterprise.ufp')
       .expect(200)
   })
 
-  it.skip('should vew claim period page', function () {
+  it('should view claim period page', function () {
     return request(app)
-      .get(`/training-providers/${trainingProviderId}/claims/years/2021-2022/periods/2021-09-30`)
+      .get(`/training-providers/${trainingProviderId}/claims/years/2022/periods/9`)
       .set('SMART-USER', 'jim@enterprise.ufp')
       .expect(200)
   })
