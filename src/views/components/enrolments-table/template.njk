@@ -31,7 +31,7 @@
     {% endif%}
 
     {% set rows = (rows.push([
-        { text: item.training.trainingProviderCompanyName} if params.allTps ,
+        { text: item.training.trainingProvider.companyName} if params.allTps ,
         { html: traineeLink},
         { text: item.startDate | dateUKFormat, format: "numeric", attributes: { 'nowrap': ''} },
         { text: item.expectedEndDate | dateUKFormat, format: "numeric", attributes: { 'nowrap': ''} },
