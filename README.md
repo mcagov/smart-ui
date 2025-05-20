@@ -58,19 +58,8 @@ This project uses [nunjucks](https://mozilla.github.io/nunjucks/) for its view t
 
 ##### Development
 
-Install the dependencies
+Please follow the setup instructions [here](https://docs.google.com/document/d/1L_IxtFmMb2m9z0QWbZcx69cAAZcLVb45ys-f4ptyoZU/edit?tab=t.0) for Made Tech laptops.
 
-    npm install grunt -g
-    npm install nyc -g
-    npm install
-
-Test (first start `smart-api` service)
-
-    npm test
-
-Run locally
-
-    npm start
 
 ##### Docker
 
@@ -80,7 +69,7 @@ Run locally - will start APIs and DBs
 
 ### Accessing locally
 
-The service will be available at http://localhost:2997/
+The service will be available at http://localhost:2997/ or https://service.local.smart.mcga.uk
 
 ### TLS/SSL
 
