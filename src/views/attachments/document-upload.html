@@ -36,7 +36,9 @@
           text: "Upload a " + params.docDescription,
           classes: 'govuk-label--m'
         },
-        attributes: { multiple: '' },
+        attributes: { multiple: '',
+        accept: ".pdf,.docx,.xlsx,.pptx,.xml,.png,.jpg,.jpeg,.gif,.tiff"
+        },
         errorMessage: params.errorMessage
       }) }}
 
