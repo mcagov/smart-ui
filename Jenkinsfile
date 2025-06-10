@@ -202,35 +202,35 @@ pipeline {
                     }
                 }
 
-                stage('vulnerability-report') {
-                    when { branch 'master' }
-                    steps {
-                        script {
-                            String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true) // Get image digest
-                            def imageDigest = vulnerabilityReport.getImageDigest(describeImageJson);
-
-                            println("Waiting for the image scan to kick start ...")
-                            sh 'sleep 60' // Add some delay
-
-                            def describeImageScanStatus = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} &>/dev/null", returnStatus: true)
-                            if (describeImageScanStatus == 0) {
-                                String describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
-                                def scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
-                                while (!scanStatus.equalsIgnoreCase("ACTIVE")) { // Wait until image scan status becomes ACTIVE
-                                    println("Waiting for image scan to complete...")
-                                    sh 'sleep 30' // Add some delay
-                                    describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
-                                    scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
-                                }
-                                def findingResult = vulnerabilityReport.getVulnerabilityReport(describeImageScanJson)
-                                println(findingResult)
-                                env.VULNERABILITIES = findingResult
-                                sh 'cat <<< "${VULNERABILITIES}" > vulnerabilities.log'
-                                archiveArtifacts artifacts: 'vulnerabilities.log'
-                            }
-                        }
-                    }
-                }
+//                 stage('vulnerability-report') {
+//                     when { branch 'master' }
+//                     steps {
+//                         script {
+//                             String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true) // Get image digest
+//                             def imageDigest = vulnerabilityReport.getImageDigest(describeImageJson);
+//
+//                             println("Waiting for the image scan to kick start ...")
+//                             sh 'sleep 60' // Add some delay
+//
+//                             def describeImageScanStatus = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} &>/dev/null", returnStatus: true)
+//                             if (describeImageScanStatus == 0) {
+//                                 String describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
+//                                 def scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
+//                                 while (!scanStatus.equalsIgnoreCase("ACTIVE")) { // Wait until image scan status becomes ACTIVE
+//                                     println("Waiting for image scan to complete...")
+//                                     sh 'sleep 30' // Add some delay
+//                                     describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
+//                                     scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
+//                                 }
+//                                 def findingResult = vulnerabilityReport.getVulnerabilityReport(describeImageScanJson)
+//                                 println(findingResult)
+//                                 env.VULNERABILITIES = findingResult
+//                                 sh 'cat <<< "${VULNERABILITIES}" > vulnerabilities.log'
+//                                 archiveArtifacts artifacts: 'vulnerabilities.log'
+//                             }
+//                         }
+//                     }
+//                } //end of vulnerabilityReport
             }
         }
     } // end of stages
