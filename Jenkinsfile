@@ -230,7 +230,7 @@ pipeline {
 //                             }
 //                         }
 //                     }
-                }
+//                } //end of vulnerabilityReport
             }
         }
     } // end of stages
