@@ -642,6 +642,8 @@ function configureNunjucks(app) {
 
   env.addGlobal('enableAV', config.features.enableAV)
 
+  env.addGlobal('govukRebrand', true)
+
   env.addGlobal('getDurationInWeeks', getDurationInWeeks)
   // Used for currencies
   require('useful-nunjucks-filters')(env)
