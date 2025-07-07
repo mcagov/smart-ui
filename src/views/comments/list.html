@@ -23,6 +23,11 @@
     text: "Back to " + resourceSubject,
     href: resourceUrl
 }) }}
+{% elseif user.role == 'admin' and trainingProvider.id == undefined %}
+    {{ govukBackLink({
+        text: "Back to Home",
+        href: '/'
+    }) }}
 {% elseif user.role == 'admin'%}
     {{ govukBackLink({
         text: "Back to " + trainingProvider.companyName,
