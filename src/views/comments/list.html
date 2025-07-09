@@ -23,11 +23,18 @@
     text: "Back to " + resourceSubject,
     href: resourceUrl
 }) }}
-{% elseif user.role == 'admin'%}
-    {{ govukBackLink({
-        text: "Back to " + trainingProvider.companyName,
-        href: '/training-providers/' + trainingProvider.id + '/trainees'
-    }) }}
+{% elseif user.role == 'admin' %}
+    {% if trainingProvider.id %}
+        {{ govukBackLink({
+            text: "Back to " + trainingProvider.companyName,
+            href: '/training-providers/' + trainingProvider.id + '/trainees'
+        }) }}
+    {% else %}
+        {{ govukBackLink({
+            text: "Back to Home",
+            href: '/'
+        }) }}
+    {% endif %}
 {% endif %}
 
 <h1 id="page-title" class="govuk-heading-l">{{ titleText }}</h1>
