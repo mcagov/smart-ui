@@ -18,6 +18,9 @@ OKTA_SCOPE_AB="$(aws ssm get-parameters --names "/dev/scopes/ab" --query "Parame
 OKTA_SCOPE_TP="$(aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text)"
 
 sed -i -e '/OKTA_SCOPE_\(AB\|TP\)\s*=/d' .env
+# Todo: On MacOS, the following line results in...
+# sed: 1: ":a": unused label 'a'
+# sed: -e: No such file or directory
 sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' .env
 
 echo -e "" >> .env

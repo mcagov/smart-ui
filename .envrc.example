@@ -1,0 +1,2 @@
+export AWS_ACCOUNT_NUMBER=<SMART_DEV_AWS_ACCOUNT_NUMBER>
+export AWS_PROFILE=smart-dev-support
