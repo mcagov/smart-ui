@@ -119,7 +119,7 @@ npm install
 
 ### Run the application
 
-Run the backing services with Docker Compose...
+#### Run the backing services with Docker Compose...
 
 ```shell
 # Todo: Add to Makefile
@@ -127,7 +127,7 @@ aws-vault exec smart-dev-support -- aws ecr get-login-password --region eu-west-
 aws-vault exec smart-dev-support -- docker-compose up
 ```
 
-Run SMarT UI...
+#### Run SMarT UI...
 
 ```shell
 # Todo: Add to Makefile
@@ -135,6 +135,14 @@ npm start
 ```
 
 The service will be available at https://service.local.smart.mcga.uk or http://localhost:2997/
+
+### Run SMarT UI with your locally running SMarT API
+
+[Run SMarT API with no authentication](https://github.com/mcagov/smart-api?tab=readme-ov-file#run-smart-api-with-no-authentication).
+
+Change `COMPOSE_PROFILES` in your `.env` file to `COMPOSE_PROFILES=default,attachments,comments`.
+
+[Run the application](#run-the-application).
 
 ### Testing
 
