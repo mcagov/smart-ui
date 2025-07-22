@@ -112,7 +112,6 @@ awsv aws sts get-caller-identity
 ### Install dependencies
 
 ```shell
-# Todo: Add to Makefile
 aws-vault exec smart-dev-support -- aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner $AWS_ACCOUNT_NUMBER
 npm install
 ```
@@ -121,16 +120,21 @@ npm install
 
 #### Run the backing services with Docker Compose...
 
+Log into AWS Elastic Container Registry if Docker Compose will need to pull the images:
+
 ```shell
-# Todo: Add to Makefile
 aws-vault exec smart-dev-support -- aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_NUMBER.dkr.ecr.eu-west-2.amazonaws.com
-aws-vault exec smart-dev-support -- docker-compose up
+```
+
+Run the backing services with Docker Compose:
+
+```shell
+docker compose up
 ```
 
 #### Run SMarT UI...
 
 ```shell
-# Todo: Add to Makefile
 npm start
 ```
 
