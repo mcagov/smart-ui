@@ -9,14 +9,14 @@ export default {
     '<rootDir>/test/browser'
   ],
   coveragePathIgnorePatterns: [
-    '<rootDir>/src/public',    
+    '<rootDir>/src/public',
     '<rootDir>/src/local.oidc.js',
     '<rootDir>/src/request-logger.js',
     '<rootDir>/src/services/local.users.js',
     // Covered by WDIO
     '<rootDir>/src/routes',
     '<rootDir>/src/controllers',
-    '<rootDir>/src/bin'    
+    '<rootDir>/src/bin'
   ],
   coverageReporters: [
     'text',
@@ -54,5 +54,6 @@ export default {
     'jest-extended'
   ],
   testEnvironment: 'node',
-  testTimeout: 30000
+  testTimeout: 30000,
+  transform: {}
 }
