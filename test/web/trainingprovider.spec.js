@@ -85,7 +85,7 @@ describe('/training-providers', function () {
   it.skip('should create a blank training provider', function () {
     return request(app)
       .get('/training-providers/create')
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .expect(302)
       .then(data => {
         newTrainingProviderId = data.text.split('/')[2]
@@ -101,7 +101,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/details`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(400)
   })
@@ -115,7 +115,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/details`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
   })
@@ -130,7 +130,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/details`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(400)
   })
@@ -143,7 +143,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/representative`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
   })
@@ -152,7 +152,7 @@ describe('/training-providers', function () {
     const data = {}
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/representative`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(400)
   })
@@ -166,7 +166,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/address`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
   })
@@ -180,7 +180,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/address`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(400)
   })
@@ -192,7 +192,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/banking`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
   })
@@ -204,7 +204,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/banking`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(400)
   })
@@ -212,7 +212,7 @@ describe('/training-providers', function () {
   it.skip('should update training provider state', function () {
     return request(app)
       .get(`/training-providers/${newTrainingProviderId}/status/Active`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .expect(302)
   })
 
@@ -223,7 +223,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/new-client-company`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(400)
   })
@@ -235,7 +235,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/new-client-company`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
   })
@@ -246,7 +246,7 @@ describe('/training-providers', function () {
     }
     return request(app)
       .post(`/training-providers/${newTrainingProviderId}/client-companies`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
   })
@@ -254,7 +254,7 @@ describe('/training-providers', function () {
   it.skip('should remove a client company', function () {
     return request(app)
       .get(`/training-providers/${newTrainingProviderId}/client-company/43087fc8-a373-4203-bc5f-95d4bfd139f7/remove`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
+      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .expect(302)
   })
 })
