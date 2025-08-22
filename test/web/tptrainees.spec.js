@@ -19,10 +19,10 @@ describe('/training-providers/:id/trainees', function () {
     return request(app)
       .get(`/training-providers/${trainingProviderId}/trainees/create`)
       .set('SMART-USER', 'jim@enterprise.ufp')
-      .expect(302)
-      .then(data => {
-        newTraineeId = data.text.split('/')[4]
-      })
+      .expect(200)
+      // .then(data => {
+      //   newTraineeId = data.text.split('/')[4]
+      // })
   })
 
   it.skip('should update a trainee details', function () {

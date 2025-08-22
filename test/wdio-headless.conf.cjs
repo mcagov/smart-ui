@@ -16,7 +16,9 @@ exports.config = merge(baseConfig.config, {
         '--disable-accelerated-jpeg-decoding',
         '--no-sandbox',
         '--test-type=ui',
-        '--headless'
+        '--headless',
+        '--logLevel=debug',
+        '--window-size=1920,1080'
       ]
     }
   }]

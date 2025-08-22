@@ -1,5 +1,5 @@
 {% from "sub-navigation/macro.njk" import mojSubNavigation %}
-
+{% if params.trainingProvider and params.trainingProvider.id %}
 {% set items = [
 {
     text: 'Details',
@@ -52,3 +52,4 @@
     label: 'Training Provider Sub navigation',
     items: items
 }) }}
+{% endif %}
