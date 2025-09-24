@@ -13,7 +13,7 @@ locals {
 }
 
 module "smart_ui" {
-  source          = "github.com/mcga-gov-uk/module-k8-deployment"
+  source          = "github.com/mcagov/module-k8-deployment"
   name            = var.service_name
   image           = "${local.ecr_repo_url}/${var.smart_ui_version}"
   replicas        = var.replicas[terraform.workspace]

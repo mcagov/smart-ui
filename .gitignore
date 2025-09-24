@@ -23,3 +23,4 @@ rg-notes.md
 smarts-ui.iml
 test/localstack/data
 wdio-output
+gitleaks-report.json
