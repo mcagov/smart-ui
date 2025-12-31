@@ -15,7 +15,7 @@ locals {
 module "smart_ui" {
   source          = "github.com/mcagov/module-k8-deployment"
   name            = var.service_name
-  image           = "${local.ecr_repo_url}/${var.smart_ui_version}"
+  image           = "${local.ecr_repo_url}/${var.service_name}:${var.smart_ui_version}"
   replicas        = var.replicas[terraform.workspace]
   requests_cpu    = var.requests_cpu[terraform.workspace]
   requests_memory = var.requests_memory[terraform.workspace]

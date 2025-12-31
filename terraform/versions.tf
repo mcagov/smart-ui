@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket               = "mcauk-terraform-tfstate"
+    bucket               = "mcauk-smart-live-terraform-tfstate"
     key                  = "smart-ui"
     encrypt              = "true"
     workspace_key_prefix = "smart-env"

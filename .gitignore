@@ -24,3 +24,6 @@ smarts-ui.iml
 test/localstack/data
 wdio-output
 gitleaks-report.json
+terraform/dev.tfplan
+terraform/preprod.tfplan
+terraform/live.tfplan

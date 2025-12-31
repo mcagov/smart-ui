@@ -126,12 +126,20 @@ Log into AWS Elastic Container Registry if Docker Compose will need to pull the 
 aws-vault exec smart-dev-support -- aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_NUMBER.dkr.ecr.eu-west-2.amazonaws.com
 ```
 
+Ensure you have the following Redis Variables in the .env file:
+
+```shell
+ENABLE_REDIS=true
+REDIS_TLS=true
+```
+
+If you find the TLS is not able to connect, try running terraform to see if your local TLS certs are up-to-date. 
+
 Run the backing services with Docker Compose:
 
 ```shell
 docker compose up
 ```
-
 #### Run SMarT UI...
 
 ```shell

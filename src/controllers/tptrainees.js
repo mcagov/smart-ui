@@ -18,17 +18,12 @@ function createTrainee(req, res, next) {
 export function removeClientCompany(failSilent = false) {
   return async function (req, res, next) {
     try {
-      delete res.locals.trainee.clientCompanyId
-      await updateTrainee(
-        req,
-        res,
-        next,
-        res.locals.trainee,
-        'details',
-        'address'
-      )
-    } catch (err) {
-      handleLookupError(err, next, failSilent)
+      const { traineeId, id } = req.params;
+      await trainees.removeClientCompany(getAccessToken(req), traineeId);
+      return res.redirect(`/training-providers/${id}/trainees/${traineeId}`);
+    } catch (error) {
+      logger.error('Failed to remove client company', error);
+      handleLookupError(error, next, failSilent)
     }
   }
 }

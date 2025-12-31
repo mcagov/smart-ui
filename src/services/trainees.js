@@ -106,6 +106,14 @@ class Trainees extends WebService {
       .query(params)
       .then((data) => { return data.body })
   }
+
+   removeClientCompany(accessToken, traineeId) {
+    const url = `${this.url}/${traineeId}/remove-client-company`
+    return agent
+      .del(`${this.url}/${traineeId}/remove-client-company`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .then((data) => { return data.body });
+  }
 }
 
 export default Trainees
