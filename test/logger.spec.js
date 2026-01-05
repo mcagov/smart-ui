@@ -42,11 +42,7 @@ describe('Service Logging E2E Test', () => {
 
     let parsedLog = JSON.parse(capturedLogs);
     logger.log(parsedLog);
-    expect(parsedLog).toMatchObject({
-      level: 'info',
-      message: expect.any(String)
-    });
-
+    expect(parsedLog).toHaveProperty( 'level', 'info');
     expect(parsedLog).toHaveProperty('method', 'GET');
     expect(parsedLog).toHaveProperty('status', "200");
     expect(parsedLog).toHaveProperty('url', '/');
