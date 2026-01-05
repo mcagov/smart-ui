@@ -130,7 +130,7 @@ pipeline {
                             sh 'docker compose pull'
                             sh 'docker compose up -d'
                             // Make sure the API has finished the migration and seed scripts
-                            sh 'sleep 30s'
+                            sh 'sleep 60s'
                             sh 'docker compose ps'
                             sh 'docker compose exec redis env'
                             sh 'npm test'

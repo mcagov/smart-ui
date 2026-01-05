@@ -40,10 +40,12 @@ describe('Service Logging E2E Test', () => {
 
     expect(capturedLogs).toBeDefined();
 
-    let parsedLog;
-    expect(() => {
-      parsedLog = JSON.parse(capturedLogs);
-    }).not.toThrow();
+    let parsedLog = JSON.parse(capturedLogs);
+    logger.log(parsedLog);
+    expect(parsedLog).toMatchObject({
+      level: 'info',
+      message: expect.any(String)
+    });
 
     expect(parsedLog).toHaveProperty('method', 'GET');
     expect(parsedLog).toHaveProperty('status', "200");
