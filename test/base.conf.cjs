@@ -35,11 +35,13 @@ exports.config = {
       './test/browser/journeys/tp-comment-on-trainee.spec.js',
       './test/browser/journeys/tp-create-new-trainee.spec.js',
       './test/browser/journeys/tp-enrol-trainee.spec.js',
-      './test/browser/journeys/tp-create-absence.spec.js'
+      './test/browser/journeys/tp-create-absence.spec.js',
+      './test/browser/journeys/admin-remove-trainee-client-company.spec.js'
       // attachments
     ],
     debug: [
-      './test/browser/journeys/*view-single*.spec.js'
+      //'./test/browser/journeys/*view-single*.spec.js',
+      './test/browser/journeys/admin-remove-trainee-client-company.spec.js'
       // './test/browser/journeys/tp-create-claim-admin-approve.spec.js',
       // './test/browser/journeys/*client-company*.spec.js',
       // './test/browser/journeys/tp-create-absence.spec.js'

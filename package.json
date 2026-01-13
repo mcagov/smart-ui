@@ -85,7 +85,7 @@
         "@wdio/local-runner": "^7.24.1",
         "@wdio/mocha-framework": "^7.24.1",
         "@wdio/spec-reporter": "^7.24.1",
-        "chromedriver": "^139.0.2",
+        "chromedriver": "^143.0.4",
         "cross-env": "^7.0.3",
         "decache": "^4.6.2",
         "deepmerge": "^4.3.1",

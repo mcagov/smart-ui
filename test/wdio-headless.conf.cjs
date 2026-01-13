@@ -11,6 +11,7 @@ exports.config = merge(baseConfig.config, {
       args: [
         '--disable-gpu',
         '--disable-impl-side-painting',
+        '--disable-dev-shm-usage',
         '--disable-gpu-sandbox',
         '--disable-accelerated-2d-canvas',
         '--disable-accelerated-jpeg-decoding',
