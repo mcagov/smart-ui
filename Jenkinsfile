@@ -149,14 +149,16 @@ pipeline {
 
                 stage('ui test') {
                     steps {
-                        script {
-                            env.COMPOSE_PROFILES = 'full'
-                            sh 'gulp'
-                            sh 'docker compose build'
-                            sh 'docker compose up -d'
-                            // Make sure the API has finished the migration and seed scripts
-                            sh 'sleep 20s'
-                            sh 'npm run wdio-headless'
+                        withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            script {
+                                env.COMPOSE_PROFILES = 'full'
+                                sh 'gulp'
+                                sh 'docker compose build'
+                                sh 'docker compose up -d'
+                                // Make sure the API has finished the migration and seed scripts
+                                sh 'sleep 20s'
+                                sh 'npm run wdio-headless'
+                            }
                         }
                     }
                     post {
@@ -173,7 +175,7 @@ pipeline {
                }
 
                 stage('npm publish') {
-                    when { branch 'master' }
+                    //when { branch 'master' }
                     steps {
                         script {
                             sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
@@ -186,7 +188,7 @@ pipeline {
                 }
 
                 stage('docker-publish') {
-                    when { branch 'master' }
+                   // when { branch 'master' }
                     steps {
                         script {
                             sh '''
@@ -205,30 +207,42 @@ pipeline {
                 }
 
                 stage('vulnerability-report') {
-                    when { branch 'master' }
+                   // when { branch 'master' }
                     steps {
-                        script {
-                            String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true) // Get image digest
-                            def imageDigest = vulnerabilityReport.getImageDigest(describeImageJson);
+                        withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            script {
+                                String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true)
+                                def imageInfo = readJSON text: describeImageJson
+                                def imageDigest = imageInfo.imageDetails[0].imageDigest
+                                println("Waiting for the image scan to kick start ...")
+                                sh 'sleep 60'
 
-                            println("Waiting for the image scan to kick start ...")
-                            sh 'sleep 60' // Add some delay
+                                boolean isComplete = false
+                                while (!isComplete) {
+                                    String scanJson = sh(
+                                        label: 'Check ECR Scan Status',
+                                        script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageDigest=${imageDigest} --region ${AWS_REGION} --output json",
+                                        returnStdout: true
+                                    )
 
-                            def describeImageScanStatus = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} &>/dev/null", returnStatus: true)
-                            if (describeImageScanStatus == 0) {
-                                String describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
-                                def scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
-                                while (!scanStatus.equalsIgnoreCase("ACTIVE")) { // Wait until image scan status becomes ACTIVE
-                                    println("Waiting for image scan to complete...")
-                                    sh 'sleep 30' // Add some delay
-                                    describeImageScanJson = sh(label: 'Retrieve ECR Scan Findings', script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION},imageDigest=${imageDigest} --region ${AWS_REGION} --output json", returnStdout: true)
-                                    scanStatus = vulnerabilityReport.getImageScanStatus(describeImageScanJson)
+                                    def scanData = readJSON text: scanJson
+                                    def scanStatus = scanData.imageScanStatus.status
+
+                                    if (scanStatus == 'COMPLETE') {
+                                        isComplete = true
+                                        def findings = scanData.imageScanFindings.findingSeverityCounts
+                                        println("Scan Findings Summary: ${findings}")
+
+                                        env.VULNERABILITIES = findings.toString()
+                                        writeFile file: 'vulnerabilities.log', text: env.VULNERABILITIES
+                                        archiveArtifacts artifacts: 'vulnerabilities.log'
+                                    } else if (scanStatus == 'FAILED') {
+                                        error "ECR Image Scan failed for ${DOCKER_IMAGE_NAME}"
+                                    } else {
+                                        println("Current Status: ${scanStatus}. Waiting 30s...")
+                                        sleep 30
+                                    }
                                 }
-                                def findingResult = vulnerabilityReport.getVulnerabilityReport(describeImageScanJson)
-                                println(findingResult)
-                                env.VULNERABILITIES = findingResult
-                                sh 'cat <<< "${VULNERABILITIES}" > vulnerabilities.log'
-                                archiveArtifacts artifacts: 'vulnerabilities.log'
                             }
                         }
                     }
