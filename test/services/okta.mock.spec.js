@@ -1,6 +1,8 @@
 import sinon from 'sinon';
 import okta from '@okta/okta-sdk-nodejs';
 import OktaUsers from '../../src/services/okta.users.js';
+import { getEnv } from '../../src/utils.js';
+
 
 function mockAsyncCollection(items) {
   return {
@@ -95,7 +97,7 @@ describe('OktaUsers Service (Unit)', () => {
       process.env.TRAINING_PROVIDER_GROUP_NAME = 'Env Var Group';
       try {
         const service = new OktaUsers();
-        expect(service.trainingProviderGroup).toBe('mcauk-smart-test-training-providers');
+        expect(service.trainingProviderGroup).toBe(`mcauk-smart-${getEnv()}-training-providers`);
       } finally {
         process.env.TRAINING_PROVIDER_GROUP_NAME = originalEnv;
       }
