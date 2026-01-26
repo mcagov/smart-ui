@@ -68,18 +68,18 @@ const UPDATE_TRAINING_PROVIDER = {
 describe('admin creates a new training provider', () => {
   it('should login as an admin', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
   })
 
   it('should access training providers page', async () => {
     await Menu.trainingProviders.click()
-    await expect(TrainingProviderPage.pageTitle).toHaveTextContaining('Training providers')
+    await expect(TrainingProviderPage.pageTitle).toHaveText('Training providers')
   })
 
   it('should register a new training provider', async () => {
     await TrainingProviderPage.addTrainingProvider().click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Training provider details')
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Training provider details')
   })
 
   it('should give errors for blank training provider details', async () => {
@@ -105,7 +105,7 @@ describe('admin creates a new training provider', () => {
       CREATE_TRAINING_PROVIDER.email,
       CREATE_TRAINING_PROVIDER.maxTrainees)
     await CreateTrainingProviderPage.saveAndContinue.click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Representatives for ' + CREATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Representatives for ' + CREATE_TRAINING_PROVIDER.companyName)
   })
 
   it('should give errors for blank representative details', async () => {
@@ -125,7 +125,7 @@ describe('admin creates a new training provider', () => {
       CREATE_TRAINING_PROVIDER.trainingOfficerNumber
     )
     await CreateTrainingProviderPage.saveAndContinue.click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Address for ' + CREATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Address for ' + CREATE_TRAINING_PROVIDER.companyName)
   })
 
   it('should give errors for blank address details', async () => {
@@ -166,7 +166,7 @@ describe('admin creates a new training provider', () => {
   })
 
   it('should show details on the summary page', async () => {
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Summary for ' + CREATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Summary for ' + CREATE_TRAINING_PROVIDER.companyName)
     await expect(CreateTrainingProviderPage.findRow(CREATE_TRAINING_PROVIDER.companyName)).toBeExisting()
     await expect(CreateTrainingProviderPage.findRow(CREATE_TRAINING_PROVIDER.companyNumber)).toBeExisting()
     await expect(CreateTrainingProviderPage.findRow(CREATE_TRAINING_PROVIDER.dunsNumber)).toBeExisting()
@@ -187,7 +187,7 @@ describe('admin creates a new training provider', () => {
   it('should view the entered training provider details on the update page', async () => {
     await CreateTrainingProviderPage.findChange('company name').click()
 
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Training provider details for ' + CREATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Training provider details for ' + CREATE_TRAINING_PROVIDER.companyName)
     await expect(CreateTrainingProviderPage.inputCompanyName).toHaveValue(CREATE_TRAINING_PROVIDER.companyName)
     await expect(CreateTrainingProviderPage.inputCompanyNumber).toHaveValue(CREATE_TRAINING_PROVIDER.companyNumber)
     await expect(CreateTrainingProviderPage.inputDunsNumber).toHaveValue(CREATE_TRAINING_PROVIDER.dunsNumber)
@@ -207,13 +207,13 @@ describe('admin creates a new training provider', () => {
       UPDATE_TRAINING_PROVIDER.email,
       UPDATE_TRAINING_PROVIDER.maxTrainees)
     await CreateTrainingProviderPage.saveAndContinue.click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
   })
 
   it('should view the entered training provider address on the update page', async () => {
     await CreateTrainingProviderPage.findChange('address').click()
 
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Address for ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Address for ' + UPDATE_TRAINING_PROVIDER.companyName)
     await expect(AddressForm.inputAddressLine1).toHaveValue(CREATE_TRAINING_PROVIDER.address.line1)
     await expect(AddressForm.inputAddressLine2).toHaveValue(CREATE_TRAINING_PROVIDER.address.line2)
     await expect(AddressForm.inputAddressTown).toHaveValue(CREATE_TRAINING_PROVIDER.address.line3)
@@ -228,13 +228,13 @@ describe('admin creates a new training provider', () => {
       UPDATE_TRAINING_PROVIDER.address.postcode
     )
     await AddressForm.saveAndContinue.click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
   })
 
   it('should view the entered representatives', async () => {
     await CreateTrainingProviderPage.findChange('representative name').click()
 
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Representatives for ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Representatives for ' + UPDATE_TRAINING_PROVIDER.companyName)
     await expect(CreateTrainingProviderPage.inputRepresentative).toHaveValue(CREATE_TRAINING_PROVIDER.representative)
     await expect(CreateTrainingProviderPage.inputLiaisonOfficer).toHaveValue(CREATE_TRAINING_PROVIDER.liaisonOfficer)
     await expect(CreateTrainingProviderPage.inputTrainingOfficer).toHaveValue(CREATE_TRAINING_PROVIDER.trainingOfficer)
@@ -250,13 +250,13 @@ describe('admin creates a new training provider', () => {
       UPDATE_TRAINING_PROVIDER.trainingOfficerNumber
     )
     await CreateTrainingProviderPage.saveAndContinue.click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
   })
 
   it('should view the entered training provider bank details on the update page', async () => {
     await CreateTrainingProviderPage.findChange('sort code').click()
 
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Banking details ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Banking details ' + UPDATE_TRAINING_PROVIDER.companyName)
     await expect(CreateTrainingProviderPage.inputSortCode).toHaveValue(CREATE_TRAINING_PROVIDER.bank.sortCode)
     await expect(CreateTrainingProviderPage.inputAccountNumber).toHaveValue(CREATE_TRAINING_PROVIDER.bank.accountNumber)
   })
@@ -266,11 +266,11 @@ describe('admin creates a new training provider', () => {
       UPDATE_TRAINING_PROVIDER.bank.sortCode,
       UPDATE_TRAINING_PROVIDER.bank.accountNumber)
     await CreateTrainingProviderPage.saveAndContinue.click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
   })
 
   it('should show updated details on the summary page', async () => {
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Summary for ' + UPDATE_TRAINING_PROVIDER.companyName)
     await expect(CreateTrainingProviderPage.findRow(UPDATE_TRAINING_PROVIDER.companyName)).toBeExisting()
     await expect(CreateTrainingProviderPage.findRow(UPDATE_TRAINING_PROVIDER.companyNumber)).toBeExisting()
     await expect(CreateTrainingProviderPage.findRow(UPDATE_TRAINING_PROVIDER.dunsNumber)).toBeExisting()
@@ -290,6 +290,6 @@ describe('admin creates a new training provider', () => {
 
   it('should submit new training provider', async () => {
     await CreateTrainingProviderPage.submit.click()
-    await expect(CreateTrainingProviderPage.pageTitle).toHaveTextContaining('Training providers')
+    await expect(CreateTrainingProviderPage.pageTitle).toHaveText('Training providers')
   })
 })

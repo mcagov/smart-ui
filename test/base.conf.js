@@ -1,13 +1,12 @@
-require('dotenv').config()
-const path = require('path')
-const moment = require('moment-timezone')
+import 'dotenv/config'
+import path from 'node:path'
+import moment from 'moment-timezone'
 
-const { ReportAggregator } = require('wdio-html-nice-reporter')
-
+import { ReportAggregator } from 'wdio-html-nice-reporter'
 let reportAggregator
 
-exports.config = {
-  specs: ['./test/browser/journeys/*spec.js'],
+export const baseConfig = {
+  specs: [path.join(process.cwd(), 'test/browser/journeys/**/*.spec.js')],
   suites: {
     all: ['./test/browser/journeys/*.spec.js'],
     admin: [
@@ -59,7 +58,7 @@ exports.config = {
   waitforTimeout: 5000,
   connectionRetryTimeout: 5000,
   connectionRetryCount: 3,
-  services: ['devtools', 'chromedriver'],
+  services: [],
   framework: 'mocha',
   outputDir: './wdio-output',
   reporters: [

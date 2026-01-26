@@ -4,7 +4,7 @@ import * as dartSass from 'sass'
 import gulpSass from 'gulp-sass'
 import nodemon from 'gulp-nodemon'
 import * as fs from 'node:fs';
-import packageConfig from './package.json' assert {type: "json"}
+import packageConfig from './package.json' with {type: "json"}
 const sass = gulpSass(dartSass)
 
 function naOnBlank (value) {

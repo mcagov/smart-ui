@@ -13,27 +13,27 @@ const TRAINEE_DOB = '10-12-1998'
 describe('Training searches for a trainee', () => {
   it('should login as a training provider', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.tp2@service.dev.smart.mcga.uk', '123456789')
   })
 
   it('should find trainee by name', async () => {
     await Menu.trainees.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining('Trainees')
+    await expect(Trainees.pageTitle).toHaveText('Trainees')
     await Trainees.filterText.setValue(TRAINEE_NAME)
     await Trainees.filterButton.click()
     await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
     await Trainees.filterResult.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Trainees.pageTitle).toHaveText(`${TRAINEE_NAME}`, { containing: true })
   })
 
   it('should find trainee by dob', async () => {
     await Menu.trainees.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining('Trainees')
+    await expect(Trainees.pageTitle).toHaveText('Trainees')
     await Trainees.filterDob.setValue(TRAINEE_DOB)
     await Trainees.filterButton.click()
     await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
     await Trainees.filterResult.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Trainees.pageTitle).toHaveText(`${TRAINEE_NAME}`, { containing: true })
   })
 })

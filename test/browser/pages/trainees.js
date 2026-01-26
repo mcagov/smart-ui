@@ -47,24 +47,24 @@ class Trainees extends Page {
   }
 
   get overviewContactName() {
-    return $('.govuk-summary-list__key=Contact name').$('..').$('dd')
-  }
+    return $('//dt[contains(@class, "govuk-summary-list__key")][contains(text(), "Contact name")]/following-sibling::dd');  }
 
   get overviewNationality() {
-    return $('.govuk-summary-list__key=Nationality').$('..').$('dd')
+    return $('//dt[contains(., "Nationality")]/following-sibling::dd');
   }
 
   get overviewGender() {
-    return $('.govuk-summary-list__key=Gender').$('..').$('dd')
+    return $('//dt[contains(., "Gender")]/following-sibling::dd');
   }
 
   get overviewDateOfBirth() {
-    return $('.govuk-summary-list__key=Date of Birth').$('..').$('dd')
+    return $('//dt[contains(., "Date of Birth")]/following-sibling::dd');
   }
 
   get overviewStatus() {
-    return $('.govuk-summary-list__key=Status').$('..').$('dd')
+    return $('//dt[contains(., "Status")]/following-sibling::dd');
   }
+
 
   get registerAnAbsence() {
     return $('a=Register an absence')

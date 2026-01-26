@@ -10,7 +10,7 @@ describe('submits and approve a forecast', () => {
   describe('training provider submits a forecast', () => {
     it('should login as a training provider', async () => {
       await Login.open()
-      await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+      await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
       await Login.login('mca.tp1@service.dev.smart.mcga.uk', '123456789')
     })
 

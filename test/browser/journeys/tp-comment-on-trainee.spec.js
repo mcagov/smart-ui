@@ -25,13 +25,13 @@ describe('create and reply to a comment on a trainee', () => {
   describe('training provider comments on a trainee', () => {
     it('should login as a training provider', async () => {
       await Login.open()
-      await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+      await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
       await Login.login('mca.tp1@service.dev.smart.mcga.uk', '123456789')
     })
 
     it('should load trainees page', async () => {
       await Menu.trainees.click()
-      await expect(Trainees.pageTitle).toHaveTextContaining('Trainees')
+      await expect(Trainees.pageTitle).toHaveText('Trainees')
     })
 
     it('should find trainee', async () => {
@@ -39,13 +39,13 @@ describe('create and reply to a comment on a trainee', () => {
       await Trainees.filterButton.click()
       await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
       await Trainees.filterResult.click()
-      await expect(Trainees.pageTitle).toHaveTextContaining(`${TRAINEE_NAME}`)
+      await expect(Trainees.pageTitle).toHaveText('Details for ' + `${TRAINEE_NAME}`)
     })
 
     it('should load trainee comments', async () => {
       await SubMenu.comments.click()
-      await expect(Comments.pageTitle).toHaveTextContaining('Comments')
-      await expect(Comments.headingM).toHaveTextContaining('There are no comments')
+      await expect(Comments.pageTitle).toHaveText('Comments for Trainee Josh Walker')
+      await expect(Comments.headingM).toHaveText('There are no comments')
       await expect(Comments.resetButton).toBeExisting()
       await expect(Comments.filterButton).toBeExisting()
       await expect(Comments.resolvedFilter).toBeExisting()
@@ -54,8 +54,8 @@ describe('create and reply to a comment on a trainee', () => {
     it('should show errors when submitting an empty form', async () => {
       await Comments.save.click()
 
-      await expect(Comments.pageTitle).toHaveTextContaining('Comments')
-      await expect(Comments.headingM).toHaveTextContaining('There are no comments')
+      await expect(Comments.pageTitle).toHaveText('Comments for Trainee Josh Walker')
+      await expect(Comments.headingM).toHaveText('There are no comments')
       await expect(Comments.messageError).toExist()
       await expect(Comments.messageError).toHaveText('Error:\nEnter a comment')
     })
@@ -64,7 +64,7 @@ describe('create and reply to a comment on a trainee', () => {
       await Comments.message.setValue(MESSAGES[0])
       await Comments.save.click()
 
-      await expect(Comments.pageTitle).toHaveTextContaining('All replies')
+      await expect(Comments.pageTitle).toHaveText('All replies')
       await expect(Comments.messageError).not.toExist()
       await expect(Comments.findD(MESSAGES[0])).toBeExisting()
       await expect(Comments.summaryRows).toBeElementsArrayOfSize(1)
@@ -74,19 +74,19 @@ describe('create and reply to a comment on a trainee', () => {
   describe('admin replies to a comment', () => {
     it('should login as an admin', async () => {
       await Login.open()
-      await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+      await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
       await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
     })
 
     it('should load comments page', async () => {
       await Menu.comments.click()
-      await expect(Comments.pageTitle).toHaveTextContaining('All comments')
+      await expect(Comments.pageTitle).toHaveText('All comments')
     })
 
     it('should load reply to comment page', async () => {
-      await expect(Comments.findTableCell(`Trainee ${TRAINEE_NAME}`).nextElement()).toHaveTextContaining('1')
+      await expect(Comments.findTableCell(`Trainee ${TRAINEE_NAME}`).nextElement()).toHaveText('1')
       await Comments.findTableCell(`Trainee ${TRAINEE_NAME}`).nextElement().$('a').click()
-      await expect(Comments.pageTitle).toHaveTextContaining('All replies')
+      await expect(Comments.pageTitle).toHaveText('All replies')
       await expect(Comments.findD(MESSAGES[0])).toBeExisting()
       await expect(Comments.message).toBeExisting()
       await expect(Comments.save).toBeExisting()
@@ -96,7 +96,7 @@ describe('create and reply to a comment on a trainee', () => {
     it('should show errors when submitting an empty form', async () => {
       await Comments.save.click()
 
-      await expect(Comments.pageTitle).toHaveTextContaining('All replies')
+      await expect(Comments.pageTitle).toHaveText('All replies')
       await expect(Comments.messageError).toExist()
       await expect(Comments.messageError).toHaveText('Error:\nEnter a comment')
     })
@@ -105,7 +105,7 @@ describe('create and reply to a comment on a trainee', () => {
       await Comments.message.setValue(MESSAGES[1])
       await Comments.save.click()
 
-      await expect(Comments.pageTitle).toHaveTextContaining('All replies')
+      await expect(Comments.pageTitle).toHaveText('All replies')
       await expect(Comments.messageError).not.toExist()
       await expect(Comments.findD(MESSAGES[0])).toBeExisting()
       await expect(Comments.findD(MESSAGES[1])).toBeExisting()
@@ -114,20 +114,20 @@ describe('create and reply to a comment on a trainee', () => {
 
     it('should view trainee entity', async () => {
       await Comments.findA('View trainee').click()
-      await expect(Trainees.pageTitle).toHaveTextContaining(`${TRAINEE_NAME}`)
+      await expect(Trainees.pageTitle).toHaveText(`${TRAINEE_NAME}`, { containing: true })
     })
   })
 
   describe('training provider resolves comment', () => {
     it('should login as a training provider', async () => {
       await Login.open()
-      await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+      await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
       await Login.login('mca.tp1@service.dev.smart.mcga.uk', '123456789')
     })
 
     it('should load trainees page', async () => {
       await Menu.trainees.click()
-      await expect(Trainees.pageTitle).toHaveTextContaining('Trainees')
+      await expect(Trainees.pageTitle).toHaveText('Trainees')
     })
 
     it('should find trainee', async () => {
@@ -135,14 +135,14 @@ describe('create and reply to a comment on a trainee', () => {
       await Trainees.filterButton.click()
       await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
       await Trainees.filterResult.click()
-      await expect(Trainees.pageTitle).toHaveTextContaining(`${TRAINEE_NAME}`)
+      await expect(Trainees.pageTitle).toHaveText('Details for ' + `${TRAINEE_NAME}`)
     })
 
     it('should load trainee comments', async () => {
       await SubMenu.comments.click()
-      await expect(Comments.pageTitle).toHaveTextContaining(`Comments for Trainee ${TRAINEE_NAME}`)
+      await expect(Comments.pageTitle).toHaveText(`Comments for Trainee ${TRAINEE_NAME}`)
 
-      await expect(Comments.findTableCell(`Trainee ${TRAINEE_NAME}`).nextElement()).toHaveTextContaining('2')
+      await expect(Comments.findTableCell(`Trainee ${TRAINEE_NAME}`).nextElement()).toHaveText('2')
       await Comments.findTableCell(`Trainee ${TRAINEE_NAME}`).nextElement().$('a').click()
 
       await expect(Comments.findD(MESSAGES[0])).toBeExisting()
@@ -158,12 +158,12 @@ describe('create and reply to a comment on a trainee', () => {
       await expect(Comments.cancelButton).toBeExisting()
 
       await Comments.save.click()
-      await expect(Comments.pageTitle).toHaveTextContaining(`Comments for Trainee ${TRAINEE_NAME}`)
+      await expect(Comments.pageTitle).toHaveText(`Comments for Trainee ${TRAINEE_NAME}`)
       await expect(Comments.findTableCell(`Trainee ${TRAINEE_NAME}`)).not.toBeExisting()
     })
 
     it('should show resolved comments when changing the filter', async () => {
-      await expect(Comments.pageTitle).toHaveTextContaining(`Comments for Trainee ${TRAINEE_NAME}`)
+      await expect(Comments.pageTitle).toHaveText(`Comments for Trainee ${TRAINEE_NAME}`)
       await Comments.resolvedFilter.selectByVisibleText('--- status ---')
       await Comments.filterButton.click()
 

@@ -11,7 +11,7 @@ const COMPANY_NUMBER = `${randomUUID()}`
 describe('admin creates client company', () => {
   it('should login as an admin', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
   })
 

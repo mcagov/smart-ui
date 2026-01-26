@@ -272,7 +272,7 @@ services:
 
   # used for ci testing
   smart-ui:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.59
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.67
     hostname: smart-ui
     build:
       context: .

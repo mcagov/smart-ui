@@ -7,7 +7,7 @@ const PROVIDER_NAME = 'Evans, Scott and Vaughan'
 describe('admin deactivates and activates a training provider', () => {
   it('should login as an admin', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
   })
 

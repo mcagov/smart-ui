@@ -39,13 +39,13 @@ describe('Training provider creates an absence', () => {
 
   it('should login as a training provider', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.tp2@service.dev.smart.mcga.uk', '123456789')
   })
 
   it('should load trainees page', async () => {
     await Menu.trainees.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining('Trainees')
+    await expect(Trainees.pageTitle).toHaveText('Trainees')
   })
 
   it('should find trainee', async () => {
@@ -53,18 +53,18 @@ describe('Training provider creates an absence', () => {
     await Trainees.filterButton.click()
     await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
     await Trainees.filterResult.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Trainees.pageTitle).toHaveText('Details for ' + `${TRAINEE_NAME}`)
   })
 
   it('should load trainee absence page with no absences', async () => {
     await SubMenu.absences.click()
-    await expect(Absence.headingL).toHaveTextContaining(`${TRAINEE_NAME}`)
-    await expect(Absence.headingM).toHaveTextContaining(`${TRAINEE_NAME} does not have any absences`)
+    await expect(Absence.headingL).toHaveText('Absences for ' + `${TRAINEE_NAME}`)
+    await expect(Absence.headingM).toHaveText(`${TRAINEE_NAME} does not have any absences`)
   })
 
   it('should load create trainee absence page', async () => {
     await Trainees.registerAnAbsence.click()
-    await expect(Absence.headingL).toHaveTextContaining('Create an unauthorised absence')
+    await expect(Absence.headingL).toHaveText('Create an unauthorised absence')
   })
 
   it('should give errors when submitting an empty form', async () => {
@@ -82,7 +82,7 @@ describe('Training provider creates an absence', () => {
   })
 
   it('should show the new absence in the list of absences', async () => {
-    await expect(Absence.headingL).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Absence.headingL).toHaveText('Absences for ' + `${TRAINEE_NAME}`)
     await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
     await expect(Absence.findTableCell(CREATE_DATA.startDate.join('-'))).toBeExisting()
     await expect(Absence.findTableCell(CREATE_DATA.endDate.join('-'))).toBeExisting()
@@ -92,7 +92,7 @@ describe('Training provider creates an absence', () => {
   it('should open the edit page with existing values', async () => {
     await Absence.filterResult.click()
 
-    await expect(Absence.pageTitle).toHaveTextContaining('Update an unauthorised absence')
+    await expect(Absence.pageTitle).toHaveText('Update an unauthorised absence')
     await expect(DateForm.inputStartDateDay).toHaveValue(`${parseInt(CREATE_DATA.startDate[0])}`)
     await expect(DateForm.inputStartDateMonth).toHaveValue(`${parseInt(CREATE_DATA.startDate[1])}`)
     await expect(DateForm.inputStartDateYear).toHaveValue(CREATE_DATA.startDate[2])
@@ -106,7 +106,7 @@ describe('Training provider creates an absence', () => {
   })
 
   it('should show the updated absence in the list of absences', async () => {
-    await expect(Absence.headingL).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Absence.headingL).toHaveText('Absences for ' + `${TRAINEE_NAME}`)
     await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
     await expect(Absence.findTableCell(UPDATE_DATA.startDate.join('-'))).toBeExisting()
     await expect(Absence.findTableCell(UPDATE_DATA.endDate.join('-'))).toBeExisting()

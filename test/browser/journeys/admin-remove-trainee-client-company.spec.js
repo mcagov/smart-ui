@@ -10,19 +10,19 @@ describe('Admin removes trainee client company', () => {
 
   it('should login as a training provider', async () => {
     await Login.open()
-    expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
   })
 
   it('should access the trainees page', async () => {
     await Menu.trainees.click()
-    expect(Trainee.pageTitle).toHaveTextContaining('All trainees')
+    expect(Trainee.pageTitle).toHaveText('All trainees')
   })
 
   it('should access the specific trainee with correct company name', async () => {
     await TraineeList.selectTraineeByName(traineeName);
-    expect(browser).toHaveUrlContaining('/trainees/');
-    expect(Trainee.header).toHaveTextContaining(traineeName);
+    expect(browser).toHaveUrl('/trainees/');
+    expect(Trainee.header).toHaveText(traineeName);
     expect(Trainee.clientCompanyField).toHaveText(companyName);
   })
 

@@ -85,11 +85,11 @@ describe.skip('OktaUsers', () => {
         .each((brand) => {
           console.log(brand)
         })
-      // .then((data)=>{
-      //   console.log(data)
-      // })
+      .then((data)=>{
+        console.log(data)
+      })
 
-      // console.log(brands)
+      console.log(data.brands)
     })
   })
 

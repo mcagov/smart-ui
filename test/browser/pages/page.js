@@ -66,8 +66,9 @@ class Page {
 
   get resetButton () { return $('#reset-button') }
 
-  get filterResults () { return $('table.govuk-table').$('..').$$('table tbody tr') }
-
+  get filterResults () {
+    return $$('table.govuk-table tbody tr');
+  }
   get filterResult () { return $('table.govuk-table tbody tr a') }
 
   get filterResultRadio () { return $('table.govuk-table tbody tr input.govuk-radios__input') }

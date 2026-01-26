@@ -8,13 +8,13 @@ describe('Training provider creates a new trainee', () => {
   const traineeName = 'Emma Grant ' + randomUUID()
   it('should login as a training provider', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.tp2@service.dev.smart.mcga.uk', '123456789')
   })
 
   it('should access the trainee page', async () => {
     await Menu.trainees.click()
-    await expect(Trainee.pageTitle).toHaveTextContaining('Trainees')
+    await expect(Trainee.pageTitle).toHaveText('Trainees')
   })
 
   it('should create a new trainee', async () => {
@@ -22,7 +22,7 @@ describe('Training provider creates a new trainee', () => {
   })
 
   it('should add trainee details', async () => {
-    await expect(Trainee.pageTitle).toHaveTextContaining('Trainee details')
+    await expect(Trainee.pageTitle).toHaveText('Trainee details')
     await Trainee.setDetails(
       traineeName,
       'United Kingdom of Great Britain and Northern Ireland',
@@ -34,7 +34,7 @@ describe('Training provider creates a new trainee', () => {
   })
 
   it('should add trainee address details', async () => {
-    await expect(Trainee.pageTitle).toHaveTextContaining('Trainee address')
+    await expect(Trainee.pageTitle).toHaveText('Trainee address')
     await AddressForm.addressDetails(
       '4 Tonbridge Rd',
       'CONEY WESTON',
@@ -42,25 +42,25 @@ describe('Training provider creates a new trainee', () => {
       'PH17 8EP'
     )
     await AddressForm.saveAndContinue.click()
-    await expect(Trainee.pageTitle).toHaveTextContaining(traineeName)
+    await expect(Trainee.pageTitle).toHaveText('Details for ' + traineeName)
   })
 
   it('should access the trainee page', async () => {
     await Menu.trainees.click()
-    await expect(Trainee.pageTitle).toHaveTextContaining('Trainees')
+    await expect(Trainee.pageTitle).toHaveText('Trainees')
   })
 
   it('should find new new trainee', async () => {
     await Trainee.setSearchText(traineeName)
     await Trainee.filterButton.click()
     const link = $('.govuk-table tbody tr:nth-child(1) > td:nth-child(1) > a')
-    await expect(link).toHaveTextContaining(traineeName)
+    await expect(link).toHaveText(traineeName)
     await link.click()
-    await expect(Trainee.pageTitle).toHaveTextContaining(traineeName)
-    await expect(Trainee.overviewContactName).toHaveTextContaining(traineeName)
-    await expect(Trainee.overviewNationality).toHaveTextContaining('GB')
-    await expect(Trainee.overviewGender).toHaveTextContaining('Female')
-    await expect(Trainee.overviewDateOfBirth).toHaveTextContaining('11-08-1993')
-    await expect(Trainee.overviewStatus).toHaveTextContaining('ACTIVE')
+    await expect(Trainee.pageTitle).toHaveText('Details for ' + traineeName)
+    await expect(Trainee.overviewContactName).toHaveText(traineeName)
+    await expect(Trainee.overviewNationality).toHaveText('GB')
+    await expect(Trainee.overviewGender).toHaveText('Female')
+    await expect(Trainee.overviewDateOfBirth).toHaveText('11-08-1993')
+    await expect(Trainee.overviewStatus).toHaveText('ACTIVE')
   })
 })

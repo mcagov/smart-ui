@@ -13,7 +13,7 @@ const TP = {
 describe('Admin views all training-providers', () => {
   it('should login as an admin', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
   })
 
@@ -21,14 +21,14 @@ describe('Admin views all training-providers', () => {
     await Menu.trainingProviders.click()
     await expect(TrainingProviderPage.pageTitle).toHaveText('Training providers')
     await expect(TrainingProviderPage.filterResults).toBeElementsArrayOfSize(10)
-    await expect(TrainingProviderPage.paginationResults).toHaveTextContaining('Showing 1 to 10 of')
+    await expect(TrainingProviderPage.paginationResults).toHaveText('Showing 1 to 10 of ', { containing: true })
   })
 
   it('should go to next page', async () => {
     await TrainingProviderPage.next.click()
     await expect(TrainingProviderPage.pageTitle).toHaveText('Training providers')
     await expect(TrainingProviderPage.filterResults).toBeElementsArrayOfSize(10)
-    await expect(TrainingProviderPage.paginationResults).toHaveTextContaining('Showing 11 to 2')
+    await expect(TrainingProviderPage.paginationResults).toHaveText('Showing 11 to 20 of ', { containing: true })
   })
 
   it('should filter by name', async () => {

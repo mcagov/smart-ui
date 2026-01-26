@@ -38,13 +38,13 @@ describe('Training provider enrols a trainee', () => {
 
   it('should login as a training provider', async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.tp1@service.dev.smart.mcga.uk', '123456789')
   })
 
   it('should load trainees page', async () => {
     await Menu.trainees.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining('Trainees')
+    await expect(Trainees.pageTitle).toHaveText('Trainees')
   })
 
   it('should find trainee', async () => {
@@ -52,20 +52,20 @@ describe('Training provider enrols a trainee', () => {
     await Trainees.filterButton.click()
     await expect(Trainees.filterResults).toBeElementsArrayOfSize(1)
     await Trainees.filterResult.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Trainees.pageTitle).toHaveText(`${TRAINEE_NAME}`, { containing: true })
   })
 
   it('should load trainee enrolments page', async () => {
     await SubMenu.enrolments.click()
-    await expect(Trainees.headingL).toHaveTextContaining(`${TRAINEE_NAME}`)
-    await expect(Trainees.headingM).toHaveTextContaining('There is no data available')
+    await expect(Trainees.headingL).toHaveText(`${TRAINEE_NAME}`, { containing: true })
+    await expect(Trainees.headingM).toHaveText('There is no data available', { containing: true })
   })
 
   it('should filter enrolments by Completed', async () => {
     await Enrolments.filterStatus.selectByVisibleText('Completed')
     await Enrolments.filterButton.click()
 
-    await expect(Trainees.headingL).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Trainees.headingL).toHaveText(`${TRAINEE_NAME}`, { containing: true })
     await expect(Enrolments.filterResults).toBeElementsArrayOfSize(2)
     await expect(Enrolments.findTag('Completed')).toBeExisting()
   })
@@ -74,13 +74,13 @@ describe('Training provider enrols a trainee', () => {
     await Enrolments.filterStatus.selectByVisibleText('Active')
     await Enrolments.filterButton.click()
 
-    await expect(Trainees.headingL).toHaveTextContaining(`${TRAINEE_NAME}`)
-    await expect(Trainees.headingM).toHaveTextContaining('There is no data available')
+    await expect(Trainees.headingL).toHaveText(`${TRAINEE_NAME}`, { containing: true })
+    await expect(Trainees.headingM).toHaveText('There is no data available', { containing: true })
   })
 
   it('should load enrol trainee page', async () => {
     await Trainees.enrolOnTraining.click()
-    await expect(Enrolments.headingL).toHaveTextContaining(`Enrol ${TRAINEE_NAME} onto training`)
+    await expect(Enrolments.headingL).toHaveText(`Enrol ${TRAINEE_NAME} onto training`)
   })
 
   it('should show errors when submitting an empty form', async () => {
@@ -102,7 +102,7 @@ describe('Training provider enrols a trainee', () => {
     await Enrolments.graduateNo.click()
     await DateForm.setStartAndEndDates(CREATE_DATA.startDate, CREATE_DATA.endDate)
     await Enrolments.continue.click()
-    await expect(Enrolments.headingM).toHaveTextContaining('No training is available for your enrolment criteria, try a reset and then different criteria.')
+    await expect(Enrolments.headingM).toHaveText('No training is available for your enrolment criteria, try a reset and then different criteria.')
   })
 
   it('should reset and keep values apart from discipline and level', async () => {
@@ -139,7 +139,7 @@ describe('Training provider enrols a trainee', () => {
 
   it('should find trainee and see an active enrolment', async () => {
     await Menu.trainees.click()
-    await expect(Trainees.pageTitle).toHaveTextContaining('Trainees')
+    await expect(Trainees.pageTitle).toHaveText('Trainees')
 
     await Trainees.filterText.setValue(TRAINEE_NAME)
     await Trainees.filterButton.click()
@@ -148,7 +148,7 @@ describe('Training provider enrols a trainee', () => {
     await Enrolments.filterStatus.selectByVisibleText('Active')
     await Enrolments.filterButton.click()
 
-    await expect(Trainees.headingL).toHaveTextContaining(`${TRAINEE_NAME}`)
+    await expect(Trainees.headingL).toHaveText('Enrolments for ' + `${TRAINEE_NAME}`)
     await expect(Enrolments.filterResults).toBeElementsArrayOfSize(1)
     await expect(Enrolments.findTag('Active')).toBeExisting()
   })

@@ -1,7 +1,7 @@
-const merge = require('deepmerge')
-const baseConfig = require('./base.conf.cjs')
+import merge from 'deepmerge';
+import {baseConfig} from './base.conf.js';
 
-exports.config = merge(baseConfig.config, {
+export const config = merge(baseConfig, {
   maxInstances: 1,
   bail: 5,
   capabilities: [{
