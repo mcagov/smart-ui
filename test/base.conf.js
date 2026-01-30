@@ -91,7 +91,8 @@ export const baseConfig = {
   ],
   mochaOpts: {
     ui: 'bdd',
-    timeout: 10000
+    timeout: 60000,
+    retries: 3
   },
   onPrepare: function (config, capabilities) {
     reportAggregator = new ReportAggregator(

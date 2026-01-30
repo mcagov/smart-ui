@@ -10,7 +10,7 @@ class TrainingProviders extends Page {
   }
 
   get next () {
-    return $('.moj-pagination__link')
+    return $('.govuk-pagination__next > a.govuk-link.govuk-pagination__link')
   }
 
   get paginationResults () {

@@ -2,7 +2,7 @@ $govuk-global-styles: true;
 $govuk-suppressed-warnings: (
   ie8
 );
-@import "govuk-frontend/govuk/all";
+@import "govuk-frontend/dist/govuk/all";
 //$govuk-assets-path: '/public/';
 
 // Patterns that aren't in Frontend
@@ -17,6 +17,11 @@ $govuk-suppressed-warnings: (
 
 
 // Add extra styles here, or re-organise the Sass files in whichever way makes most sense to you
+
+[aria-sort] button,
+[aria-sort] button:hover {
+  padding: 0 10px 0 0;
+}
 
 .govuk-input--width-8 {
   max-width: 9em;

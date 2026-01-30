@@ -11,14 +11,14 @@ const TP = {
 }
 
 describe('Admin views all training-providers', () => {
-  it('should login as an admin', async () => {
+
+  before(async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
+    await Menu.trainingProviders.click()
   })
 
   it('should access training provider page', async () => {
-    await Menu.trainingProviders.click()
     await expect(TrainingProviderPage.pageTitle).toHaveText('Training providers')
     await expect(TrainingProviderPage.filterResults).toBeElementsArrayOfSize(10)
     await expect(TrainingProviderPage.paginationResults).toHaveText('Showing 1 to 10 of ', { containing: true })

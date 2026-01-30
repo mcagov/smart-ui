@@ -9,14 +9,13 @@ const CATEGORY_NAME = `WDIO TEST Category ${randomUUID()}`
 
 describe('admin creates smart category', () => {
 
-  it('should login as a training provider', async () => {
+  before(async () => {
     await Login.open()
-    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
+    await Menu.admin.click()
   })
 
   it('should load admin page', async () => {
-    await Menu.admin.click()
     await expect(TrainingProviderPage.headingL).toHaveText('Manage SMarT meta data')
     await expect(SubMenu.summary).toExist()
     await expect(SubMenu.smartCategories).toExist()

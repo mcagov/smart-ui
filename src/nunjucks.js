@@ -27,10 +27,7 @@ const mojFrontendPath = require.resolve(
   '@ministryofjustice/frontend/package.json'
 )
 
-const govkukFrontendPath = path.join(
-  mojFrontendPath,
-  '../../../govuk-frontend/package.json'
-)
+const govkukFrontendPath = require.resolve('govuk-frontend/package.json')
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -110,8 +107,9 @@ function configureNunjucks(app) {
       path.join(__dirname, 'views/includes'),
       path.join(__dirname, 'views/components'),
       path.join(govkukFrontendPath, '../'),
-      path.join(govkukFrontendPath, '../govuk'),
-      path.join(govkukFrontendPath, '../govuk/components'),
+      path.join(govkukFrontendPath, '../dist'),
+      path.join(govkukFrontendPath, '../dist/govuk'),
+      path.join(govkukFrontendPath, '../dist/govuk/components'),
       path.join(mojFrontendPath, '../'),
       path.join(mojFrontendPath, '../moj/components')
     ],

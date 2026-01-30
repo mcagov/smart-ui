@@ -65,7 +65,7 @@ initialiseSession(app)
 
 const jqueryPath = require.resolve('jquery/package.json')
 const mojFrontendPath = require.resolve('@ministryofjustice/frontend/package.json')
-const govkukFrontendPath = path.join(mojFrontendPath, '../../../govuk-frontend/package.json')
+const govkukFrontendPath = require.resolve('govuk-frontend/package.json')
 const env = (process.env.NODE_ENV || 'dev').toLowerCase()
 
 // TODO: sort out XRAY or use AWS Open Distro for OpenTelemetry
@@ -95,7 +95,7 @@ if (useLocalAuth()) {
 
 const cache = new Cache()
 
-const setCsrf = function (req, res, next) {
+const setCsrf = function(req, res, next) {
   if (req && req.csrfToken) {
     res.locals.csrfToken = req.csrfToken()
   }
@@ -118,7 +118,7 @@ app.use(handleCookies(app, csrf))
 app.use(formData.parse({}))
 app.use(formData.union())
 
-app.use('/assets', express.static(path.join(govkukFrontendPath, '../govuk/assets')))
+app.use('/assets', express.static(path.join(govkukFrontendPath, '../dist/govuk/assets')))
 app.use('/assets/images/icon-tag-remove-cross.svg', express.static(path.join(mojFrontendPath, '../moj/assets/images/icon-tag-remove-cross.svg')))
 app.use('/assets/images/icon-tag-remove-cross-white.svg', express.static(path.join(mojFrontendPath, '../moj/assets/images/icon-tag-remove-cross-white.svg')))
 
@@ -128,8 +128,8 @@ app.use('/assets/images/icon-arrow-black-down.svg', express.static(path.join(moj
 
 // app.use('/assets/js/jquery.js', express.static(path.join(__dirname, '../node_modules/jquery/dist/jquery.js')))
 app.use('/assets/js/jquery.js', express.static(path.join(jqueryPath, '../dist/jquery.js')))
-app.use('/assets/js/all.js', express.static(path.join(govkukFrontendPath, '../govuk/all.js')))
-app.use('/assets/moj/js/all.js', express.static(path.join(mojFrontendPath, '../moj/all.js')))
+app.use('/assets/js/govuk-frontend.min.js', express.static(path.join(govkukFrontendPath, '../dist/govuk/govuk-frontend.min.js')))
+app.use('/assets/js/moj-frontend.min.js', express.static(path.join(mojFrontendPath, '../moj/moj-frontend.min.js')))
 
 app.use('/public', express.static(path.join(process.cwd(), 'public')))
 

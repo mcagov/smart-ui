@@ -9,7 +9,7 @@ RUN \
 
 WORKDIR /home/app/node_modules/@mca/smart-ui
 
-COPY ./replace/template.njk /home/app/node_modules/govuk-frontend/govuk/components/header
+COPY ./replace/template.njk /home/app/node_modules/govuk-frontend/dist/govuk/components/header
 
 EXPOSE 3000
 

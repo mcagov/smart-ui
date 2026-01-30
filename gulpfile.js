@@ -55,7 +55,7 @@ gulp.task('copy', function () {
 
 gulp.task('copyHeaderTemplate', function () {
   return gulp.src(['./replace/template.njk'])
-  .pipe(gulp.dest('./node_modules/govuk-frontend/govuk/components/header'))
+  .pipe(gulp.dest('./node_modules/govuk-frontend/dist/govuk/components/header'))
 })
 
 gulp.task('sass', function () {

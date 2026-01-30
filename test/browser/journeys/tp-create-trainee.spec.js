@@ -61,6 +61,6 @@ describe('Training provider creates a new trainee', () => {
     await expect(Trainee.overviewNationality).toHaveText('GB')
     await expect(Trainee.overviewGender).toHaveText('Female')
     await expect(Trainee.overviewDateOfBirth).toHaveText('11-08-1993')
-    await expect(Trainee.overviewStatus).toHaveText('ACTIVE')
+    await expect(Trainee.overviewStatus).toHaveText('Active')
   })
 })

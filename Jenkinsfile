@@ -175,20 +175,20 @@ pipeline {
                }
 
                 stage('npm publish') {
-                    //when { branch 'master' }
+                    when { branch 'master' }
                     steps {
                         script {
                             sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
                             sh 'pwd'
                             sh 'npm publish'
-//                             sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
-//                             sh 'git push origin v${NEXT_VERSION}'
+                            sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
+                            sh 'git push origin v${NEXT_VERSION}'
                         }
                     }
                 }
 
                 stage('docker-publish') {
-                   // when { branch 'master' }
+                   when { branch 'master' }
                     steps {
                         script {
                             sh '''
@@ -207,7 +207,7 @@ pipeline {
                 }
 
                 stage('vulnerability-report') {
-                   // when { branch 'master' }
+                   when { branch 'master' }
                     steps {
                         withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                             script {

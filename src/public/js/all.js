@@ -275,7 +275,6 @@ const cookieConfig = {
   ]
 }
 document.addEventListener('DOMContentLoaded', function (event) {
-  window.GOVUKFrontend.initAll()
   window.MCGAFrontend.initAll()
   window.cookieManager.init(cookieConfig)
 })
