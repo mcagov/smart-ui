@@ -19,7 +19,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.4
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.8
     ports:
       - '8080:8080'
       - '8082:8082'
@@ -272,7 +272,7 @@ services:
 
   # used for ci testing
   smart-ui:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.67
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.74
     hostname: smart-ui
     build:
       context: .

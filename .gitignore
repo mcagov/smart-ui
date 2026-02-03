@@ -8,7 +8,7 @@
 .envrc
 .history
 .idea
-.npmrc.bak
+.npmrc
 .nyc_output
 .scannerwork
 .terraform

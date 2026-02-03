@@ -1,3 +1,7 @@
+<pre>
+  {{ params | dump(2) }}
+</pre>
+
 {% set titleText = 'All replies' %}
 
 {% extends "layout.html" %}
@@ -80,4 +84,8 @@
             errorMessage: 'message' | getError(errors)
         }) }}
     {% endif %}
-</div>{% endblock %}
+</div>
+<script nonce='{{ cspNonce }}'>
+    console.log('Template Params:', {{ comment | dump | safe }});
+</script>
+{% endblock %}
