@@ -37,6 +37,11 @@ class OktaUsers {
   }
 
   async _users(collection) {
+    if (!collection) {
+      logger.warn('_users called with null or undefined collection');
+      return [];
+    }
+
     const found = [];
     try {
       for await (const user of collection) {
@@ -49,7 +54,6 @@ class OktaUsers {
             lastName: user.profile.lastName,
             email: user.profile.email,
             primaryPhone: user.profile.primaryPhone,
-            // Map other fields as necessary
           }
         });
       }
@@ -263,9 +267,11 @@ class OktaUsers {
     return this.userApi.resetPassword(id, { sendEmail: true });
   }
 
-  getAll(ids) {
+  async getAll(ids) {
+    if (!ids || ids.length === 0) return [];
     const search = `id eq "${ids.join('" or id eq "')}"`;
-    return this._users(this.userApi.listUsers({ search }));
+    const collection = await this.userApi.listUsers({ search });
+    return this._users(collection);
   }
 
   async getGroup(name) {

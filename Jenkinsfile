@@ -55,7 +55,11 @@ pipeline {
         EVENTS_QUEUE_URL="http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events"
         AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
         GITHUB = credentials('github-ssh')
+        SAFE_BRANCH = "${env.BRANCH_NAME.replaceAll('/', '-')}"
+    }
 
+    parameters {
+        booleanParam(name: 'PUSH_TEST_CONTAINER', defaultValue: false, description: 'If checked, builds and pushes a test container to ECR')
     }
 
     stages {
@@ -174,7 +178,12 @@ pipeline {
                }
 
                 stage('npm publish') {
-                   when { branch 'master' }
+                   when {
+                       anyOf{
+                            branch 'master'
+                            expression { params.PUSH_TEST_CONTAINER}
+                       }
+                   }
                     steps {
                         script {
                            sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
@@ -193,9 +202,15 @@ pipeline {
                 }
 
                 stage('docker-publish') {
-                   when { branch 'master' }
+                    when {
+                        anyOf{
+                        branch 'master'
+                        expression { params.PUSH_TEST_CONTAINER}
+                        }
+                    }
                     steps {
                         script {
+                        def imageTag = (env.BRANCH_NAME == 'master') ? "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" : "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${env.BRANCH_NAME}-TEST"
                             sh '''
                             echo "Building docker image ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}"
 

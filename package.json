@@ -119,6 +119,9 @@
         "supertest": "^7.1.4",
         "wdio-html-nice-reporter": "^7.9.1"
     },
+    "overrides": {
+        "@isaacs/brace-expansion": "^5.0.1"
+    },
     "nodemonConfig": {
         "watch": [
             ".env",

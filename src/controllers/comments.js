@@ -204,56 +204,74 @@ export async function setCommenters (req, res, next) {
     }
 
     if (allUserIds.size > 0) {
-      logger.debug(`Found ${[...allUserIds]} user IDs in page, fetching the names`)
-      // TODO cache
-      const users = await service.getAll([...allUserIds])
-      if (notEmptyArray(res?.locals?.comments?.data)) {
-        res.locals.comments.data.forEach((c) => {
-          const user = users.find((u) => u.id === c.userId)
-          if (user) {
-            c.userName = `${user.profile.firstName} ${user.profile.lastName}`
-          }
-        })
-      }
-      if (notEmptyArray(res?.locals?.messages?.data)) {
-        res.locals.messages.data.forEach((c) => {
-          const user = users.find((u) => u.id === c.userId)
-          if (user) {
-            c.userName = `${user.profile.firstName} ${user.profile.lastName}`
-          }
-        })
-      }
+      try {
+        logger.debug(`Found ${[...allUserIds]} user IDs, fetching from Okta`);
+        const users = await service.getAll([...allUserIds]);
 
-      if (res?.locals?.comment?.userId) {
-        const user = users.find((u) => u.id === res.locals.comment.userId)
-        if (user) {
-          res.locals.comment.userName = `${user.profile.firstName} ${user.profile.lastName}`
+        if (notEmptyArray(res?.locals?.comments?.data)) {
+          res.locals.comments.data.forEach((c) => {
+            const user = users.find((u) => u.id === c.userId);
+            if (user) {
+              c.userName = `${user.profile.firstName} ${user.profile.lastName}`;
+            }
+          })
         }
+        if (notEmptyArray(res?.locals?.messages?.data)) {
+          res.locals.messages.data.forEach((c) => {
+            const user = users.find((u) => u.id === c.userId);
+            if (user) {
+              c.userName = `${user.profile.firstName} ${user.profile.lastName}`;
+            }
+          })
+        }
+        if (res?.locals?.comment?.userId) {
+          const user = users.find((u) => u.id === res.locals.comment.userId);
+          if (user) {
+            res.locals.comment.userName = `${user.profile.firstName} ${user.profile.lastName}`;
+          }
+        }
+      } catch (oktaErr) {
+        logger.error("Okta resolution failed in EKS. User names will be missing.", {
+          message: oktaErr.message,
+          stack: oktaErr.stack
+        })
       }
     }
 
-    // get TPs
     if (allTpIds.size > 0) {
-      logger.debug(`Found ${JSON.stringify(...allTpIds)} tp IDs in page, fetching the names`)
-      // TODO cache
-      const tps = await trainingProviders.getNames(getAccessToken(req), [...allTpIds])
-      logger.debug(`Got back  ${JSON.stringify(tps)}`)
-      if (notEmptyArray(res?.locals?.comments?.data)) {
-        res.locals.comments.data.forEach((c) => {
-          const tp = tps.find((tp) => tp.id === c.org)
-          c.tpName = tp.companyName
+      try {
+        logger.warn(`Fetching TP names within EKS - TP IDs: ${JSON.stringify([...allTpIds])}`);
+
+        const tps = await trainingProviders.getNames(getAccessToken(req), [...allTpIds]);
+
+        logger.debug(`Got back ${JSON.stringify(tps)}`)
+        logger.warn(`Successfully retrieved ${tps?.length || 0} TPs in EKS`)
+
+        if (notEmptyArray(res?.locals?.comments?.data)) {
+          res.locals.comments.data.forEach((c) => {
+            const tp = tps.find((t) => String(t.id) === String(c.org))
+            if (tp) {
+              c.tpName = tp.companyName
+            }
+          });
+        }
+
+        if (res?.locals?.comment?.org) {
+          const tp = tps.find((t) => String(t.id) === String(res.locals.comment.org))
+          if (tp) {
+            res.locals.comment.tpName = tp.companyName
+          }
+        }
+      } catch (tpErr) {
+        logger.error("Training Provider name lookup failed", {
+          message: tpErr.message,
+          stack: tpErr.stack
         })
       }
-
-      if (res?.locals?.comment?.org) {
-        const tp = tps.find((tp) => tp.id === res.locals.comment.org)
-        if (tp) {
-          res.locals.comment.tpName = tp.companyName
-        }
-      }
     }
-    next()
+
+    next();
   } catch (err) {
-    handleLookupError(err, next, true)
+    handleLookupError(err, next, true);
   }
 }

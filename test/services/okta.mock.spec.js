@@ -228,4 +228,19 @@ describe('OktaUsers Service (Unit)', () => {
       expect(fetchArgs.headers['Content-Type']).toBe('application/json');
     });
   });
+
+  describe('OktaUsers Service - EKS Error Simulation', () => {
+    it('should throw the makeRequestContext TypeError when SDK is misconfigured', async () => {
+      const eksError = new TypeError("Cannot read properties of undefined (reading 'makeRequestContext')");
+      okta.UserApi.prototype.listUsers.throws(eksError);
+
+      try {
+        await oktaService.getAll(['u123']);
+        throw new Error('Should have thrown');
+      } catch (err) {
+        expect(err).toBeInstanceOf(TypeError);
+        expect(err.message).toContain('makeRequestContext');
+      }
+    });
+  });
 });
