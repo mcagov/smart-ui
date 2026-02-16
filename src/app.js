@@ -129,7 +129,9 @@ app.use('/assets/images/icon-arrow-black-down.svg', express.static(path.join(moj
 // app.use('/assets/js/jquery.js', express.static(path.join(__dirname, '../node_modules/jquery/dist/jquery.js')))
 app.use('/assets/js/jquery.js', express.static(path.join(jqueryPath, '../dist/jquery.js')))
 app.use('/assets/js/govuk-frontend.min.js', express.static(path.join(govkukFrontendPath, '../dist/govuk/govuk-frontend.min.js')))
+app.use('/assets/js/govuk-frontend.min.js.map', express.static(path.join(govkukFrontendPath, '../dist/govuk/govuk-frontend.min.js.map')))
 app.use('/assets/js/moj-frontend.min.js', express.static(path.join(mojFrontendPath, '../moj/moj-frontend.min.js')))
+app.use('/assets/js/moj-frontend.min.js.map', express.static(path.join(mojFrontendPath, '../moj/moj-frontend.min.js.map')))
 
 app.use('/public', express.static(path.join(process.cwd(), 'public')))
 

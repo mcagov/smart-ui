@@ -86,6 +86,11 @@
       {% from "button-menu/macro.njk" import mojButtonMenu %}
 
       {{ mojButtonMenu({
+        button: {
+          text: "Manage claim",
+          classes: "moj-button-menu__wrapper--right"
+        },
+        alignMenu: "right",
         items: [
           {
             text: "Submit",
@@ -111,12 +116,12 @@
             text: "Start review",
             attributes: { id: 'review-button'},
             href: baseUrl + '/reviewing'
-          } if claimPeriod.status in ['Submitted'] ,
+          } if claimPeriod.status in ['Submitted'],
           {
             text: "Complete review",
             attributes: { id: 'reviewed-button'},
             href: baseUrl + '/reviewed'
-          } if claimPeriod.status in ['Reviewing DISABLED'] ,
+          } if claimPeriod.status in ['Reviewing DISABLED'],
           {
             text: "Approve",
             attributes: { id: 'approve-button'},
@@ -126,7 +131,7 @@
             text: "Reject",
             attributes: { id: 'reject-button'},
             href: baseUrl + '/rejected'
-          }if claimPeriod.status in ['Submitted', 'Reviewed', 'Reviewing']
+          } if claimPeriod.status in ['Submitted', 'Reviewed', 'Reviewing']
         ] | cleanList
       }) if claimPeriod.status not in ['Approved', 'Migrated'] }}
     {% endif %}
@@ -334,16 +339,4 @@
       {% endif %}
     </div>
   {% endif %}
-  {% block afterScript %}
-  <script nonce='{{ cspNonce }}'>
-    document.addEventListener('DOMContentLoaded', function () {
-      new MOJFrontend.ButtonMenu({
-        container: $(".moj-button-menu"),
-        mq: "(min-width: 200em)",
-        buttonText: "Manage claim",
-        menuClasses: "moj-button-menu__wrapper--right",
-      });
-    })
-  </script>
-  {% endblock %}
 </div>

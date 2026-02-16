@@ -7,3 +7,11 @@
 <script nonce='{{cspNonce}}' src="/public/js/sortable-table.js"></script>
 <script nonce='{{cspNonce}}' src="/public/js/accessible-autocomplete.min.js"></script>
 <script nonce='{{cspNonce}}' src="/public/js/attachments.js"></script>
+<script nonce='{{cspNonce}}'> document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+<script nonce='{{cspNonce}}' type="module">
+  import * as GOVUKFrontend from '/assets/js/govuk-frontend.min.js'
+  import * as MOJFrontend from '/assets/js/moj-frontend.min.js'
+
+  GOVUKFrontend.initAll()
+  MOJFrontend.initAll()
+</script>
