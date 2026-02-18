@@ -27,3 +27,9 @@ gitleaks-report.json
 terraform/dev.tfplan
 terraform/preprod.tfplan
 terraform/live.tfplan
+
+#local debugging
+local-testing/okta-debug-method.js
+local-testing/okta-debug.js
+local-testing/debug-real-data-getAll.js
+/local-testing/

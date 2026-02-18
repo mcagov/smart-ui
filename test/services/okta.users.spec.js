@@ -1,5 +1,7 @@
 import dotenv from 'dotenv'
 import OktaUsers from '../../src/services/okta.users.js'
+import { logger } from '@mca/common-logger';
+import { afterAll, beforeAll } from '@jest/globals'
 
 dotenv.config()
 
@@ -8,25 +10,25 @@ const ADMIN_BODY_GROUP_NAME = `mcauk-smart-dev-administrative-body`
 
 const userService = new OktaUsers(TRAINING_PROVIDER_GROUP_NAME, ADMIN_BODY_GROUP_NAME)
 
-const PROVIDER_ID = '8c0f2042-dd5d-473a-b692-a5bd047493ca'
+const PROVIDER_ID = 'f1198f11-8122-4182-bfaa-8c4ef5512d34'
 
 const USERS = {
   MCA_BOT: {
-    id: '00uh1w6stqbnrP2QB357',
-    email: 'mcauk@catapult.cx',
+    id: '00uczt7c8jK0HeBmU0x7',
+    email: 'info@mcatestbot.com',
     firstName: 'DO NOT DELETE',
     lastName: 'USED FOR TESTS'
   },
   MCA_REGISTRAR: {
-    id: '00u239aoipWKgaVjo357',
-    email: 'mcauk-registrar@catapult.cx'
+    id: '00uczxkf0txw7LAL50x7',
+    email: 'mcauk-registrar@smarttest.com'
   },
   NOT_ACTIVE: {
-    id: '00u4o5p1kzsM1AiXe357',
-    email: 'notactive@test.catapult.cx'
+    id: '00uczxlkrmGfSjo2j0x7',
+    email: 'notactive@smarttest.com'
   },
   INVALID: {
-    email: 'invalid@test.catapult.cx'
+    email: 'invalid@test.mcatestbot.com'
   }
 }
 
@@ -36,15 +38,26 @@ const credentials = {
   }
 }
 
-const user1 = {
+const MCA_TEST_BOT = {
   profile: {
-    firstName: 'XXX Craig',
-    lastName: 'Test',
-    email: 'info@craigjas.com',
-    login: 'info@craigjas.com'
+    firstName: 'DO NOT DELETE',
+    lastName: 'USED FOR TESTS',
+    email: 'info@mcatestbot.com',
+    login: 'info@mcatestbot.com'
   },
   credentials: credentials,
-  groupIds: ['00g6esb7nxYLJTNeO357']
+  groupIds: ['00gczrhr9vGXogPof0x7']
+}
+
+const user1 = {
+  profile: {
+    firstName: 'XXX eddie',
+    lastName: 'Test',
+    email: 'info@eddiemt.com',
+    login: 'info@eddiemt.com'
+  },
+  credentials: credentials,
+  groupIds: ['00gczrhr9vGXogPof0x7']
 }
 
 const user2 = {
@@ -79,40 +92,37 @@ describe.skip('OktaUsers', () => {
   })
 
   describe('get brands', () => {
-    it('should list brands', () => {
-      userService
-        .getBrands()
-        .each((brand) => {
-          console.log(brand)
+    it('should list brands', async () => {
+      const listBrands =  await userService.getBrands()
+        listBrands.each((brand) => {
+          expect(brand.id).toBeDefined()
+          expect(brand.name).toBeDefined()
+          expect(brand.isDefault).toBeDefined()
         })
-      .then((data)=>{
-        console.log(data)
-      })
-
-      console.log(data.brands)
     })
   })
 
   describe('#getAll by id', () => {
-    it('should get all users', () => {
-      // First ID does not exist
-      return userService.getAll(['00u2ir2hmqvBvx9Jm357', '00u42xkf7oqeVJ6ow357', '00u1sag5e9TPGH0pT357'])
+    it('should get all users', async() => {
+      // Last ID does not exist
+      return await userService.getAll(['00u4btu0mujMX9HaN0x7', '00u4btvjciwyWK0TL0x7', '00u1sag5e9TPGH0pT357'])
         .then((users) => {
           expect(users.length).toBe(2)
         })
     })
   })
   describe.skip('#create', () => {
-    it('should create a user', () => {
-      return userService.create(user1)
+    it('should create a user', async() => {
+      logger.info('Testing create user', user1)
+      return await userService.create(user1)
         .then((item) => {
-          expect(item.length).toBeDefined()
+          expect(item.profile.email).toBe("info@eddiemt.com")
         })
     })
   })
   describe.skip('#activate', () => {
-    it('should activate a staged user', () => {
-      return userService.activate('00u7r84k5qpwDXA5D357')
+    it('should activate a staged user', async() => {
+      return await userService.activate('info@eddiemt.com')
         .then((item) => {
           expect(item).toBeDefined()
         })
@@ -126,7 +136,7 @@ describe.skip('OktaUsers', () => {
         })
     })
   })
-  describe('#register and update', () => {
+  describe.skip('#register and update', () => {
     describe('#register', () => {
       it('should register a training provider user', () => {
         return userService.register(user2)
@@ -175,7 +185,7 @@ describe.skip('OktaUsers', () => {
     })
   })
   describe('#getAdminBodyGroup', () => {
-    it.skip('should not get default env registrar group', () => {
+    it('should not get default env registrar group', () => {
       return userService.getAdminBodyGroup()
         .catch((err) => {
           expect(err.name).toEqual('NotFoundError')
@@ -239,7 +249,7 @@ describe.skip('OktaUsers', () => {
     })
   })
   describe('#getActiveUser', () => {
-    it.skip('should get user by email', () => {
+    it('should get user by email', () => {
       return userService
         .getActiveUser(USERS.MCA_BOT.email)
         .then((item) => {
@@ -261,14 +271,14 @@ describe.skip('OktaUsers', () => {
       return userService.getActiveUser(USERS.INVALID.email).catch((err) => {
         expect(err).toBeDefined()
         expect(err.status).toEqual(404)
-        expect(err.message).toEqual('User invalid@test.catapult.cx not found - have they signed up?')
+        expect(err.message).toEqual('User invalid@test.mcatestbot.com not found - have they signed up?')
       })
     })
     it('should NOT work for user not in correct group', () => {
       return userService.getActiveUser(USERS.MCA_REGISTRAR.email).catch((err) => {
         expect(err).toBeDefined()
         expect(err.status).toEqual(403)
-        expect(err.message).toEqual('User mcauk-registrar@catapult.cx does not have access to SMarT - check with the user')
+        expect(err.message).toEqual('User mcauk-registrar@smarttest.com does not have access to SMarT - check with the user')
       })
     })
   })

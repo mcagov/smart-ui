@@ -128,6 +128,7 @@ resource "kubernetes_service" "smart_ui" {
 
   }
   spec {
+    load_balancer_class = "service.k8s.aws/nlb"
     selector = {
       App = var.service_name
     }

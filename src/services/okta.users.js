@@ -9,7 +9,7 @@ const USER_STATUSES = { ACTIVE: 'ACTIVE' };
 const defaultRegisterError = 'This email cannot be used, try another'
 const TRAINING_PROVIDER_GROUP_NAME = `mcauk-smart-${getEnv()}-training-providers`;
 const ADMIN_BODY_GROUP_NAME = `mcauk-smart-${getEnv()}-administrative-body`;
-const OKTA_SMART_USER_TYPE_ID = `${process.env.OKTA_SMART_USER_TYPE_ID || 'otyh2ph1hq1MYLxEL357'}`;
+const OKTA_SMART_USER_TYPE_ID = `${process.env.OKTA_SMART_USER_TYPE_ID || 'oty4btqmrfak1KwoK0x7'}`;
 
 class OktaUsers {
   constructor(
@@ -19,12 +19,12 @@ class OktaUsers {
 
     this.client = injectedClient || new okta.Client({
       orgUrl: process.env.OKTA_ORG_URL,
-      token: process.env.OKTA_ACCESS_API_TOKEN,
-
+      token: process.env.OKTA_ACCESS_API_TOKEN
     });
 
-    this.userApi = new okta.UserApi(this.client);
-    this.groupApi = new okta.GroupApi(this.client);
+    this.userApi = this.client.userApi || new okta.UserApi(this.client);
+    this.groupApi = this.client.groupApi || new okta.GroupApi(this.client);
+    this.customizationApi = this.client.customizationApi
 
     if (!trainingProvider || trainingProvider.length === 0) {
       throw createError(400, 'User group name must be set');
@@ -37,14 +37,15 @@ class OktaUsers {
   }
 
   async _users(collection) {
-    if (!collection) {
+    const resolvedCollection = await collection;
+    if (!resolvedCollection) {
       logger.warn('_users called with null or undefined collection');
       return [];
     }
 
     const found = [];
     try {
-      for await (const user of collection) {
+      await resolvedCollection.each(user => {
         found.push({
           id: user.id,
           status: user.status,
@@ -56,7 +57,7 @@ class OktaUsers {
             primaryPhone: user.profile.primaryPhone,
           }
         });
-      }
+      });
       return found.sort(sortName);
     } catch (err) {
       logger.error('Error iterating users collection', err);
@@ -71,17 +72,9 @@ class OktaUsers {
 
   async create(user) {
     if (user) {
-      if (!user.type && OKTA_SMART_USER_TYPE_ID) {
         user.type = { id: OKTA_SMART_USER_TYPE_ID };
-      }
     }
-
-    const payload = {
-      body: user,
-      activate: false
-    };
-
-    return this.userApi.createUser(payload);
+    return this.userApi.createUser({body: user});
   }
 
   async update(id, updated) {
@@ -95,7 +88,7 @@ class OktaUsers {
     // user.profile.email = updated.email;
     // user.profile.login = updated.email;
     // user.profile.trainingProviderId = updated.id;
-    return this.userApi.updateUser(id, { body: user });
+    return this.userApi.updateUser({userId:id,  user:updated});
   }
 
   async deactivateOrDeleteUser(id) {
@@ -206,15 +199,7 @@ class OktaUsers {
 
 
   async getBrands() {
-    const url = `${process.env.OKTA_ORG_URL}/api/v1/brands`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `SSWS ${process.env.OKTA_ACCESS_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return await response.json();
+    return await this.customizationApi.listBrands();
   }
 
   unlock(id) {
@@ -312,44 +297,46 @@ class OktaUsers {
 
   async getAdminBodyUsers() {
     const group = await this.getAdminBodyGroup();
-    return this._users(this.groupApi.listGroupUsers(group.id));
-  }
+    const collection = await this.groupApi.listGroupUsers({ groupId: group.id });
+    return this._users(collection);  }
 
   async getGroupsForUser(user) {
-    const userId = user.id;
-    const groupsCollection = await this.userApi.listUserGroups(userId);
     const groups = [];
-    for await (const g of groupsCollection) {
-      groups.push(g);
-    }
+    const groupsCollection = await this.userApi.listUserGroups({userId: user});
+    await groupsCollection.each(group => {
+      groups.push(group);
+    })
     return groups;
   }
 
   async get(id) {
     try {
-      return await this.userApi.getUser(id);
+      const params = typeof id === 'string' ? { userId: id } : id;
+      return await this.userApi.getUser(params);
     } catch (err) {
       logger.warn(err);
       if (err.status === 404) {
-        throw createError(404, `User ${id} not found - have they signed up?`);
+        throw createError(404, `User ${id.userId} not found - have they signed up?`);
       }
       throw err;
     }
   }
 
   async getActiveUser(id) {
-    const user = await this.get(id);
+    const params = typeof id === 'string' ? { userId: id } : id;
+    const actualId = params.userId;
+    const user = await this.get(params);
     if (user.status !== USER_STATUSES.ACTIVE) {
-      logger.warn(`User account has not been activated: ${id}`);
-      throw createError(403, `User ${id} has not been activated - check with the user`);
+      logger.warn(`User account has not been activated: ${actualId}`);
+      throw createError(403, `User ${actualId} has not been activated - check with the user`);
     } else {
-      const groups = await this.getGroupsForUser(user);
-      const group = groups.find((g) => g.profile.name === this.trainingProviderGroup);
+      const groups = await this.getGroupsForUser(actualId);
+      const group = groups.find((grp) => grp.profile.name === this.trainingProviderGroup);
       if (group) {
         return user;
       } else {
-        logger.warn(`User account has not assigned to group: ${id} - ${this.trainingProviderGroup}`);
-        throw createError(403, `User ${id} does not have access to SMarT - check with the user`);
+        logger.warn(`User account has not assigned to group: ${actualId} - ${this.trainingProviderGroup}`);
+        throw createError(403, `User ${actualId} does not have access to SMarT - check with the user`);
       }
     }
   }
