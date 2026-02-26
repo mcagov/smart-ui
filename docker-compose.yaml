@@ -1,6 +1,6 @@
 services:
   smart-api-db:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api-test-db:1.0.179
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api-test-db:1.0.176
     ports:
       - '${EXPOSED_POSTGRES_PORT-7432}:${POSTGRES_PORT-5432}'
     environment:

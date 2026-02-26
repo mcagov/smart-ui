@@ -633,9 +633,9 @@ function configureNunjucks(app) {
         )
         return false
       }
-
       return true
     }
+
   )
 
   env.addGlobal('enableAV', config.features.enableAV)
@@ -643,8 +643,9 @@ function configureNunjucks(app) {
   env.addGlobal('govukRebrand', true)
 
   env.addGlobal('getDurationInWeeks', getDurationInWeeks)
-  // Used for currencies
-  require('useful-nunjucks-filters')(env)
+
+  return env
+
 }
 
 export { configureNunjucks, financialYearFormat, financialPeriodFormat }
