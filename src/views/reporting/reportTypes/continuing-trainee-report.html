@@ -1,0 +1,59 @@
+{% set titleText = 'Continuing Trainee Report'%}
+
+{% extends "layout.html" %}
+{% block content %}
+
+{{ govukBackLink({
+text: "Back",
+href: "/reports"
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {{ govukSelect({
+            id: 'financialPeriod',
+            name: 'financialPeriod',
+            label: {
+            text: 'Financial Period',
+            classes: "govuk-label--m"
+            },
+            items: [
+                { value: '1',  text: 'P1' },
+                { value: '2',  text: 'P2' },
+                { value: '3',  text: 'P3' },
+                { value: '4',  text: 'P4' },
+                { value: '5',  text: 'P5' },
+                { value: '6',  text: 'P6' },
+                { value: '7',  text: 'P7' },
+                { value: '8',  text: 'P8' },
+                { value: '9',  text: 'P9' },
+                { value: '10',  text: 'P10' },
+                { value: '11',  text: 'P11' },
+                { value: '12',  text: 'P12' }
+            ]
+            }) }}
+
+
+
+            {% set items = [] %}
+            {% for smartCategory in smartCategories %}
+            {% set items = (items.push( {  text: smartCategory.text,  value: smartCategory.id }), items) %}
+            {% endfor %}
+
+            {{ govukSelect({
+            id: 'smartCategory',
+            name: 'smartCategory',
+            label: {
+            text: 'Smart Category',
+            classes: "govuk-label--m"
+            },
+            items: items
+            }) }}
+        </form>
+    </div>
+</div>
+
+{% endblock %}

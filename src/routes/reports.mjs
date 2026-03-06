@@ -5,5 +5,6 @@ const router = new express.Router()
 const templateBase = 'reporting'
 
 router.get('/', useView(`${templateBase}/summary`))
+router.get('/continuing-trainee-report', useView(`${templateBase}/reportTypes/continuing-trainee-report`))
 
 export default router
