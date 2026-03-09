@@ -23,9 +23,9 @@ export function getContinuingTraineeReport () {
       const response = await agent
         .put(apiUrl)
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({ financialYear, financialPeriod, smartCategoryId })
+        .query({ financialYear, financialPeriod, smartCategoryId })
 
-      res.status(200).json(response.body)
+      res.status(response.status).json(response.body)
     } catch (err) {
       logger.error('Error fetching continuing trainee report', err)
 
@@ -35,9 +35,17 @@ export function getContinuingTraineeReport () {
         })
       }
 
+      if (err.status === 403) {
+        return res.status(403).json({
+          error: 'Access forbidden - insufficient permissions to generate report',
+          details: err.response?.body || err.message
+        })
+      }
+
       if (err.status) {
         return res.status(err.status).json({
-          error: err.message || 'Error fetching report'
+          error: err.message || 'Error fetching report',
+          details: err.response?.body || err.message
         })
       }
 

@@ -184,7 +184,8 @@ href: "/reports"
       const requestBody = {
         financialYear: financialYear,
         financialPeriod: financialPeriod,
-        smartCategoryId: smartCategoryId
+        smartCategoryId: smartCategoryId,
+        _csrf: '{{ csrfToken }}'
       };
 
       console.log('Calling API URL:', apiUrl);
@@ -194,25 +195,37 @@ href: "/reports"
       request({
         url: apiUrl,
         method: 'PUT',
-        body: requestBody
+        data: requestBody
       }, function(xhr) {
         console.log('Success response:', xhr.status, xhr.responseText);
-        try {
-          reportData = JSON.parse(xhr.responseText);
-          showStatus('Report generated successfully');
-          showResults(reportData);
-          downloadButton.disabled = false;
-        } catch (error) {
-          console.error('Error parsing report data:', error);
-          showStatus('Error parsing report data: ' + error.message, true);
+
+        if (xhr.status === 201) {
+          try {
+            reportData = JSON.parse(xhr.responseText);
+            showStatus('Report has been generated successfully');
+            showResults(reportData);
+            downloadButton.disabled = false;
+
+            setTimeout(function() {
+              window.location.href = '/reports/continuing-trainee-report';
+            }, 2000);
+          } catch (error) {
+            console.error('Error parsing report data:', error);
+            showStatus('Error generating the report: Error parsing report data - ' + error.message, true);
+            downloadButton.disabled = true;
+          } finally {
+            generateButton.disabled = false;
+          }
+        } else {
+          const errorMsg = xhr.responseText || xhr.statusText || 'Unexpected status code: ' + xhr.status;
+          showStatus('Error generating the report: ' + errorMsg, true);
           downloadButton.disabled = true;
-        } finally {
           generateButton.disabled = false;
         }
       }, function(xhr) {
         console.error('Error generating report:', xhr);
         const errorMsg = xhr.responseText || xhr.statusText || 'Unknown error';
-        showStatus('Error generating report: ' + errorMsg, true);
+        showStatus('Error generating the report: ' + errorMsg, true);
         downloadButton.disabled = true;
         generateButton.disabled = false;
       });
