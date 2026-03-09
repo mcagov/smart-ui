@@ -7,7 +7,7 @@ import urlJoin from 'url-join'
 export function getContinuingTraineeReport () {
   return async (req, res, next) => {
     try {
-      const { financialYear, financialPeriod, smartCategoryId } = req.query
+      const { financialYear, financialPeriod, smartCategoryId } = req.body
 
       if (!financialYear || !financialPeriod || !smartCategoryId) {
         return res.status(400).json({
@@ -21,9 +21,9 @@ export function getContinuingTraineeReport () {
       logger.info(`Fetching continuing trainee report: ${apiUrl}`, { financialYear, financialPeriod, smartCategoryId })
 
       const response = await agent
-        .get(apiUrl)
+        .put(apiUrl)
         .set('Authorization', `Bearer ${accessToken}`)
-        .query({ financialYear, financialPeriod, smartCategoryId })
+        .send({ financialYear, financialPeriod, smartCategoryId })
 
       res.status(200).json(response.body)
     } catch (err) {

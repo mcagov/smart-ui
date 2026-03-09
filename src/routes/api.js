@@ -10,6 +10,6 @@ router.get('/trainees/autocomplete', traineeSearch(), useJson('trainees'))
 
 router.get('/client-companies', allCompanies, useJson('clientCompanies'))
 
-router.get('/reports/continuing-trainee-report', getContinuingTraineeReport())
+router.put('/reports/continuing-trainee-report', getContinuingTraineeReport())
 
 export default router
