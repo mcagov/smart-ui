@@ -180,10 +180,12 @@ href: "/reports"
       const financialPeriod = financialPeriodInput.value.trim();
       const smartCategoryId = smartCategoryInput.value.trim();
 
-      const apiUrl = getApiUrl() +
-        '?financialYear=' + encodeURIComponent(financialYear) +
-        '&financialPeriod=' + encodeURIComponent(financialPeriod) +
-        '&smartCategoryId=' + encodeURIComponent(smartCategoryId);
+      const apiUrl = getApiUrl();
+      const requestBody = {
+        financialYear: financialYear,
+        financialPeriod: financialPeriod,
+        smartCategoryId: smartCategoryId
+      };
 
       console.log('Calling API URL:', apiUrl);
       showStatus('Generating report...');
@@ -191,7 +193,8 @@ href: "/reports"
 
       request({
         url: apiUrl,
-        method: 'GET'
+        method: 'PUT',
+        body: requestBody
       }, function(xhr) {
         console.log('Success response:', xhr.status, xhr.responseText);
         try {
