@@ -11,8 +11,22 @@ href: "/reports"
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-l">{{titleText}}</h1>
-        <form class="form" action="" method="post">
+        <form id="continuing-trainee-report-form" class="form" action="" method="post">
             <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+            {{ govukInput({
+            id: 'financialYear',
+            name: 'financialYear',
+            label: {
+            text: 'Financial Year',
+            classes: "govuk-label--m"
+            },
+            hint: {
+            text: 'Enter the financial year (e.g., 2024)'
+            },
+            classes: "govuk-input--width-10"
+            }) }}
+
             {{ govukSelect({
             id: 'financialPeriod',
             name: 'financialPeriod',
@@ -36,8 +50,6 @@ href: "/reports"
             ]
             }) }}
 
-
-
             {% set items = [] %}
             {% for smartCategory in smartCategories %}
             {% set items = (items.push( {  text: smartCategory.text,  value: smartCategory.id }), items) %}
@@ -52,8 +64,187 @@ href: "/reports"
             },
             items: items
             }) }}
+
+            <div class="govuk-button-group">
+                {{ govukButton({
+                text: "Generate",
+                attributes: {
+                id: 'generate-button',
+                type: 'button'
+                },
+                preventDoubleClick: true
+                }) }}
+
+                {{ govukButton({
+                text: "Download",
+                classes: "govuk-button--secondary",
+                attributes: {
+                id: 'download-button',
+                type: 'button',
+                disabled: 'disabled'
+                }
+                }) }}
+
+                {{ govukButton({
+                text: "Refresh",
+                classes: "govuk-button--secondary",
+                attributes: {
+                id: 'refresh-button',
+                type: 'button'
+                }
+                }) }}
+            </div>
         </form>
+
+        <div id="report-status" class="govuk-!-margin-top-6" style="display: none;">
+            <div id="status-message"></div>
+        </div>
+
+        <div id="report-results" class="govuk-!-margin-top-6" style="display: none;">
+            <h2 class="govuk-heading-m">Report Results</h2>
+            <div id="results-content"></div>
+        </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block pageScript %}
+<script nonce='{{ cspNonce }}'>
+  (function() {
+    const form = document.getElementById('continuing-trainee-report-form');
+    const generateButton = document.getElementById('generate-button');
+    const downloadButton = document.getElementById('download-button');
+    const refreshButton = document.getElementById('refresh-button');
+    const reportStatus = document.getElementById('report-status');
+    const statusMessage = document.getElementById('status-message');
+    const reportResults = document.getElementById('report-results');
+    const resultsContent = document.getElementById('results-content');
+
+    const financialYearInput = document.getElementById('financialYear');
+    const financialPeriodInput = document.getElementById('financialPeriod');
+    const smartCategoryInput = document.getElementById('smartCategory');
+
+    let reportData = null;
+
+    function getApiUrl() {
+      // Call the local UI backend API endpoint which will proxy to the backend API with authentication
+      return '/api/reports/continuing-trainee-report';
+    }
+
+    function showStatus(message, isError = false) {
+      reportStatus.style.display = 'block';
+      statusMessage.innerHTML = isError
+        ? '<div class="govuk-error-message">' + message + '</div>'
+        : '<div class="govuk-notification-banner" role="region"><div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">' + message + '</p></div></div>';
+    }
+
+    function hideStatus() {
+      reportStatus.style.display = 'none';
+      statusMessage.innerHTML = '';
+    }
+
+    function showResults(data) {
+      reportResults.style.display = 'block';
+      resultsContent.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+    }
+
+    function hideResults() {
+      reportResults.style.display = 'none';
+      resultsContent.innerHTML = '';
+    }
+
+    function validateInputs() {
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const smartCategory = smartCategoryInput.value.trim();
+
+      if (!financialYear || !financialPeriod || !smartCategory) {
+        showStatus('Please fill in all required fields', true);
+        return false;
+      }
+
+      return true;
+    }
+
+    generateButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideStatus();
+      hideResults();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const smartCategoryId = smartCategoryInput.value.trim();
+
+      const apiUrl = getApiUrl() +
+        '?financialYear=' + encodeURIComponent(financialYear) +
+        '&financialPeriod=' + encodeURIComponent(financialPeriod) +
+        '&smartCategoryId=' + encodeURIComponent(smartCategoryId);
+
+      console.log('Calling API URL:', apiUrl);
+      showStatus('Generating report...');
+      generateButton.disabled = true;
+
+      request({
+        url: apiUrl,
+        method: 'GET'
+      }, function(xhr) {
+        console.log('Success response:', xhr.status, xhr.responseText);
+        try {
+          reportData = JSON.parse(xhr.responseText);
+          showStatus('Report generated successfully');
+          showResults(reportData);
+          downloadButton.disabled = false;
+        } catch (error) {
+          console.error('Error parsing report data:', error);
+          showStatus('Error parsing report data: ' + error.message, true);
+          downloadButton.disabled = true;
+        } finally {
+          generateButton.disabled = false;
+        }
+      }, function(xhr) {
+        console.error('Error generating report:', xhr);
+        const errorMsg = xhr.responseText || xhr.statusText || 'Unknown error';
+        showStatus('Error generating report: ' + errorMsg, true);
+        downloadButton.disabled = true;
+        generateButton.disabled = false;
+      });
+    });
+
+    downloadButton.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      if (!reportData) {
+        showStatus('No report data available to download', true);
+        return;
+      }
+
+      const dataStr = JSON.stringify(reportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'continuing-trainee-report-' + financialYearInput.value + '-' + financialPeriodInput.value + '.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    });
+
+    refreshButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      financialYearInput.value = '';
+      financialPeriodInput.value = '';
+      smartCategoryInput.value = '';
+      hideStatus();
+      hideResults();
+      reportData = null;
+      downloadButton.disabled = true;
+    });
+  })();
+</script>
 {% endblock %}
