@@ -1,0 +1,57 @@
+{% set titleText = 'SMarT Reports'%}
+
+{% extends "layout.html" %}
+{% block content %}
+
+{{ govukBackLink({
+text: "Back",
+href: "/"
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+        <form id="report-selection-form" class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {% set items = [] %}
+            {% set items = (items.push( {  text: "Continuing trainee report",  value: "continuing-trainee-report" }), items) %}
+
+            {{ govukSelect({
+            id: 'reportType',
+            name: 'reportType',
+            label: {
+            text: 'Report Type',
+            classes: "govuk-label--m"
+            },
+            items: items
+            }) }}
+
+            {{ govukButton({
+            text: "Go",
+            attributes: {
+            id: 'go-button',
+            type: 'button'
+            }
+            }) }}
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block pageScript %}
+<script nonce='{{ cspNonce }}'>
+  (function() {
+    const goButton = document.getElementById('go-button');
+    const reportTypeSelect = document.getElementById('reportType');
+
+    goButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      const selectedReport = reportTypeSelect.value;
+      if (selectedReport) {
+        window.location.href = '/reports/' + selectedReport;
+      }
+    });
+  })();
+</script>
+{% endblock %}
