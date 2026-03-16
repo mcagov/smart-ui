@@ -6,5 +6,6 @@ const templateBase = 'reporting'
 
 router.get('/', useView(`${templateBase}/summary`))
 router.get('/continuing-trainee-report', useView(`${templateBase}/reportTypes/continuing-trainee-report`))
+router.get('/monthly-trainee-report', useView(`${templateBase}/reportTypes/monthly-trainee-report`))
 
 export default router

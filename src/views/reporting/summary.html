@@ -15,6 +15,7 @@ href: "/"
             <input type="hidden" name="_csrf" value="{{ csrfToken }}">
             {% set items = [] %}
             {% set items = (items.push( {  text: "Continuing trainee report",  value: "continuing-trainee-report" }), items) %}
+            {% set items = (items.push( {  text: "Monthly trainee report",  value: "monthly-trainee-report" }), items) %}
 
             {{ govukSelect({
             id: 'reportType',
