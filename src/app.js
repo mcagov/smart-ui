@@ -28,6 +28,8 @@ import smartCategories from './routes/smart-categories.mjs'
 import smartItems from './routes/smart-items.mjs'
 import paymentSchedules from './routes/payment-schedules.mjs'
 import api from './routes/api.js'
+import apiReports from './routes/api-reports.js'
+import reports from './routes/reports.mjs'
 import config from './config.js'
 import { handleCookies } from './cookies.js'
 import { configureNunjucks } from './nunjucks.js'
@@ -167,7 +169,9 @@ app.use('/smart-categories', ensureAuthenticated, isAb, csrf, setCsrf, smartCate
 app.use('/smart-items', ensureAuthenticated, isAb, csrf, setCsrf, smartItems)
 app.use('/payment-schedules', ensureAuthenticated, isAb, csrf, setCsrf, paymentSchedules)
 app.use('/admin', ensureAuthenticated, isAb, csrf, setCsrf, useView('admin'))
+app.use('/reports', ensureAuthenticated, csrf, setCsrf, reports)
 app.use('/api', ensureAuthenticated, api)
+app.use('/api/reports', ensureAuthenticated, apiReports)
 
 initialiseErrors(app)
 // TODO: sort out XRAY or use AWS Open Distro for OpenTelemetry

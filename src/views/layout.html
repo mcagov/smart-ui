@@ -82,6 +82,7 @@
     { href: "/training-providers/" + user.trainingProviderId + "/trainees", text: "Trainees" },
     { href: "/training-providers/" + user.trainingProviderId + "/comments?resolved=false", text: "Comments" },
     { href: "/training-providers/" + user.trainingProviderId + "/company", text: "Company"},
+    { href: "/reports", text: "Reports"},
     { html: logoutHtml }
   ]
 %}
@@ -94,6 +95,7 @@
     { href: "/comments?resolved=false", text: "Comments" },
     { href: "/comments?resolved=false", html: commentHtml } if turnedOff,
     { href: "/admin", text: "Admin" },
+    { href: "/reports", text: "Reports"},
     { html: logoutHtml }
   ] %}
 {% endif %}
