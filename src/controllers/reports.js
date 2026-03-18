@@ -71,16 +71,10 @@ export function downloadContinuingTraineeReport () {
 
       logger.info(`Getting presigned URL for continuing trainee report: ${apiUrl}`, { financialYear, financialPeriod, smartCategoryId })
 
-      // Build query string with multiple reportParams values
-      // Backend expects: ?reportParams=2024&reportParams=1&reportParams=abc123
-      const queryParams = new URLSearchParams()
-      queryParams.append('reportParams', financialYear)
-      queryParams.append('reportParams', financialPeriod)
-      queryParams.append('reportParams', smartCategoryId)
-
       const response = await agent
-        .get(`${apiUrl}?${queryParams.toString()}`)
+        .get(apiUrl)
         .set('Authorization', `Bearer ${accessToken}`)
+        .query({ financialYear, financialPeriod, smartCategoryId })
 
       // Backend returns a presigned URL string
       const presignedUrl = response.text
