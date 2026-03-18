@@ -233,6 +233,7 @@ href: "/reports"
 
     downloadButton.addEventListener('click', function(e) {
       e.preventDefault();
+      console.log('In download function');
 
       if (!reportData) {
         showStatus('No report data available to download', true);
@@ -251,15 +252,50 @@ href: "/reports"
       window.URL.revokeObjectURL(url);
     });
 
+    function headCheckReportUrl() {
+      return '/api/reports/continuing-trainee-report';
+    }
+
+    // Refresh button
     refreshButton.addEventListener('click', function(e) {
+      console.log('In view function');
       e.preventDefault();
-      financialYearInput.value = '';
-      financialPeriodInput.value = '';
-      smartCategoryInput.value = '';
       hideStatus();
-      hideResults();
-      reportData = null;
-      downloadButton.disabled = true;
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const smartCategoryId = smartCategoryInput.value.trim();
+
+      const checkReportUrl = headCheckReportUrl() +
+        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, smartCategoryId]);
+
+      console.log('Checking if report exists at:', checkReportUrl);
+      showStatus('Checking if report exists');
+      refreshButton.disabled = true;
+
+      request({
+        url: checkReportUrl,
+        method: 'HEAD'
+        }, function(res) {
+            console.log('Check report exists response:', res.status);
+
+            if (res.status === 200) {
+                //TODO: Enable the download button and rename the generate button text to regenerate
+                return;
+            }
+            else if (res.status === 404) {
+                //TODO: Continue gracefully
+                return;
+            }
+        }, function(res) {
+            console.error('Error checking if report exists at:', res);
+            //TODO: show appropriate error messages
+            return;
+      });
     });
   })();
 </script>
