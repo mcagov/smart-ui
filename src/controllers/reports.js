@@ -20,10 +20,14 @@ export function getContinuingTraineeReport () {
 
       logger.info(`Fetching continuing trainee report: ${apiUrl}`, { financialYear, financialPeriod, smartCategoryId })
 
+      const queryParams = new URLSearchParams()
+      queryParams.append('reportParams', financialYear)
+      queryParams.append('reportParams', financialPeriod)
+      queryParams.append('reportParams', smartCategoryId)
+
       const response = await agent
-        .put(apiUrl)
+        .put(`${apiUrl}?${queryParams.toString()}`)
         .set('Authorization', `Bearer ${accessToken}`)
-        .query({ financialYear, financialPeriod, smartCategoryId })
 
       res.status(response.status).json(response.body)
     } catch (err) {
@@ -72,7 +76,7 @@ export function downloadContinuingTraineeReport () {
       logger.info(`Getting presigned URL for continuing trainee report: ${apiUrl}`, { financialYear, financialPeriod, smartCategoryId })
 
       // Build query string with multiple reportParams values
-      // Backend expects: ?reportParams=2024&reportParams=1&reportParams=abc123
+      // Backend expects: ?reportParams=2024&reportParams=2&reportParams=abc123
       const queryParams = new URLSearchParams()
       queryParams.append('reportParams', financialYear)
       queryParams.append('reportParams', financialPeriod)
