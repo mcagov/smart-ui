@@ -4,6 +4,6 @@ import { getContinuingTraineeReport, checkReportExists } from '../controllers/re
 const router = new express.Router()
 
 router.put('/continuing-trainee-report', getContinuingTraineeReport())
-router.head('/continuing-trainee-report', checkReportExists())
+router.head('/:reportType', checkReportExists())
 
 export default router

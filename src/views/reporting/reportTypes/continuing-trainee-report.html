@@ -70,7 +70,8 @@ href: "/reports"
                 text: "Generate",
                 attributes: {
                 id: 'generate-button',
-                type: 'button'
+                type: 'button',
+                disabled: 'disabled'
                 },
                 preventDoubleClick: true
                 }) }}
@@ -256,6 +257,8 @@ href: "/reports"
       return '/api/reports/continuing-trainee-report';
     }
 
+    //TODO: Hide buttons and status when entering any value into the form
+
     // Refresh button
     refreshButton.addEventListener('click', function(e) {
       console.log('In view function');
@@ -284,16 +287,26 @@ href: "/reports"
             console.log('Check report exists response:', res.status);
 
             if (res.status === 200) {
-                //TODO: Enable the download button and rename the generate button text to regenerate
+                //TODO: rename the generate button text to regenerate
+                refreshButton.disabled = false;
+                generateButton.text = 'Regenerate';
+                downloadButton.disabled = false;
+                hideStatus();
                 return;
             }
             else if (res.status === 404) {
                 //TODO: Continue gracefully
+                refreshButton.disabled = false;
+                downloadButton.disabled = true;
+                hideStatus();
                 return;
             }
         }, function(res) {
             console.error('Error checking if report exists at:', res);
-            //TODO: show appropriate error messages
+            refreshButton.disabled = false;
+            generateButton.disabled = true;
+            downloadButton.disabled = true;
+            showStatus('Could not check if report exists. Try again');
             return;
       });
     });

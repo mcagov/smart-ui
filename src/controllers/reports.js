@@ -127,15 +127,11 @@ export function checkReportExists () {
   return async (req, res, next) => {
     try {
       const { reportParams } = req.query
-      //TODO: submit req.body as a list of string parameters
-      //TODO: pull through the reportType as a request parameter
 
       const accessToken = getAccessToken(req)
-      //TODO: paramterise the reportType
-      const reportType = 'continuing-trainees-report'
-      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${reportType}`)
+      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${req.params.reportType}`)
       const queryParams = new URLSearchParams()
-      queryParams.append('reportParams', reportParams) //TODO: use the submitted parameters
+      queryParams.append('reportParams', reportParams)
 
       logger.info(`Checking existence of report: ${apiUrl}`, req.body)
 
