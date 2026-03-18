@@ -20,14 +20,10 @@ export function getContinuingTraineeReport () {
 
       logger.info(`Fetching continuing trainee report: ${apiUrl}`, { financialYear, financialPeriod, smartCategoryId })
 
-      const queryParams = new URLSearchParams()
-      queryParams.append('reportParams', financialYear)
-      queryParams.append('reportParams', financialPeriod)
-      queryParams.append('reportParams', smartCategoryId)
-
       const response = await agent
-        .put(`${apiUrl}?${queryParams.toString()}`)
+        .put(apiUrl)
         .set('Authorization', `Bearer ${accessToken}`)
+        .query({ financialYear, financialPeriod, smartCategoryId })
 
       res.status(response.status).json(response.body)
     } catch (err) {
