@@ -168,6 +168,12 @@ href: "/reports"
       return true;
     }
 
+    function resetButtons() {
+      refreshButton.disabled = false;
+      generateButton.disabled = true;
+      generateButton.text = 'Generate';
+      downloadButton.disabled = true;
+
     generateButton.addEventListener('click', function(e) {
       e.preventDefault();
       hideStatus();
@@ -287,7 +293,6 @@ href: "/reports"
             console.log('Check report exists response:', res.status);
 
             if (res.status === 200) {
-                //TODO: rename the generate button text to regenerate
                 refreshButton.disabled = false;
                 generateButton.text = 'Regenerate';
                 downloadButton.disabled = false;
@@ -295,17 +300,16 @@ href: "/reports"
                 return;
             }
             else if (res.status === 404) {
-                //TODO: Continue gracefully
                 refreshButton.disabled = false;
+                generateButton.disabled = false;
+                generateButton.text = 'Generate';
                 downloadButton.disabled = true;
                 hideStatus();
                 return;
             }
         }, function(res) {
             console.error('Error checking if report exists at:', res);
-            refreshButton.disabled = false;
-            generateButton.disabled = true;
-            downloadButton.disabled = true;
+            resetButtons();
             showStatus('Could not check if report exists. Try again');
             return;
       });
