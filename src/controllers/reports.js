@@ -142,11 +142,14 @@ export function checkReportExists () {
       res.status(response.status).json(response.body)
     } catch (err) {
       if (err.status === 404) {
-        //TODO: Return a normal response but indicate that the report with the given parameters was not found
-        log.info("Report with provided parameters not found")
+        logger.info("Report with provided parameters not found")
+        return res.status(404).json({
+          error: 'Not found - report with parameters not found',
+          details: err.response?.body || err.message
+        })
       }
 
-      log.error("Failed to check existence of the report")
+      logger.error("Failed to check existence of the report")
 
       if (err.status === 403) {
         return res.status(403).json({

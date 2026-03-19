@@ -253,15 +253,15 @@ href: "/reports"
       window.URL.revokeObjectURL(url);
     });
 
-    function headCheckReportUrl() {
-      return '/api/reports/continuing-trainee-report';
+    function resetButtons() {
+      refreshButton.disabled = false;
+      generateButton.disabled = true;
+      generateButton.text = 'Generate';
+      downloadButton.disabled = true;
     }
-
-    //TODO: Hide buttons and status when entering any value into the form
 
     // Refresh button
     refreshButton.addEventListener('click', function(e) {
-      console.log('In view function');
       e.preventDefault();
       hideStatus();
 
@@ -273,7 +273,7 @@ href: "/reports"
       const financialPeriod = financialPeriodInput.value.trim();
       const smartCategoryId = smartCategoryInput.value.trim();
 
-      const checkReportUrl = headCheckReportUrl() +
+      const checkReportUrl = getApiUrl() +
         '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, smartCategoryId]);
 
       console.log('Checking if report exists at:', checkReportUrl);
@@ -284,30 +284,34 @@ href: "/reports"
         url: checkReportUrl,
         method: 'HEAD'
         }, function(res) {
-            console.log('Check report exists response:', res.status);
+          console.log('Check report exists response:', res.status);
 
-            if (res.status === 200) {
-                //TODO: rename the generate button text to regenerate
-                refreshButton.disabled = false;
-                generateButton.text = 'Regenerate';
-                downloadButton.disabled = false;
-                hideStatus();
-                return;
-            }
-            else if (res.status === 404) {
-                //TODO: Continue gracefully
-                refreshButton.disabled = false;
-                downloadButton.disabled = true;
-                hideStatus();
-                return;
-            }
-        }, function(res) {
-            console.error('Error checking if report exists at:', res);
+          if (res.status === 200) {
             refreshButton.disabled = false;
-            generateButton.disabled = true;
+            generateButton.text = 'Regenerate';
+            generateButton.disabled = false;
+            downloadButton.disabled = false;
+            hideStatus();
+            return;
+          }
+          else {
+            return;
+          }
+        }, function(res) {
+          if (res.status === 404) {
+            refreshButton.disabled = false;
+            generateButton.disabled = false;
+            generateButton.text = 'Generate';
             downloadButton.disabled = true;
+            hideStatus();
+            return;
+          }
+          else {
+            console.error('Error checking if report exists at:', res);
+            resetButtons();
             showStatus('Could not check if report exists. Try again');
             return;
+          }
       });
     });
   })();
