@@ -16,14 +16,21 @@ export function getContinuingTraineeReport () {
       }
 
       const accessToken = getAccessToken(req)
-      const apiUrl = urlJoin(config.endpoints.api, '/v1/reports/continuing-trainee-report')
+      const baseUrl = urlJoin(config.endpoints.api, '/v1/reports/continuing-trainee-report')
+
+      // Build the URL with query parameters
+      const queryParams = new URLSearchParams({
+        financialYear,
+        financialPeriod,
+        smartCategoryId
+      })
+      const apiUrl = `${baseUrl}?${queryParams.toString()}`
 
       logger.info(`Fetching continuing trainee report: ${apiUrl}`, { financialYear, financialPeriod, smartCategoryId })
 
       const response = await agent
         .put(apiUrl)
         .set('Authorization', `Bearer ${accessToken}`)
-        .query({ financialYear, financialPeriod, smartCategoryId })
 
       res.status(response.status).json(response.body)
     } catch (err) {
