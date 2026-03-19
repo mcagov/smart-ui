@@ -11,7 +11,6 @@ href: "/reports"
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-l">{{titleText}}</h1>
-        
         <form id="continuing-trainee-report-form" class="form" action="" method="post">
             <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
@@ -36,7 +35,6 @@ href: "/reports"
             classes: "govuk-label--m"
             },
             items: [
-                { value: '',  text: 'Select a period' },
                 { value: '1',  text: 'P1' },
                 { value: '2',  text: 'P2' },
                 { value: '3',  text: 'P3' },
@@ -52,33 +50,24 @@ href: "/reports"
             ]
             }) }}
 
-            {% set smartCategoryItems = [] %}
-            {% if smartCategories and smartCategories.length > 0 %}
-                {% for smartCategory in smartCategories %}
-                    {% set smartCategoryItems = (smartCategoryItems.push({ text: smartCategory.text, value: smartCategory.id }), smartCategoryItems) %}
-                {% endfor %}
-            {% endif %}
+            {% set items = [] %}
+            {% for smartCategory in smartCategories %}
+            {% set items = (items.push( {  text: smartCategory.text,  value: smartCategory.id }), items) %}
+            {% endfor %}
 
             {{ govukSelect({
-                id: 'smartCategory',
-                name: 'smartCategory',
-                label: {
-                    text: 'Smart Category',
-                    classes: "govuk-label--m"
-                },
-                items: ([
-                    { value: '', text: 'Select a category' },
-                    { value: 'c5b98472-e5f1-11ea-adc1-0242ac120002', text: 'SMarT 1' },
-                    { value: 'c5b98590-e5f1-11ea-adc1-0242ac120002', text: 'SMarT 2' },
-                    { value: 'c5b98662-e5f1-11ea-adc1-0242ac120002', text: 'SMarT 3' },
-                    { value: 'c5b9871a-e5f1-11ea-adc1-0242ac120002', text: 'SMarT 4' },
-                    { value: 'c5b987d8-e5f1-11ea-adc1-0242ac120002', text: 'SMarT Plus' }
-                ] if smartCategoryItems.length === 0 else smartCategoryItems)
+            id: 'smartCategory',
+            name: 'smartCategory',
+            label: {
+            text: 'Smart Category',
+            classes: "govuk-label--m"
+            },
+            items: items
             }) }}
 
             <div class="govuk-button-group">
                 {{ govukButton({
-                text: "Generate Report",
+                text: "Generate",
                 attributes: {
                 id: 'generate-button',
                 type: 'button'
@@ -110,11 +99,6 @@ href: "/reports"
         <div id="report-status" class="govuk-!-margin-top-6" style="display: none;">
             <div id="status-message"></div>
         </div>
-
-        <div id="report-results" class="govuk-!-margin-top-6" style="display: none;">
-            <h2 class="govuk-heading-m">Report Preview</h2>
-            <div id="results-content"></div>
-        </div>
     </div>
 </div>
 
@@ -129,14 +113,10 @@ href: "/reports"
     const refreshButton = document.getElementById('refresh-button');
     const reportStatus = document.getElementById('report-status');
     const statusMessage = document.getElementById('status-message');
-    const reportResults = document.getElementById('report-results');
-    const resultsContent = document.getElementById('results-content');
 
     const financialYearInput = document.getElementById('financialYear');
     const financialPeriodInput = document.getElementById('financialPeriod');
     const smartCategoryInput = document.getElementById('smartCategory');
-
-    let reportData = null;
 
     function getApiUrl() {
       return '/api/reports/continuing-trainee-report';
@@ -144,41 +124,6 @@ href: "/reports"
 
     function getDownloadUrl() {
       return '/api/reports/continuing-trainee-report/download';
-    }
-
-    function showStatus(message, isError = false) {
-      reportStatus.style.display = 'block';
-      statusMessage.innerHTML = isError
-        ? '<div class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span> ' + message + '</div>'
-        : '<div class="govuk-notification-banner" role="region"><div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">' + message + '</p></div></div>';
-    }
-
-    function hideStatus() {
-      reportStatus.style.display = 'none';
-      statusMessage.innerHTML = '';
-    }
-
-    function showResults(data) {
-      reportResults.style.display = 'block';
-      resultsContent.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-    }
-
-    function hideResults() {
-      reportResults.style.display = 'none';
-      resultsContent.innerHTML = '';
-    }
-
-    function validateInputs() {
-      const financialYear = financialYearInput.value.trim();
-      const financialPeriod = financialPeriodInput.value.trim();
-      const smartCategory = smartCategoryInput.value.trim();
-
-      if (!financialYear || !financialPeriod || !smartCategory) {
-        showStatus('Please fill in all required fields', true);
-        return false;
-      }
-
-      return true;
     }
 
     function getSmartCategoryName(categoryId) {
@@ -204,11 +149,34 @@ href: "/reports"
       return 'continuing-trainee-report.xlsx';
     }
 
-    // Generate Report Button
+    function showStatus(message, isError = false) {
+      reportStatus.style.display = 'block';
+      statusMessage.innerHTML = isError
+        ? '<div class="govuk-error-message">' + message + '</div>'
+        : '<div class="govuk-notification-banner" role="region"><div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">' + message + '</p></div></div>';
+    }
+
+    function hideStatus() {
+      reportStatus.style.display = 'none';
+      statusMessage.innerHTML = '';
+    }
+
+    function validateInputs() {
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const smartCategory = smartCategoryInput.value.trim();
+
+      if (!financialYear || !financialPeriod || !smartCategory) {
+        showStatus('Please fill in all required fields', true);
+        return false;
+      }
+
+      return true;
+    }
+
     generateButton.addEventListener('click', function(e) {
       e.preventDefault();
       hideStatus();
-      hideResults();
 
       if (!validateInputs()) {
         return;
@@ -226,7 +194,7 @@ href: "/reports"
         _csrf: '{{ csrfToken }}'
       };
 
-      console.log('Generating report:', apiUrl);
+      console.log('Calling API URL:', apiUrl);
       showStatus('Generating report...');
       generateButton.disabled = true;
 
@@ -235,56 +203,27 @@ href: "/reports"
         method: 'PUT',
         data: requestBody
       }, function(xhr) {
-        console.log('Generate response:', xhr.status, xhr.responseText);
+        console.log('Success response:', xhr.status, xhr.responseText);
 
         if (xhr.status === 201 || xhr.status === 200) {
-          try {
-            reportData = JSON.parse(xhr.responseText);
-            showStatus('Report has been generated successfully');
-            showResults(reportData);
-            downloadButton.disabled = false;
-          } catch (error) {
-            console.error('Error parsing report data:', error);
-            showStatus('Error generating the report: ' + error.message, true);
-            downloadButton.disabled = true;
-          } finally {
-            generateButton.disabled = false;
-          }
+          showStatus('Report has been generated successfully');
+          downloadButton.disabled = false;
+          generateButton.disabled = false;
         } else {
-          try {
-            const errorResponse = JSON.parse(xhr.responseText);
-            const errorMsg = errorResponse.error || xhr.statusText || 'Unexpected status code: ' + xhr.status;
-            showStatus('Error generating the report: ' + errorMsg, true);
-          } catch (e) {
-            showStatus('Error generating the report: ' + xhr.statusText, true);
-          }
+          const errorMsg = xhr.responseText || xhr.statusText || 'Unexpected status code: ' + xhr.status;
+          showStatus('Error generating the report: ' + errorMsg, true);
           downloadButton.disabled = true;
           generateButton.disabled = false;
         }
       }, function(xhr) {
         console.error('Error generating report:', xhr);
-        let errorMsg = 'Unknown error';
-
-        if (xhr.responseText) {
-          try {
-            const errorResponse = JSON.parse(xhr.responseText);
-            errorMsg = errorResponse.error || errorResponse.message || xhr.statusText || 'Unknown error';
-          } catch (e) {
-            errorMsg = xhr.responseText || xhr.statusText || 'Unknown error';
-          }
-        } else if (xhr.status === 0) {
-          errorMsg = 'Cannot connect to server. Please ensure Docker containers are running.';
-        } else {
-          errorMsg = xhr.statusText || 'Server error (status: ' + xhr.status + ')';
-        }
-
+        const errorMsg = xhr.responseText || xhr.statusText || 'Unknown error';
         showStatus('Error generating the report: ' + errorMsg, true);
         downloadButton.disabled = true;
         generateButton.disabled = false;
       });
     });
 
-    // Download Button
     downloadButton.addEventListener('click', function(e) {
       e.preventDefault();
       hideStatus();
@@ -325,7 +264,6 @@ href: "/reports"
 
             console.log('Starting download from presigned URL');
 
-            // Create a temporary anchor element to trigger download with custom filename
             const filename = getFilename();
             const link = document.createElement('a');
             link.href = presignedUrl;
@@ -378,15 +316,12 @@ href: "/reports"
       });
     });
 
-    // Refresh Button
     refreshButton.addEventListener('click', function(e) {
       e.preventDefault();
       financialYearInput.value = '';
       financialPeriodInput.value = '';
       smartCategoryInput.value = '';
       hideStatus();
-      hideResults();
-      reportData = null;
       downloadButton.disabled = true;
     });
   })();

@@ -24,12 +24,12 @@ import claims from './routes/all-claims.js'
 import trainees from './routes/trainees.js'
 import trainingsItems from './routes/training-items.mjs'
 import clientCompanies from './routes/client-companies.mjs'
+import reports from './routes/reports.mjs'
 import smartCategories from './routes/smart-categories.mjs'
 import smartItems from './routes/smart-items.mjs'
 import paymentSchedules from './routes/payment-schedules.mjs'
 import api from './routes/api.js'
 import apiReports from './routes/api-reports.js'
-import reports from './routes/reports.mjs'
 import config from './config.js'
 import { handleCookies } from './cookies.js'
 import { configureNunjucks } from './nunjucks.js'
@@ -169,7 +169,7 @@ app.use('/smart-categories', ensureAuthenticated, isAb, csrf, setCsrf, smartCate
 app.use('/smart-items', ensureAuthenticated, isAb, csrf, setCsrf, smartItems)
 app.use('/payment-schedules', ensureAuthenticated, isAb, csrf, setCsrf, paymentSchedules)
 app.use('/admin', ensureAuthenticated, isAb, csrf, setCsrf, useView('admin'))
-app.use('/reports', ensureAuthenticated, csrf, setCsrf, reports)
+app.use('/reports', ensureAuthenticated, isAb, csrf, setCsrf, reports)
 app.use('/api', ensureAuthenticated, api)
 app.use('/api/reports', ensureAuthenticated, apiReports)
 

@@ -5,6 +5,12 @@ const router = new express.Router()
 const templateBase = 'reporting'
 
 router.get('/', useView(`${templateBase}/summary`))
-router.get('/continuing-trainee-report', useView(`${templateBase}/reportTypes/continuing-trainee-report`))
+
+// Parameterized route for report types
+router.get('/:reportType', (req, res) => {
+  const { reportType } = req.params
+  res.locals.query = req.query
+  res.status(200).render(`${templateBase}/reportTypes/${reportType}`)
+})
 
 export default router
