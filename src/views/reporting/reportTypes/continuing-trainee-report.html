@@ -256,7 +256,7 @@ href: "/reports"
     function resetButtons() {
       refreshButton.disabled = false;
       generateButton.disabled = true;
-      generateButton.text = 'Generate';
+      generateButton.innerHTML = 'Generate';
       downloadButton.disabled = true;
     }
 
@@ -288,8 +288,8 @@ href: "/reports"
 
           if (res.status === 200) {
             refreshButton.disabled = false;
-            generateButton.text = 'Regenerate';
             generateButton.disabled = false;
+            generateButton.innerHTML = 'Regenerate';
             downloadButton.disabled = false;
             hideStatus();
             return;
@@ -301,7 +301,7 @@ href: "/reports"
           if (res.status === 404) {
             refreshButton.disabled = false;
             generateButton.disabled = false;
-            generateButton.text = 'Generate';
+            generateButton.innerHTML = 'Generate';
             downloadButton.disabled = true;
             hideStatus();
             return;
