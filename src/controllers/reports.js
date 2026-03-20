@@ -4,7 +4,7 @@ import config from '../config.js'
 import agent from 'superagent'
 import urlJoin from 'url-join'
 
-export function getContinuingTraineeReport () {
+export function getContinuingTraineeReport() {
   return async (req, res, next) => {
     try {
       const { financialYear, financialPeriod, smartCategoryId } = req.body
@@ -123,7 +123,7 @@ export function getMonthlyTraineeReportSummary() {
   }
 }
 
-export function checkReportExists () {
+export function checkReportExists() {
   return async (req, res, next) => {
     try {
       const { reportParams } = req.query
