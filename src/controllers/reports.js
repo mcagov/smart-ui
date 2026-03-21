@@ -54,29 +54,33 @@ export function getContinuingTraineeReport () {
   }
 }
 
-export function downloadContinuingTraineeReport () {
+export function downloadReport () {
   return async (req, res, next) => {
     try {
-      const { financialYear, financialPeriod, smartCategoryId } = req.query
+      const { reportType, reportParams } = req.query
 
-      if (!financialYear || !financialPeriod || !smartCategoryId) {
+      if (!reportType) {
         return res.status(400).json({
-          error: 'Missing required parameters: financialYear, financialPeriod, and smartCategoryId are required'
+          error: 'Missing required parameter: reportType is required'
+        })
+      }
+
+      if (!reportParams) {
+        return res.status(400).json({
+          error: 'Missing required parameter: reportParams is required'
         })
       }
 
       const accessToken = getAccessToken(req)
-      const reportType = 'continuing-trainee-report'
       const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${reportType}/download`)
 
-      logger.info(`Getting presigned URL for continuing trainee report: ${apiUrl}`, { financialYear, financialPeriod, smartCategoryId })
+      logger.info(`Getting presigned URL for ${reportType}: ${apiUrl}`, { reportParams })
 
       // Build query string with multiple reportParams values
       // Backend expects: ?reportParams=2024&reportParams=2&reportParams=abc123
       const queryParams = new URLSearchParams()
-      queryParams.append('reportParams', financialYear)
-      queryParams.append('reportParams', financialPeriod)
-      queryParams.append('reportParams', smartCategoryId)
+      const params = Array.isArray(reportParams) ? reportParams : [reportParams]
+      params.forEach(param => queryParams.append('reportParams', param))
 
       const response = await agent
         .get(`${apiUrl}?${queryParams.toString()}`)
@@ -94,7 +98,7 @@ export function downloadContinuingTraineeReport () {
       logger.info('Successfully retrieved presigned URL for report download')
       res.status(200).json({ presignedUrl })
     } catch (err) {
-      logger.error('Error getting presigned URL for continuing trainee report', err)
+      logger.error(`Error getting presigned URL for ${req.query.reportType || 'report'}`, err)
 
       if (err.status === 404) {
         return res.status(404).json({
