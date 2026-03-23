@@ -54,6 +54,77 @@ export function getContinuingTraineeReport() {
   }
 }
 
+export function downloadReport () {
+  return async (req, res, next) => {
+    try {
+      const { reportType, reportParams } = req.query
+
+      if (!reportType) {
+        return res.status(400).json({
+          error: 'Missing required parameter: reportType is required'
+        })
+      }
+
+      if (!reportParams) {
+        return res.status(400).json({
+          error: 'Missing required parameter: reportParams is required'
+        })
+      }
+
+      const accessToken = getAccessToken(req)
+      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${reportType}/download`)
+
+      logger.info(`Getting presigned URL for ${reportType}: ${apiUrl}`, { reportParams })
+
+      // Build query string with multiple reportParams values
+      // Backend expects: ?reportParams=2024&reportParams=2&reportParams=abc123
+      const queryParams = new URLSearchParams()
+      const params = Array.isArray(reportParams) ? reportParams : [reportParams]
+      params.forEach(param => queryParams.append('reportParams', param))
+
+      const response = await agent
+        .get(`${apiUrl}?${queryParams.toString()}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      // Backend returns a presigned URL string
+      const presignedUrl = response.text
+
+      if (!presignedUrl) {
+        return res.status(500).json({
+          error: 'No presigned URL returned from backend'
+        })
+      }
+
+      logger.info('Successfully retrieved presigned URL for report download')
+      res.status(200).json({ presignedUrl })
+    } catch (err) {
+      logger.error(`Error getting presigned URL for ${req.query.reportType || 'report'}`, err)
+
+      if (err.status === 404) {
+        return res.status(404).json({
+          error: 'Report not found. Please generate the report first.'
+        })
+      }
+
+      if (err.status === 403) {
+        return res.status(403).json({
+          error: 'Access forbidden - insufficient permissions to download report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      if (err.status) {
+        return res.status(err.status).json({
+          error: err.message || 'Error getting download URL',
+          details: err.response?.body || err.message
+        })
+      }
+
+      next(err)
+    }
+  }
+}
+
 export function getMonthlyTraineeReportSummary() {
   return async (req, res, next) => {
     const { financialYear, financialPeriod, trainingProviderId } = req.body
@@ -66,7 +137,6 @@ export function getMonthlyTraineeReportSummary() {
     }
 
     const accessToken = getAccessToken(req)
-
 
     const apiBaseUrl = config.get('endpoints.api')
     const apiUrl = urlJoin(apiBaseUrl, '/v1/reports/monthly-trainee-report')

@@ -16,6 +16,8 @@ class Menu extends Page {
 
   get absences () { return $('a.govuk-header__link=Absences') }
 
+  get reports () { return $('a.govuk-header__link=Reports') }
+
 }
 
 export default new Menu()
