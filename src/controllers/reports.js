@@ -4,7 +4,7 @@ import config from '../config.js'
 import agent from 'superagent'
 import urlJoin from 'url-join'
 
-export function getContinuingTraineeReport () {
+export function getContinuingTraineeReport() {
   return async (req, res, next) => {
     try {
       const { financialYear, financialPeriod, smartCategoryId } = req.body
@@ -189,6 +189,53 @@ export function getMonthlyTraineeReportSummary() {
       }
 
       return next(err)
+    }
+  }
+}
+
+export function checkReportExists() {
+  return async (req, res, next) => {
+    try {
+      const { reportParams } = req.query
+
+      const accessToken = getAccessToken(req)
+      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${req.params.reportType}`)
+      const queryParams = new URLSearchParams()
+      queryParams.append('reportParams', reportParams)
+
+      logger.info(`Checking existence of report: ${apiUrl}`, req.body)
+
+      const response = await agent
+        .head(`${apiUrl}?${queryParams.toString()}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+      res.status(response.status).json(response.body)
+    } catch (err) {
+      if (err.status === 404) {
+        logger.info("Report with provided parameters not found")
+        return res.status(404).json({
+          error: 'Not found - report with parameters not found',
+          details: err.response?.body || err.message
+        })
+      }
+
+      logger.error("Failed to check existence of the report")
+
+      if (err.status === 403) {
+        return res.status(403).json({
+          error: 'Access forbidden - insufficient permissions to check report existence',
+          details: err.response?.body || err.message
+        })
+      }
+
+      if (err.status) {
+        return res.status(err.status).json({
+          error: err.message || 'Error fetching report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      next(err)
     }
   }
 }

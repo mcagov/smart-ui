@@ -4,7 +4,8 @@ import { getContinuingTraineeReport, downloadReport, getMonthlyTraineeReportSumm
 const router = new express.Router()
 
 router.put('/continuing-trainee-report', getContinuingTraineeReport())
-router.get('/download', downloadReport())
 router.put('/monthly-trainee-report', getMonthlyTraineeReportSummary())
+router.get('/download', downloadReport())
+router.head('/:reportType', checkReportExists())
 
 export default router

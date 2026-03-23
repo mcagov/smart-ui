@@ -70,7 +70,8 @@ href: "/reports"
                 text: "Generate",
                 attributes: {
                 id: 'generate-button',
-                type: 'button'
+                type: 'button',
+                disabled: 'disabled'
                 },
                 preventDoubleClick: true
                 }) }}
@@ -316,13 +317,66 @@ href: "/reports"
       });
     });
 
+    function resetButtons() {
+      refreshButton.disabled = false;
+      generateButton.disabled = true;
+      generateButton.innerHTML = 'Generate';
+      downloadButton.disabled = true;
+    }
+
+    // Refresh button
     refreshButton.addEventListener('click', function(e) {
       e.preventDefault();
-      financialYearInput.value = '';
-      financialPeriodInput.value = '';
-      smartCategoryInput.value = '';
       hideStatus();
-      downloadButton.disabled = true;
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const smartCategoryId = smartCategoryInput.value.trim();
+
+      const checkReportUrl = getApiUrl() +
+        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, smartCategoryId]);
+
+      console.log('Checking if report exists at:', checkReportUrl);
+      showStatus('Checking if report exists');
+      refreshButton.disabled = true;
+
+      request({
+        url: checkReportUrl,
+        method: 'HEAD'
+        }, function(res) {
+          console.log('Check report exists response:', res.status);
+
+          if (res.status === 200) {
+            refreshButton.disabled = false;
+            generateButton.disabled = false;
+            generateButton.innerHTML = 'Regenerate';
+            downloadButton.disabled = false;
+            hideStatus();
+            return;
+          }
+          else {
+            return;
+          }
+        }, function(res) {
+          if (res.status === 404) {
+            refreshButton.disabled = false;
+            generateButton.disabled = false;
+            generateButton.innerHTML = 'Generate';
+            downloadButton.disabled = true;
+            hideStatus();
+            return;
+          }
+          else {
+            console.error('Error checking if report exists at:', res);
+            resetButtons();
+            showStatus('Could not check if report exists. Try again');
+            return;
+          }
+      });
     });
   })();
 </script>
