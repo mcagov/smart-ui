@@ -1,5 +1,5 @@
 import express from 'express'
-import { getContinuingTraineeReport, downloadReport, getMonthlyTraineeReportSummary } from '../controllers/reports.js'
+import { getContinuingTraineeReport, downloadReport, checkReportExists, getMonthlyTraineeReportSummary } from '../controllers/reports.js'
 
 const router = new express.Router()
 
