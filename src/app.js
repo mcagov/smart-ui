@@ -169,9 +169,9 @@ app.use('/smart-categories', ensureAuthenticated, isAb, csrf, setCsrf, smartCate
 app.use('/smart-items', ensureAuthenticated, isAb, csrf, setCsrf, smartItems)
 app.use('/payment-schedules', ensureAuthenticated, isAb, csrf, setCsrf, paymentSchedules)
 app.use('/admin', ensureAuthenticated, isAb, csrf, setCsrf, useView('admin'))
-app.use('/reports', ensureAuthenticated, isAb, csrf, setCsrf, reports)
 app.use('/api', ensureAuthenticated, api)
-app.use('/api/reports', ensureAuthenticated, apiReports)
+app.use('/reports', ensureAuthenticated, isAb, csrf, setCsrf, reports) //TODO: Use the reports okta role
+app.use('/api/reports', ensureAuthenticated, isAb, apiReports) //TODO: Use the reports okta role
 
 initialiseErrors(app)
 // TODO: sort out XRAY or use AWS Open Distro for OpenTelemetry
