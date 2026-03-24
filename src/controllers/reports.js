@@ -58,8 +58,9 @@ export function downloadReport () {
   return async (req, res, next) => {
     try {
       const { reportParams } = req.query
+      const reportType = req.params.reportType
 
-      if (!req.params.reportType) {
+      if (!reportType) {
         return res.status(400).json({
           error: 'Missing required parameter: reportType is required'
         })
@@ -72,7 +73,7 @@ export function downloadReport () {
       }
 
       const accessToken = getAccessToken(req)
-      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${req.params.reportType}/download`)
+      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${reportType}/download`)
 
       logger.info(`Getting presigned URL for ${reportType}: ${apiUrl}`, { reportParams })
 
