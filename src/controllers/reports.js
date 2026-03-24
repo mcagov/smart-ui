@@ -57,9 +57,9 @@ export function getContinuingTraineeReport() {
 export function downloadReport () {
   return async (req, res, next) => {
     try {
-      const { reportType, reportParams } = req.query
+      const { reportParams } = req.query
 
-      if (!reportType) {
+      if (!req.params.reportType) {
         return res.status(400).json({
           error: 'Missing required parameter: reportType is required'
         })
@@ -72,15 +72,14 @@ export function downloadReport () {
       }
 
       const accessToken = getAccessToken(req)
-      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${reportType}/download`)
+      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${req.params.reportType}/download`)
 
       logger.info(`Getting presigned URL for ${reportType}: ${apiUrl}`, { reportParams })
 
       // Build query string with multiple reportParams values
       // Backend expects: ?reportParams=2024&reportParams=2&reportParams=abc123
       const queryParams = new URLSearchParams()
-      const params = Array.isArray(reportParams) ? reportParams : [reportParams]
-      params.forEach(param => queryParams.append('reportParams', param))
+      queryParams.append('reportParams', reportParams)
 
       const response = await agent
         .get(`${apiUrl}?${queryParams.toString()}`)
