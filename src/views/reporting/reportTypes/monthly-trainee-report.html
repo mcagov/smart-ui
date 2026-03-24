@@ -110,9 +110,8 @@ href: "/reports"
     function getFilename() {
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
-      const smartCategoryId = smartCategoryInput.value.trim();
 
-      if (financialYear && financialPeriod && smartCategoryId) {
+      if (financialYear && financialPeriod) {
         return 'monthly-trainee-report-' + financialYear + '-P' + financialPeriod + '.xlsx';
       }
       return 'monthly-trainee-report.xlsx';
