@@ -50,21 +50,6 @@ href: "/reports"
             ]
             }) }}
 
-            {% set items = [{ text: '', value: '' }] %}
-            {% for trainingProvider in trainingProvidersDD %}
-            {% set items = (items.push( {  text: trainingProvider.text,  value: trainingProvider.id }), items) %}
-            {% endfor %}
-
-            {{ govukSelect({
-            id: 'trainingProvider',
-            name: 'trainingProvider',
-            label: {
-            text: 'Training Provider',
-            classes: "govuk-label--m"
-            },
-            items: items
-            }) }}
-
             <div class="govuk-button-group">
                 {{ govukButton({
                 text: "Generate",
@@ -117,7 +102,6 @@ href: "/reports"
 
     const financialYearInput = document.getElementById('financialYear');
     const financialPeriodInput = document.getElementById('financialPeriod');
-    const trainingProviderInput = document.getElementById('trainingProvider');
 
     function getApiUrl() {
       return '/api/reports/monthly-trainee-report';
@@ -127,10 +111,9 @@ href: "/reports"
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
       const smartCategoryId = smartCategoryInput.value.trim();
-      const trainingProviderName = trainingProviderInput.text.trim().replace(' ', '_');
 
       if (financialYear && financialPeriod && smartCategoryId) {
-        return 'monthly-trainee-report-' + financialYear + '-P' + financialPeriod + '-' + trainingProviderName + '.xlsx';
+        return 'monthly-trainee-report-' + financialYear + '-P' + financialPeriod + '.xlsx';
       }
       return 'monthly-trainee-report.xlsx';
     }
@@ -169,13 +152,11 @@ href: "/reports"
 
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
-      const trainingProviderId = trainingProviderInput.value.trim();
 
       const apiUrl = getApiUrl();
       const requestBody = {
         financialYear: financialYear,
         financialPeriod: financialPeriod,
-        trainingProviderId: trainingProviderId,
         _csrf: '{{ csrfToken }}'
       };
 
@@ -225,10 +206,9 @@ href: "/reports"
 
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
-      const trainingProviderId = trainingProviderInput.value.trim();
 
       const downloadUrl = getApiUrl() + '/download' +
-        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, trainingProviderId]);
+        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod]);
 
       console.log('Getting presigned URL from:', downloadUrl);
       showStatus('Preparing download...');
@@ -344,10 +324,9 @@ href: "/reports"
 
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
-      const trainingProviderId = trainingProviderInput.value.trim();
 
       const checkReportUrl = getApiUrl() +
-        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, trainingProviderId]);
+        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod]);
 
       console.log('Checking if report exists at:', checkReportUrl);
       showStatus('Checking if report exists');

@@ -127,7 +127,7 @@ export function downloadReport () {
 
 export function getMonthlyTraineeReportSummary() {
   return async (req, res, next) => {
-    const { financialYear, financialPeriod, trainingProviderId } = req.body
+    const { financialYear, financialPeriod } = req.body
 
     if (!financialYear || !financialPeriod) {
       return res.status(400).json({
@@ -143,8 +143,7 @@ export function getMonthlyTraineeReportSummary() {
 
     const query = {
       financialYear,
-      financialPeriod,
-      ...(trainingProviderId && { trainingProviderId })
+      financialPeriod
     }
 
     try {
