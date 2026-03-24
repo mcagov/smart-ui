@@ -138,7 +138,7 @@ export function getMonthlyTraineeReportSummary() {
 
     const accessToken = getAccessToken(req)
 
-    const apiBaseUrl = config.get('endpoints.api')
+    const apiBaseUrl = config.endpoints.api
     const apiUrl = urlJoin(apiBaseUrl, '/v1/reports/monthly-trainee-report')
 
     const query = {
