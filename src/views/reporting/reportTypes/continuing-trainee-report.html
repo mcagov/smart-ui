@@ -234,7 +234,7 @@ href: "/reports"
       const smartCategoryId = smartCategoryInput.value.trim();
 
       const downloadUrl = getApiUrl() + '/download' +
-        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, trainingProviderId]);
+        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, smartCategoryId]);
 
       console.log('Getting presigned URL from:', downloadUrl);
       showStatus('Preparing download...');
