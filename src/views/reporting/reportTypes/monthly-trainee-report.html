@@ -191,19 +191,9 @@ href: "/reports"
         console.log('Success response:', xhr.status, xhr.responseText);
 
         if (xhr.status === 201 || xhr.status === 200) {
-          try {
-            reportData = JSON.parse(xhr.responseText);
-            showStatus('Report has been generated successfully');
-            showResults(reportData);
-            downloadButton.disabled = false;
-
-            setTimeout(function() {
-              window.location.href = '/reports/monthly-trainee-report';
-            }, 2000);
-          } catch (e) {
-            console.error('Error parsing response:', e);
-            showStatus('Report generated, but failed to parse results', true);
-          }
+          showStatus('Report has been generated successfully');
+          downloadButton.disabled = false;
+          generateButton.disabled = false;
         } else {
           let errorMsg = 'Failed to generate report';
           try {
@@ -226,6 +216,13 @@ href: "/reports"
     });
 
     downloadButton.addEventListener('click', function(e) {
+    e.preventDefault();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
       const trainingProviderId = trainingProviderInput.value.trim();
