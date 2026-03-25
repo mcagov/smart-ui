@@ -123,10 +123,6 @@ href: "/reports"
       return '/api/reports/continuing-trainee-report';
     }
 
-    function getDownloadUrl() {
-      return '/api/reports/continuing-trainee-report/download';
-    }
-
     function getSmartCategoryName(categoryId) {
       const categories = {
         'c5b98472-e5f1-11ea-adc1-0242ac120002': 'SMarT-1',
@@ -237,10 +233,8 @@ href: "/reports"
       const financialPeriod = financialPeriodInput.value.trim();
       const smartCategoryId = smartCategoryInput.value.trim();
 
-      const downloadUrl = getDownloadUrl() +
-        '?financialYear=' + encodeURIComponent(financialYear) +
-        '&financialPeriod=' + encodeURIComponent(financialPeriod) +
-        '&smartCategoryId=' + encodeURIComponent(smartCategoryId);
+      const downloadUrl = getApiUrl() + '/download' +
+        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod, smartCategoryId]);
 
       console.log('Getting presigned URL from:', downloadUrl);
       showStatus('Preparing download...');

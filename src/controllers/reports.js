@@ -57,7 +57,8 @@ export function getContinuingTraineeReport() {
 export function downloadReport () {
   return async (req, res, next) => {
     try {
-      const { reportType, reportParams } = req.query
+      const { reportParams } = req.query
+      const reportType = req.params.reportType
 
       if (!reportType) {
         return res.status(400).json({
@@ -79,8 +80,7 @@ export function downloadReport () {
       // Build query string with multiple reportParams values
       // Backend expects: ?reportParams=2024&reportParams=2&reportParams=abc123
       const queryParams = new URLSearchParams()
-      const params = Array.isArray(reportParams) ? reportParams : [reportParams]
-      params.forEach(param => queryParams.append('reportParams', param))
+      queryParams.append('reportParams', reportParams)
 
       const response = await agent
         .get(`${apiUrl}?${queryParams.toString()}`)
@@ -127,7 +127,7 @@ export function downloadReport () {
 
 export function getMonthlyTraineeReportSummary() {
   return async (req, res, next) => {
-    const { financialYear, financialPeriod, trainingProviderId } = req.body
+    const { financialYear, financialPeriod } = req.body
 
     if (!financialYear || !financialPeriod) {
       return res.status(400).json({
@@ -138,13 +138,12 @@ export function getMonthlyTraineeReportSummary() {
 
     const accessToken = getAccessToken(req)
 
-    const apiBaseUrl = config.get('endpoints.api')
+    const apiBaseUrl = config.endpoints.api
     const apiUrl = urlJoin(apiBaseUrl, '/v1/reports/monthly-trainee-report')
 
     const query = {
       financialYear,
-      financialPeriod,
-      ...(trainingProviderId && { trainingProviderId })
+      financialPeriod
     }
 
     try {

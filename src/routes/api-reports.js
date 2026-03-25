@@ -5,7 +5,7 @@ const router = new express.Router()
 
 router.put('/continuing-trainee-report', getContinuingTraineeReport())
 router.put('/monthly-trainee-report', getMonthlyTraineeReportSummary())
-router.get('/download', downloadReport())
+router.get('/:reportType/download', downloadReport())
 router.head('/:reportType', checkReportExists())
 
 export default router
