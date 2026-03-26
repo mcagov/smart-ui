@@ -54,6 +54,56 @@ export function getContinuingTraineeReport() {
   }
 }
 
+export function getFailuresReport() {
+  return async (req, res, next) => {
+    try {
+      const { financialYear, financialPeriod } = req.body
+
+      if (!financialYear || !financialPeriod) {
+        return res.status(400).json({
+          error: 'Missing required parameters: financialYear and financialPeriod are required'
+        })
+      }
+
+      const accessToken = getAccessToken(req)
+      const apiUrl = urlJoin(config.endpoints.api, '/v1/reports/failures-report')
+
+      logger.info(`Fetching failures report: ${apiUrl}`, { financialYear, financialPeriod })
+
+      const response = await agent
+        .put(apiUrl)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .query({ financialYear, financialPeriod })
+
+      res.status(response.status).json(response.body)
+    } catch (err) {
+      logger.error('Error fetching failures report', err)
+
+      if (err.status === 404) {
+        return res.status(404).json({
+          error: 'Report not found or API endpoint unavailable'
+        })
+      }
+
+      if (err.status === 403) {
+        return res.status(403).json({
+          error: 'Access forbidden - insufficient permissions to generate report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      if (err.status) {
+        return res.status(err.status).json({
+          error: err.message || 'Error fetching report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      next(err)
+    }
+  }
+}
+
 export function downloadReport () {
   return async (req, res, next) => {
     try {
