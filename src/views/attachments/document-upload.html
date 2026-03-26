@@ -13,18 +13,23 @@
 <!--//@formatter:on -->
 
 <script nonce='{{ params.cspNonce }}'>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof MOJFrontend.MultiFileUpload !== 'undefined' && typeof MCGAFrontend.Attachments !== 'undefined') {
-          MCGAFrontend.attachments = new MCGAFrontend.Attachments({
-            attachments: resourceAttachments,
-            fileType: '{{ params.fileType }}',
-            resourceUrl: '{{ params.resourceUrl }}',
-            enableAV: {{ params.enableAV }},
-            csrf: '{{ params.csrfToken }}'
-          })
-          MCGAFrontend.attachments.init()
-        }
-  })
+  document.addEventListener('DOMContentLoaded', function () {
+    if (
+      MOJFrontend?.MultiFileUpload &&
+      MCGAFrontend?.Attachments
+    ) {
+      window.MCGAFrontend.attachments = new window.MCGAFrontend.Attachments({
+        attachments: resourceAttachments,
+        fileType: '{{ params.fileType }}',
+        resourceUrl: '{{ params.resourceUrl }}',
+        enableAV: {{ params.enableAV | default('false') }},
+      csrf: '{{ params.csrfToken }}'
+    });
+      window.MCGAFrontend.attachments.init();
+    } else {
+      console.error("Missing dependencies. MOJFrontend:", Boolean(window.MOJFrontend), "MCGAFrontend:", Boolean(window.MCGAFrontend));
+    }
+  });
 </script>
 
 {% set uploadHtml %}

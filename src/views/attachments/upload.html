@@ -17,7 +17,8 @@
     <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-xl">{{ titleText }}</h1>
         {% block uploads %}
-        {{ documentUpload({
+        <form action="{{ resourceUrl }}/attachments" method="post" enctype="multipart/form-data">
+            {{ documentUpload({
             fileType: fileType,
             docDescription: docDescription,
             csrfToken: csrfToken,
@@ -25,7 +26,8 @@
             cspNonce: cspNonce,
             enableAV: enableAV,
             resourceUrl: resourceUrl
-        }) }}
+            }) }}
+        </form>
         {% endblock %}
     </div>
 
