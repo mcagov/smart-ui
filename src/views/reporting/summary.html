@@ -16,6 +16,7 @@ href: "/"
             {% set items = [] %}
             {% set items = (items.push( {  text: "Continuing trainee report",  value: "continuing-trainee-report" }), items) %}
             {% set items = (items.push( {  text: "Monthly trainee report",  value: "monthly-trainee-report" }), items) %}
+            {% set items = (items.push( {  text: "Failure report",  value: "failures-report" }), items) %}
 
             {{ govukSelect({
             id: 'reportType',
