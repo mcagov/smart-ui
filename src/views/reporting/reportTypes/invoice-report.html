@@ -51,6 +51,21 @@ href: "/reports"
             ]
             }) }}
 
+            {% set items = [{ text: '', value: '' }] %}
+            {% for trainingProvider in trainingProvidersDD %}
+            {% set items = (items.push( {  text: trainingProvider.text,  value: trainingProvider.id }), items) %}
+            {% endfor %}
+
+            {{ govukSelect({
+            id: 'trainingProvider',
+            name: 'trainingProvider',
+            label: {
+            text: 'Training Provider',
+            classes: "govuk-label--m"
+            },
+            items: items
+            }) }}
+
             <div class="govuk-button-group">
                 {{ govukButton({
                 text: "Generate",
@@ -102,6 +117,7 @@ href: "/reports"
 
     const financialYearInput = document.getElementById('financialYear');
     const financialPeriodInput = document.getElementById('financialPeriod');
+    const trainingProviderInput = document.getElementById('trainingProvider');
 
     function getApiUrl() {
       return '/api/reports/invoice-report';
@@ -110,7 +126,11 @@ href: "/reports"
     function getFilename() {
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
 
+      if (financialYear && financialPeriod && trainingProviderId) {
+        return 'invoice-report-' + financialYear + '-P' + financialPeriod + '-TP' + trainingProviderId + '.xlsx';
+      }
       if (financialYear && financialPeriod) {
         return 'invoice-report-' + financialYear + '-P' + financialPeriod + '.xlsx';
       }
@@ -151,11 +171,13 @@ href: "/reports"
 
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
 
       const apiUrl = getApiUrl();
       const requestBody = {
         financialYear: financialYear,
         financialPeriod: financialPeriod,
+        trainingProviderId: trainingProviderId,
         _csrf: '{{ csrfToken }}'
       };
 
@@ -218,9 +240,12 @@ href: "/reports"
 
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
 
       // Use the generic download endpoint with reportType and reportParams
-      const reportParams = [financialYear, financialPeriod];
+      const reportParams = trainingProviderId
+        ? [financialYear, financialPeriod, trainingProviderId]
+        : [financialYear, financialPeriod];
 
       const downloadUrl = '/api/reports/download?reportType=invoice-report&' +
         reportParams.map(param => 'reportParams=' + encodeURIComponent(param)).join('&');
