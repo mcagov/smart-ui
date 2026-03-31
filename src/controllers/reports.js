@@ -288,3 +288,62 @@ export function checkReportExists() {
     }
   }
 }
+
+export function getInvoiceReport () {
+  return async (req, res, next) => {
+    try {
+      const { financialYear, financialPeriod, trainingProviderId } = req.body
+
+      if (!financialYear || !financialPeriod) {
+        return res.status(400).json({
+          error: 'Missing required parameters: financialYear and financialPeriod are required'
+        })
+      }
+
+      const accessToken = getAccessToken(req)
+      const apiUrl = urlJoin(config.endpoints.api, '/v1/reports/invoice-report')
+
+      logger.info(`Generating invoice report: ${apiUrl}`, { financialYear, financialPeriod, trainingProviderId })
+
+      const query = {
+        financialYear,
+        financialPeriod,
+        ...(trainingProviderId && { trainingProviderId })
+      }
+
+      const response = await agent
+        .put(apiUrl)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .query(query)
+
+      // Backend returns the presigned URL as plain text
+      const presignedUrl = response.text
+
+      res.status(response.status).send(presignedUrl)
+    } catch (err) {
+      logger.error('Error generating invoice report', err)
+
+      if (err.status === 404) {
+        return res.status(404).json({
+          error: 'Report not found or API endpoint unavailable'
+        })
+      }
+
+      if (err.status === 403) {
+        return res.status(403).json({
+          error: 'Access forbidden - insufficient permissions to generate report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      if (err.status) {
+        return res.status(err.status).json({
+          error: err.message || 'Error generating report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      next(err)
+    }
+  }
+}
