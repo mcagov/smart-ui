@@ -51,21 +51,6 @@ href: "/reports"
             ]
             }) }}
 
-            {% set items = [{ text: '', value: '' }] %}
-            {% for trainingProvider in trainingProvidersDD %}
-            {% set items = (items.push( {  text: trainingProvider.text,  value: trainingProvider.id }), items) %}
-            {% endfor %}
-
-            {{ govukSelect({
-            id: 'trainingProvider',
-            name: 'trainingProvider',
-            label: {
-            text: 'Training Provider',
-            classes: "govuk-label--m"
-            },
-            items: items
-            }) }}
-
             <div class="govuk-button-group">
                 {{ govukButton({
                 text: "Generate",
@@ -117,7 +102,6 @@ href: "/reports"
 
     const financialYearInput = document.getElementById('financialYear');
     const financialPeriodInput = document.getElementById('financialPeriod');
-    const trainingProviderInput = document.getElementById('trainingProvider');
 
     function getApiUrl() {
       return '/api/reports/invoice-report';
@@ -126,14 +110,9 @@ href: "/reports"
     function getFilename() {
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
-      const trainingProviderId = trainingProviderInput.value.trim();
 
       if (financialYear && financialPeriod) {
-        let filename = 'invoice-report-' + financialYear + '-P' + financialPeriod;
-        if (trainingProviderId) {
-          filename += '-' + trainingProviderId;
-        }
-        return filename + '.xlsx';
+        return 'invoice-report-' + financialYear + '-P' + financialPeriod + '.xlsx';
       }
       return 'invoice-report.xlsx';
     }
@@ -172,18 +151,16 @@ href: "/reports"
 
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
-      const trainingProviderId = trainingProviderInput.value.trim();
 
       const apiUrl = getApiUrl();
       const requestBody = {
         financialYear: financialYear,
         financialPeriod: financialPeriod,
-        trainingProviderId: trainingProviderId,
         _csrf: '{{ csrfToken }}'
       };
 
       console.log('Calling API URL:', apiUrl);
-      showStatus('Generating report and preparing download...');
+      showStatus('Generating report...');
       generateButton.disabled = true;
       downloadButton.disabled = true;
 
@@ -192,30 +169,10 @@ href: "/reports"
         method: 'PUT',
         data: requestBody
       }, function(xhr) {
-        console.log('Success response:', xhr.status, xhr.responseText);
+        console.log('Success response:', xhr.status);
 
         if (xhr.status === 201 || xhr.status === 200) {
-          // Backend returns presigned URL directly
-          const presignedUrl = xhr.responseText;
-
-          if (!presignedUrl) {
-            showStatus('Error: No download URL received', true);
-            generateButton.disabled = false;
-            return;
-          }
-
-          console.log('Starting download from presigned URL');
-
-          const filename = getFilename();
-          const link = document.createElement('a');
-          link.href = presignedUrl;
-          link.download = filename;
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          showStatus('Report generated and download started successfully');
+          showStatus('Report generated successfully. You can now download it.');
           downloadButton.disabled = false;
           generateButton.disabled = false;
 
@@ -261,13 +218,9 @@ href: "/reports"
 
       const financialYear = financialYearInput.value.trim();
       const financialPeriod = financialPeriodInput.value.trim();
-      const trainingProviderId = trainingProviderInput.value.trim();
 
       // Use the generic download endpoint with reportType and reportParams
       const reportParams = [financialYear, financialPeriod];
-      if (trainingProviderId) {
-        reportParams.push(trainingProviderId);
-      }
 
       const downloadUrl = '/api/reports/download?reportType=invoice-report&' +
         reportParams.map(param => 'reportParams=' + encodeURIComponent(param)).join('&');
