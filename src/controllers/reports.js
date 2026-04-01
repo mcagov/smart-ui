@@ -130,7 +130,13 @@ export function downloadReport () {
       // Build query string with multiple reportParams values
       // Backend expects: ?reportParams=2024&reportParams=2&reportParams=abc123
       const queryParams = new URLSearchParams()
-      queryParams.append('reportParams', reportParams)
+      if (Array.isArray(reportParams)) {
+        reportParams.forEach(param => queryParams.append('reportParams', param))
+      } else if (typeof reportParams === 'string' && reportParams.includes(',')) {
+        reportParams.split(',').forEach(param => queryParams.append('reportParams', param))
+      } else {
+        queryParams.append('reportParams', reportParams)
+      }
 
       const response = await agent
         .get(`${apiUrl}?${queryParams.toString()}`)
@@ -250,7 +256,13 @@ export function checkReportExists() {
       const accessToken = getAccessToken(req)
       const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${req.params.reportType}`)
       const queryParams = new URLSearchParams()
-      queryParams.append('reportParams', reportParams)
+      if (Array.isArray(reportParams)) {
+        reportParams.forEach(param => queryParams.append('reportParams', param))
+      } else if (typeof reportParams === 'string' && reportParams.includes(',')) {
+        reportParams.split(',').forEach(param => queryParams.append('reportParams', param))
+      } else {
+        queryParams.append('reportParams', reportParams)
+      }
 
       logger.info(`Checking existence of report: ${apiUrl}`, req.body)
 
