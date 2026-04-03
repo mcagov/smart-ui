@@ -106,6 +106,7 @@ export async function setUserContext (req, res, next) {
     res.locals.user.isSuperAdmin = false
     res.locals.user.isAdmin = false
     res.locals.user.isTP = false
+    res.locals.user.isReportUser = false
     res.locals.user.role = getUserRole(res.locals.user)
     if (res.locals.user.role === 'admin') {
       res.locals.user.isAdmin = true
@@ -113,6 +114,7 @@ export async function setUserContext (req, res, next) {
     } else if (res.locals.user.role === 'tp') {
       res.locals.user.isTP = true
     }
+    res.locals.user.isReportUser = res.locals.user?.groups && isInGroup(res.locals.user?.groups, '-report-user')
     await loadMeta(req, res)
     await loadTrainingProvider(req, res)
   }
