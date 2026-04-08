@@ -82,6 +82,7 @@
     { href: "/training-providers/" + user.trainingProviderId + "/trainees", text: "Trainees" },
     { href: "/training-providers/" + user.trainingProviderId + "/comments?resolved=false", text: "Comments" },
     { href: "/training-providers/" + user.trainingProviderId + "/company", text: "Company"},
+    { href: "/reports", text: "Reports" } if user.isReportUser,
     { html: logoutHtml }
   ]
 %}
