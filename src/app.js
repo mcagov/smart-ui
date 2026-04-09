@@ -45,7 +45,7 @@ import favicon from 'serve-favicon'
 
 // TODO sort out XRAY or use AWS Open Distro for OpenTelemetry
 // import XRay from 'aws-xray-sdk'
-import { ensureAuthenticatedOkta, isAb } from './controllers/auth.js'
+import { ensureAuthenticatedOkta, isAb, isReportUser } from './controllers/auth.js'
 import { getTP } from './controllers/lookups/providers.js'
 import Cache from './services/cache.mjs'
 
@@ -170,8 +170,8 @@ app.use('/smart-items', ensureAuthenticated, isAb, csrf, setCsrf, smartItems)
 app.use('/payment-schedules', ensureAuthenticated, isAb, csrf, setCsrf, paymentSchedules)
 app.use('/admin', ensureAuthenticated, isAb, csrf, setCsrf, useView('admin'))
 app.use('/api', ensureAuthenticated, api)
-app.use('/reports', ensureAuthenticated, isAb, csrf, setCsrf, reports) //TODO: Use the reports okta role
-app.use('/api/reports', ensureAuthenticated, isAb, apiReports) //TODO: Use the reports okta role
+app.use('/reports', ensureAuthenticated, isReportUser, csrf, setCsrf, reports)
+app.use('/api/reports', ensureAuthenticated, isReportUser, apiReports)
 
 initialiseErrors(app)
 // TODO: sort out XRAY or use AWS Open Distro for OpenTelemetry

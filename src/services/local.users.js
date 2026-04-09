@@ -173,6 +173,18 @@ const users = [
       email: 'mca.tp3@service.dev.smart.mcga.uk',
       primaryPhone: '01234 554323'
     }
+  },
+  {
+    id: '00uicwex5zQFIiC6f315',
+    status: 'ACTIVE',
+    lastLogin: '',
+    groups: ['mcauk-smart-dev-report-user'],
+    profile: {
+      firstName: 'Report',
+      lastName: 'User',
+      email: 'mca.ru@service.dev.smart.mcga.uk',
+      primaryPhone: '01234 654321'
+    }
   }
 ]
 const spareIds = [
