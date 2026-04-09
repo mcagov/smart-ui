@@ -173,13 +173,18 @@ href: "/reports"
     }
 
     function validateInputs() {
-      const sYear = startFinancialYearInput.value.trim();
-      const sPeriod = startFinancialPeriodInput.value.trim();
-      const eYear = endFinancialYearInput.value.trim();
-      const ePeriod = endFinancialPeriodInput.value.trim();
+      const sYear = parseInt(startFinancialYearInput.value.trim(), 10);
+      const sPeriod = parseInt(startFinancialPeriodInput.value.trim(), 10);
+      const eYear = parseInt(endFinancialYearInput.value.trim(), 10);
+      const ePeriod = parseInt(endFinancialPeriodInput.value.trim(), 10);
 
       if (!sYear || !sPeriod || !eYear || !ePeriod) {
         showStatus('Please fill in all required fields', true);
+        return false;
+      }
+
+      if (sYear > eYear || (sYear === eYear && sPeriod > ePeriod)) {
+        showStatus('Start period cannot be after end period', true);
         return false;
       }
 
