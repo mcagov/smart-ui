@@ -248,6 +248,73 @@ export function getMonthlyTraineeReportSummary() {
   }
 }
 
+export function getTraineesDemographicReport() {
+  return async (req, res, next) => {
+    const { startFinancialYear, startFinancialPeriod, endFinancialYear, endFinancialPeriod } = req.body
+
+    if (!startFinancialYear || !startFinancialPeriod || !endFinancialYear || !endFinancialPeriod) {
+      return res.status(400).json({
+        error: 'Missing required parameters',
+        details: 'startFinancialYear, startFinancialPeriod, endFinancialYear, and endFinancialPeriod are required'
+      })
+    }
+
+    const accessToken = getAccessToken(req)
+    const apiUrl = urlJoin(config.endpoints.api, '/v1/reports/trainees-demographic-report')
+
+    const query = {
+      startFinancialYear,
+      startFinancialPeriod,
+      endFinancialYear,
+      endFinancialPeriod
+    }
+
+    try {
+      logger.info('Fetching trainees demographic report', {
+        apiUrl,
+        query
+      })
+
+      const { status, body } = await agent
+        .put(apiUrl)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .query(query)
+
+      return res.status(status).json(body)
+    } catch (err) {
+      logger.error('Error fetching trainees demographic report', {
+        message: err.message,
+        status: err.status,
+        response: err.response?.body
+      })
+
+      const status = err.status || 500
+
+      if (status === 404) {
+        return res.status(404).json({
+          error: 'Report not found or API endpoint unavailable'
+        })
+      }
+
+      if (status === 403) {
+        return res.status(403).json({
+          error: 'Access forbidden - insufficient permissions to generate report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      if (err.status) {
+        return res.status(status).json({
+          error: err.message || 'Error fetching report',
+          details: err.response?.body
+        })
+      }
+
+      return next(err)
+    }
+  }
+}
+
 export function checkReportExists() {
   return async (req, res, next) => {
     try {
