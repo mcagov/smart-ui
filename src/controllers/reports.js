@@ -426,3 +426,70 @@ export function getInvoiceReport () {
     }
   }
 }
+
+export function getStateAidReport() {
+  return async (req, res, next) => {
+    const { financialYear, financialPeriod } = req.body
+
+    if (!financialYear || !financialPeriod) {
+      return res.status(400).json({
+        error: 'Missing required parameters',
+        details: 'financialYear and financialPeriod are required'
+      })
+    }
+
+    const accessToken = getAccessToken(req)
+
+    const apiBaseUrl = config.endpoints.api
+    const apiUrl = urlJoin(apiBaseUrl, '/v1/reports/state-aid-report')
+
+    const query = {
+      financialYear,
+      financialPeriod
+    }
+
+    try {
+      logger.info('Fetching state aid report', {
+        apiUrl,
+        query
+      })
+
+      const { status, body } = await agent
+        .put(apiUrl)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .query(query)
+
+      return res.status(status).json(body)
+    } catch (err) {
+      logger.error('Error fetching state aid report', {
+        message: err.message,
+        status: err.status,
+        response: err.response?.body
+      })
+
+      const status = err.status || 500
+
+      if (status === 404) {
+        return res.status(404).json({
+          error: 'Report not found or API endpoint unavailable'
+        })
+      }
+
+      if (status === 403) {
+        return res.status(403).json({
+          error: 'Access forbidden - insufficient permissions to generate report',
+          details: err.response?.body || err.message
+        })
+      }
+
+      if (err.status) {
+        return res.status(status).json({
+          error: err.message || 'Error fetching report',
+          details: err.response?.body
+        })
+      }
+
+      return next(err)
+    }
+  }
+}
