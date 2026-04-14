@@ -85,7 +85,7 @@
         href: formUrl + '/approved',
         classes: "action-button",
         attributes: { id: 'submit-button' }
-      }) if financialYear.data | hasPending }}
+      }) if (financialYear.data | hasPending) and (financialYear.meta.year == currentPaymentSchedule.financialYear) }}
     {% endif %}
   </div>
 {% endblock %}
