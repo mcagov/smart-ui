@@ -247,7 +247,7 @@ href: "/reports"
         ? [financialYear, financialPeriod, trainingProviderId]
         : [financialYear, financialPeriod];
 
-      const downloadUrl = '/api/reports/download?reportType=invoice-report&' +
+      const downloadUrl = '/api/reports/invoice-report/download?' +
         reportParams.map(param => 'reportParams=' + encodeURIComponent(param)).join('&');
 
       console.log('Getting presigned URL from:', downloadUrl);
