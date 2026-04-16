@@ -207,7 +207,8 @@ href: "/reports"
       const financialPeriod = financialPeriodInput.value.trim();
 
       const downloadUrl = getApiUrl() + '/download' +
-        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod]);
+        '?reportParams=' + encodeURIComponent(financialYear) +
+        '&reportParams=' + encodeURIComponent(financialPeriod);
 
       console.log('Getting presigned URL from:', downloadUrl);
       showStatus('Preparing download...');
@@ -325,7 +326,8 @@ href: "/reports"
       const financialPeriod = financialPeriodInput.value.trim();
 
       const checkReportUrl = getApiUrl() +
-        '?reportParams=' + encodeURIComponent([financialYear, financialPeriod]);
+        '?reportParams=' + encodeURIComponent(financialYear) +
+        '&reportParams=' + encodeURIComponent(financialPeriod);
 
       console.log('Checking if report exists at:', checkReportUrl);
       showStatus('Checking if report exists');
