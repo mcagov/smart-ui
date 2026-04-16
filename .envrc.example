@@ -1,2 +1,3 @@
+# The AWS account number can be found in the AWS console under 'smart-dev' account
 export AWS_ACCOUNT_NUMBER=<SMART_DEV_AWS_ACCOUNT_NUMBER>
 export AWS_PROFILE=smart-dev-support

@@ -272,7 +272,7 @@ services:
 
   # used for ci testing
   smart-ui:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.74
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.105
     hostname: smart-ui
     build:
       context: .
@@ -324,38 +324,38 @@ services:
           cpus: "0.5"
     memswap_limit: 1g
 
-  # localstack:
-  #   image: public.ecr.aws/localstack/localstack:2.1.0
-  #   environment:
-  #     - AWS_DEFAULT_REGION=eu-west-2
-  #     - AWS_REGION=eu-west-2
-  #     - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID-123}
-  #     - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY-DUMMYKEY}
-  #     - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN-DUMMYTOKEN}
-  #     - AWS_PRIVATE_BUCKET=${AWS_PRIVATE_BUCKET}
-  #     # - EXTRA_CORS_ALLOWED_ORIGINS=https://service.local.smart.mcga.uk
-  #     - LOCALSTACK_HOST=service.local.smart.mcga.uk
-  #     - S3_SKIP_SIGNATURE_VALIDATION=1
-  #     - SERVICES=s3
-  #     - GATEWAY_LISTEN=0.0.0.0:4566
-  #     - DISABLE_CORS_CHECKS=1
-  #     # - DISABLE_CUSTOM_CORS_S3=1
-  #     - DEBUG=0
-  #   ports:
-  #     - '4566:4566'
-  #   volumes:
-  #     - "${TMPDIR:-/tmp/localstack}:/var/lib/localstack"
-  #     - "/var/run/docker.sock:/var/run/docker.sock"
-  #     - ${PWD}/test/localstack/bootstrap:/etc/localstack/init/ready.d/
-  #   profiles:
-  #     - full
-  #     - api
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 2g
-  #         cpus: "1"
-  #   memswap_limit: 2g
+#  localstack:
+#     image: public.ecr.aws/localstack/localstack:3.1.0
+#     environment:
+#       - AWS_DEFAULT_REGION=eu-west-2
+#       - AWS_REGION=eu-west-2
+#       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID-123}
+#       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY-DUMMYKEY}
+#       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN-DUMMYTOKEN}
+#       - AWS_PRIVATE_BUCKET=${AWS_PRIVATE_BUCKET}
+#       # - EXTRA_CORS_ALLOWED_ORIGINS=https://service.local.smart.mcga.uk
+#       - LOCALSTACK_HOST=service.local.smart.mcga.uk
+#       - S3_SKIP_SIGNATURE_VALIDATION=1
+#       - SERVICES=sqs,s3
+#       - GATEWAY_LISTEN=0.0.0.0:4566
+#       - DISABLE_CORS_CHECKS=1
+#       # - DISABLE_CUSTOM_CORS_S3=1
+#       - DEBUG=0
+#     ports:
+#       - '4566:4566'
+#     volumes:
+#       - "${TMPDIR:-/tmp/localstack}:/var/lib/localstack"
+#       - "/var/run/docker.sock:/var/run/docker.sock"
+#       - ${PWD}/test/localstack/bootstrap:/etc/localstack/init/ready.d/
+#     profiles:
+#       - full
+#       - api
+#     deploy:
+#       resources:
+#         limits:
+#           memory: 2g
+#           cpus: "1"
+#     memswap_limit: 2g
 
 networks:
   app_net:
