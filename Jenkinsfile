@@ -160,7 +160,7 @@ pipeline {
                                 sh 'docker compose up -d'
                                 // Make sure the API has finished the migration and seed scripts
                                 sh 'sleep 20s'
-                                sh 'npm run wdio-headless'
+                                sh 'npm run test:wdio-headless'
                             }
                         }
                     }

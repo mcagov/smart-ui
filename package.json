@@ -9,20 +9,15 @@
     "author": "Catapult CX",
     "description": "SMarT UI",
     "scripts": {
-        "clean": "rm -rf reports && rm -rf wdio-output",
-        "test": "NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --forceExit",
-        "test-nocov": "npm run test -- --coverage=false",
-        "test:bdd": "cucumber-js",
-        "dev": "nodemon ./src/bin/www",
+        "clear-test-outputs": "rm -rf reports && rm -rf wdio-output",
+        "lint": "standard src/**/*.js",
         "start": "gulp default && nodemon ./src/bin/www",
-        "poststart": "npm prune --production",
-        "standard": "standard src/**/*.js",
-        "wdio-debug": "wdio run test/wdio-chrome.conf.js --suite debug",
-        "wdio-chrome": "wdio run test/wdio-chrome.conf.js",
-        "wdio-headless": "wdio run test/wdio-headless.conf.js",
-        "ca:login": "npm config --location=project set '//mcga-009543623063.d.codeartifact.eu-west-2.amazonaws.com/npm/mcga-npm/:_authToken' \"$(aws codeartifact get-authorization-token --domain mcga --domain-owner 009543623063 --query authorizationToken --output text)\"",
-        "ca:set-reg": "npm config --location=project set registry https://mcga-009543623063.d.codeartifact.eu-west-2.amazonaws.com/npm/mcga-npm/",
-        "ca:setup": "npm run ca:set-reg && npm run ca:login"
+        "test": "NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --forceExit",
+        "test-without-coverage": "npm run test -- --coverage=false",
+        "test:bdd": "cucumber-js",
+        "test:wdio-chrome": "wdio run test/wdio-chrome.conf.js",
+        "test:wdio-debug": "wdio run test/wdio-chrome.conf.js --suite debug",
+        "test:wdio-headless": "wdio run test/wdio-headless.conf.js"
     },
     "standard": {
         "ignore": [
