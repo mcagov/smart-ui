@@ -1,6 +1,6 @@
 services:
   smart-api-db:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api-test-db:1.0.176
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api-test-db:1.0.179
     ports:
       - '${EXPOSED_POSTGRES_PORT-7432}:${POSTGRES_PORT-5432}'
     environment:
@@ -19,7 +19,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.5-SoW-7-113-continuing-trainee-report-endpoint
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.50
     ports:
       - '8080:8080'
       - '8082:8082'
@@ -272,7 +272,7 @@ services:
 
   # used for ci testing
   smart-ui:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.105
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.74
     hostname: smart-ui
     build:
       context: .
