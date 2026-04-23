@@ -441,7 +441,7 @@ export function getStateAidReport() {
     const accessToken = getAccessToken(req)
 
     const apiBaseUrl = config.endpoints.api
-    const apiUrl = urlJoin(apiBaseUrl, '/v1/reports/state-aid-report')
+    const apiUrl = urlJoin(apiBaseUrl, '/v1/reports/uk-subsidy-transparency-report')
 
     const query = {
       financialYear,
@@ -449,7 +449,7 @@ export function getStateAidReport() {
     }
 
     try {
-      logger.info('Fetching state aid report', {
+      logger.info('Fetching uk subsidy transparency report', {
         apiUrl,
         query
       })
@@ -461,7 +461,7 @@ export function getStateAidReport() {
 
       return res.status(status).json(body)
     } catch (err) {
-      logger.error('Error fetching state aid report', {
+      logger.error('Error fetching uk subsidy transparency report', {
         message: err.message,
         status: err.status,
         response: err.response?.body
