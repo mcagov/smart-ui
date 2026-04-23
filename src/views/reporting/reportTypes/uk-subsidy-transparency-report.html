@@ -1,4 +1,4 @@
-{% set titleText = 'State Aid Report'%}
+{% set titleText = 'UK subsidy transparency'%}
 
 {% extends "layout.html" %}
 {% block content %}
@@ -11,7 +11,7 @@ href: "/reports"
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-l">{{titleText}}</h1>
-        <form id="state-aid-report-form" class="form" action="" method="post">
+        <form id="uk-subsidy-transparency-form" class="form" action="" method="post">
             <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
             {{ govukInput({
@@ -93,7 +93,7 @@ href: "/reports"
 {% block pageScript %}
 <script nonce='{{ cspNonce }}'>
   (function() {
-    const form = document.getElementById('state-aid-report-form');
+    const form = document.getElementById('uk-subsidy-transparency-form');
     const generateButton = document.getElementById('generate-button');
     const downloadButton = document.getElementById('download-button');
     const refreshButton = document.getElementById('refresh-button');
@@ -104,7 +104,7 @@ href: "/reports"
     const financialPeriodInput = document.getElementById('financialPeriod');
 
     function getApiUrl() {
-      return '/api/reports/state-aid-report';
+      return '/api/reports/uk-subsidy-transparency-report';
     }
 
     function getFilename() {
@@ -112,9 +112,9 @@ href: "/reports"
       const financialPeriod = financialPeriodInput.value.trim();
 
       if (financialYear && financialPeriod) {
-        return 'state-aid-report-' + financialYear + '-P' + financialPeriod + '.xlsx';
+        return 'uk-subsidy-transparency-' + financialYear + '-P' + financialPeriod + '.xlsx';
       }
-      return 'state-aid-report.xlsx';
+      return 'uk-subsidy-transparency.xlsx';
     }
 
     function showStatus(message, isError = false) {
