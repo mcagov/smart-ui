@@ -324,9 +324,69 @@ href: "/reports"
       });
     });
 
+    function resetButtons() {
+      refreshButton.disabled = false;
+      generateButton.disabled = false;
+      generateButton.innerHTML = 'Generate';
+      downloadButton.disabled = true;
+    }
+
     refreshButton.addEventListener('click', function(e) {
       e.preventDefault();
-      window.location.reload();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
+
+      const reportParams = trainingProviderId
+        ? [financialYear, financialPeriod, trainingProviderId]
+        : [financialYear, financialPeriod];
+
+      const checkReportUrl = getApiUrl() +
+        '?' + reportParams.map(param => 'reportParams=' + encodeURIComponent(param)).join('&');
+
+      console.log('Checking if report exists at:', checkReportUrl);
+      showStatus('Checking if report exists');
+      refreshButton.disabled = true;
+
+      request({
+        url: checkReportUrl,
+        method: 'HEAD'
+        }, function(res) {
+          console.log('Check report exists response:', res.status);
+
+          if (res.status === 200) {
+            refreshButton.disabled = false;
+            generateButton.disabled = false;
+            generateButton.innerHTML = 'Regenerate';
+            downloadButton.disabled = false;
+            hideStatus();
+            return;
+          }
+          else {
+            return;
+          }
+        }, function(res) {
+          if (res.status === 404) {
+            refreshButton.disabled = false;
+            generateButton.disabled = false;
+            generateButton.innerHTML = 'Generate';
+            downloadButton.disabled = true;
+            hideStatus();
+            return;
+          }
+          else {
+            console.error('Error checking if report exists at:', res);
+            resetButtons();
+            showStatus('Could not check if report exists. Try again');
+            return;
+          }
+      });
     });
   })();
 </script>
