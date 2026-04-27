@@ -24,10 +24,12 @@ import claims from './routes/all-claims.js'
 import trainees from './routes/trainees.js'
 import trainingsItems from './routes/training-items.mjs'
 import clientCompanies from './routes/client-companies.mjs'
+import reports from './routes/reports.mjs'
 import smartCategories from './routes/smart-categories.mjs'
 import smartItems from './routes/smart-items.mjs'
 import paymentSchedules from './routes/payment-schedules.mjs'
 import api from './routes/api.js'
+import apiReports from './routes/api-reports.js'
 import config from './config.js'
 import { handleCookies } from './cookies.js'
 import { configureNunjucks } from './nunjucks.js'
@@ -43,7 +45,7 @@ import favicon from 'serve-favicon'
 
 // TODO sort out XRAY or use AWS Open Distro for OpenTelemetry
 // import XRay from 'aws-xray-sdk'
-import { ensureAuthenticatedOkta, isAb } from './controllers/auth.js'
+import { ensureAuthenticatedOkta, isAb, isReportUser } from './controllers/auth.js'
 import { getTP } from './controllers/lookups/providers.js'
 import Cache from './services/cache.mjs'
 
@@ -168,6 +170,8 @@ app.use('/smart-items', ensureAuthenticated, isAb, csrf, setCsrf, smartItems)
 app.use('/payment-schedules', ensureAuthenticated, isAb, csrf, setCsrf, paymentSchedules)
 app.use('/admin', ensureAuthenticated, isAb, csrf, setCsrf, useView('admin'))
 app.use('/api', ensureAuthenticated, api)
+app.use('/reports', ensureAuthenticated, isReportUser, csrf, setCsrf, reports)
+app.use('/api/reports', ensureAuthenticated, isReportUser, apiReports)
 
 initialiseErrors(app)
 // TODO: sort out XRAY or use AWS Open Distro for OpenTelemetry
