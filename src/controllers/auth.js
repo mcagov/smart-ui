@@ -280,7 +280,7 @@ export function isSa (req, res, next) {
 }
 
 export function isReportUser (req, res, next) {
-  if (res.locals.user.isReportUser || res.locals.user.isAdmin || res.locals.user.isSuperAdmin) {
+  if (res.locals.user.isReportUser || res.locals.user.isSuperAdmin) {
     next()
   } else {
     next(createError(403, `User ${res.locals.user.id} is not authorized for reports`))
