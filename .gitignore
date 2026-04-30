@@ -33,3 +33,9 @@ local-testing/okta-debug-method.js
 local-testing/okta-debug.js
 local-testing/debug-real-data-getAll.js
 /local-testing/
+
+#keycloak (local-identity-and-access-management
+test/keycloak/local_user.json
+test/keycloak/h2/keycloakdb.mv.db
+test/keycloak/h2/keycloakdb.trace.db
+

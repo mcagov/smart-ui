@@ -4,6 +4,7 @@ import okta from '@okta/okta-sdk-nodejs';
 import { logger } from '@mca/common-logger';
 import { getEnv, sortName } from '../utils.js';
 import { randomUUID } from 'crypto';
+import { register } from 'node:module'
 
 const USER_STATUSES = { ACTIVE: 'ACTIVE' };
 const defaultRegisterError = 'This email cannot be used, try another'
@@ -70,15 +71,20 @@ class OktaUsers {
     return this._users(this.userApi.listUsers());
   }
 
-  async create(user) {
+  async create(user, autoActivate = true) {
     if (user) {
         user.type = { id: OKTA_SMART_USER_TYPE_ID };
     }
-    return this.userApi.createUser({body: user});
+    return this.userApi.createUser({body: user, activate: autoActivate});
   }
 
   async update(id, updated) {
-    const user = await this.userApi.getUser(id);
+    if(!id || !updated) {
+      const error = new Error("update user requires a user ID/update data.");
+      logger.error(error.message);
+      throw error;
+    }
+    const user = await this.userApi.getUser({userId: id});
 
     user.profile.firstName = updated.firstName;
     user.profile.lastName = updated.lastName;
@@ -87,29 +93,48 @@ class OktaUsers {
     // TODO: Uncomment if needed
     // user.profile.email = updated.email;
     // user.profile.login = updated.email;
-    // user.profile.trainingProviderId = updated.id;
-    return this.userApi.updateUser({userId:id,  user:updated});
+    // user.profile.trainingProviderId = updated.trainingProviderId; 
+    return this.userApi.updateUser({userId:id,  user:user});
   }
 
   async deactivateOrDeleteUser(id) {
+    if (!id) {
+      const error = new Error("deactivateOrDeleteUser requires a valid user ID.");
+      logger.error(error.message);
+      throw error;
+    }
     try {
-      await this.userApi.deactivateUser(id);
+      await this.userApi.deactivateUser({ userId: id });
+      logger.info(`User ${id} deactivated `);
     } catch (err) {
       if (err.status !== 404 && err.status !== 400) {
-        logger.warn(`Deactivate failed for ${id}, attempting delete anyway`, err);
+        logger.warn(`Deactivate failed for ${id}, Status: ${err.status}`, err);
       }
     }
-    return this.userApi.deleteUser(id);
+    return this.userApi.deleteUser({ userId: id});
   }
 
-  activate(id) {
-    return this.userApi.activateUser(id, { sendEmail: true });
+  async activate(id) {
+    try {
+      const user = await this.userApi.getUser({ userId: id });
+      if (user.status === 'PROVISIONED' || user.status === 'ACTIVE') {
+        logger.info(`User ${id} is already ${user.status}. Skipping activation.`);
+        return user;
+      }
+      return await this.userApi.activateUser({ userId: id, sendEmail: true });
+  } catch (err) {
+      logger.info('---ERROR--- ', err.message)
+      const log = getLog('activate__get_user', 'FAILED');
+      log.message = err.message;
+      log.error = { message: err.message, status: err.status, errorCauses: err.errorCauses };
+      logger.error(log.action, log);
+    }
   }
 
   async reactivate(id) {
     let user;
     try {
-      user = await this.userApi.getUser(id);
+      user = await this.userApi.getUser({userId: id});
       logSuccess('reactivate__get_user', user);
     } catch (err) {
       const log = getLog('reactivate__get_user', 'FAILED');
@@ -121,7 +146,7 @@ class OktaUsers {
 
     if (user && user.status === 'PROVISIONED') {
       try {
-        await this.userApi.reactivateUser(id, { sendEmail: true });
+        await this.userApi.reactivateUser({userId: id, sendEmail: true });
         logSuccess('reactivate__reactivate_user', 'SUCCESS');
       } catch (err) {
         const log = getLog('reactivate__reactivate_user', user);
@@ -131,7 +156,6 @@ class OktaUsers {
         logger.error(log.action, log);
       }
     }
-
     return user;
   }
 
@@ -151,7 +175,7 @@ class OktaUsers {
     let created;
     try {
       user.groupIds = [group.id];
-      created = await this.create(user);
+      created = await this.create(user, false);
       logSuccess('register__create_user', created);
     } catch (err) {
       const msg = getSignupError(err);
@@ -169,7 +193,7 @@ class OktaUsers {
     return created;
   }
 
-  authn(credentials) {
+  async authn(credentials) {
     return request
       .post(process.env.OKTA_ORG_URL + '/api/v1/authn')
       .send(credentials)
@@ -183,7 +207,7 @@ class OktaUsers {
       });
   }
 
-  resetPwAuthn(credentials) {
+  async resetPwAuthn(credentials) {
     return request
       .post(process.env.OKTA_ORG_URL + '/api/v1/authn/recovery/token')
       .send(credentials)
@@ -203,10 +227,10 @@ class OktaUsers {
   }
 
   unlock(id) {
-    return this.userApi.unlockUser(id);
+    return this.userApi.unlockUser({ userId:id });
   }
 
-  resetPassword(credentials) {
+  async resetPassword(credentials) {
     return request
       .post(process.env.OKTA_ORG_URL + '/api/v1/authn/credentials/reset_password')
       .send(credentials)
@@ -220,7 +244,7 @@ class OktaUsers {
       });
   }
 
-  changePassword(credentials) {
+  async changePassword(credentials) {
     return request
       .post(process.env.OKTA_ORG_URL + '/api/v1/authn/credentials/change_password')
       .send(credentials)
@@ -234,7 +258,7 @@ class OktaUsers {
       });
   }
 
-  forgotPassword(account) {
+  async forgotPassword(account) {
     return request
       .post(process.env.OKTA_ORG_URL + '/api/v1/authn/recovery/password')
       .send(account)
@@ -248,8 +272,19 @@ class OktaUsers {
       });
   }
 
-  adminResetPassword(id) {
-    return this.userApi.resetPassword(id, { sendEmail: true });
+  async adminResetPassword(id) {
+    if (!id) throw new Error("adminResetPassword: Missing user ID");
+    try {
+      const resetToken = await this.userApi.generateResetPasswordToken({
+        userId: id,
+        sendEmail: true
+      });
+      logger.info(`Successfully triggered password reset for ${id}`);
+      return resetToken;
+    } catch (err) {
+      logger.error(`Failed to reset password for ${id}:`, err);
+      throw err;
+    }
   }
 
   async getAll(ids) {
@@ -371,14 +406,18 @@ class OktaUsers {
   }
 }
 
-function getSignupError (err) {
+function getSignupError(err) {
   if (isUserConflictError(err)) {
     return 'A user with this email already exists, try another';
-  } else if (isPasswordError(err)) {
-    return err.errorCauses[0].errorSummary.substring(10);
-  } else {
-    return 'Registration failed';
   }
+  const PREFIX_LENGTH = 10;
+  const summary = err?.errorCauses?.[0]?.errorSummary;
+  if (isPasswordError(err) && summary) {
+    return summary.length > PREFIX_LENGTH
+      ? summary.substring(PREFIX_LENGTH).trim()
+      : summary;
+  }
+  return 'Registration failed';
 }
 
 function isUserConflictError (err) {
@@ -393,6 +432,17 @@ function hasError (err, msg) {
   return (err &&
     Array.isArray(err.errorCauses) &&
     err.errorCauses.findIndex((e) => e.errorSummary && e.errorSummary.includes(msg)) > -1);
+}
+
+function getDeleteUserError(err) {
+  const status = err?.status || err?.response?.status;
+  if (status === 404) {
+    return 'User could not be found; they may have already been deleted.';
+  }
+  if (status === 403) {
+    return 'You do not have permission to delete this user.';
+  }
+  return 'An error occurred while trying to remove the user. Please try again.';
 }
 
 function getLog (action, status) {
@@ -441,4 +491,4 @@ function logWarn (action, err) {
 }
 
 export default OktaUsers;
-export { getSignupError };
+export { getSignupError, getDeleteUserError };

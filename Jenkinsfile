@@ -36,7 +36,7 @@ pipeline {
         LOCAL_AUTH = 'true'
         SESSION_SECRET = '34b9b922-114c-4cc8-b5f9-b029ebe86f59'
         OKTA_ORG_URL = 'https://id.preprod.mcga.uk/'
-        OKTA_AUD = 'api://mcauk-smart-dev'
+        OKTA_AUD = 'api://local-smart'
         OKTA_SCOPE = 'openid profile offline_access'
         OKTA_REDIRECT_URI = 'https://service.local.smart.mcga.uk/authorization-code/callback'
         OKTA_ISSUER_URL = 'https://id.preprod.mcga.uk/oauth2/ausbuj5bluwtaUnO40x7'
@@ -99,9 +99,9 @@ pipeline {
                             sh 'npm --userconfig .npmrc set email mcauk@catapult.cx'
                             withAWS(roleAccount: '009543623063', role: 'CrossAccount-Deployer', region: "${AWS_REGION}") {
                                 sh 'npm run ca:setup'
-                                env.OKTA_CLIENT_SECRET = credentials('dev/smart/okta_client_secret')
-                                env.OKTA_ACCESS_API_TOKEN = credentials('dev/smart/okta-api-token')
-                                env.LOCAL_AUTH_JWT_KEY = credentials('dev/smart/local_auth_jwt_key')
+                                env.OKTA_CLIENT_SECRET = credentials('okta-client-secret')
+                                env.OKTA_ACCESS_API_TOKEN = credentials('okta-access-api-token')
+                                env.LOCAL_AUTH_JWT_KEY = credentials('local-auth-jwt-key')
                                 env.OKTA_SCOPE_AB = sh(script: '''aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                                 env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                             }

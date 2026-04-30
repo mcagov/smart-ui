@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 import OktaUsers from '../../src/services/okta.users.js'
-import { logger } from '@mca/common-logger';
+import { logger } from '@mca/common-logger'; //useful to keep for debugging
 import { afterAll, beforeAll } from '@jest/globals'
 
 dotenv.config()
@@ -71,6 +71,15 @@ const user2 = {
   }
 }
 
+const userToActivate = {
+  profile: {
+    firstName: 'Test',
+    lastName: 'Activate',
+    email: 'test-activate@eddiemt.com',
+    login: 'test-activate@eddiemt.com'
+  }
+};
+
 async function teardownUser (id) {
   try {
     const user = await userService.get(id)
@@ -85,10 +94,14 @@ async function teardownUser (id) {
 
 describe.skip('OktaUsers', () => {
   beforeAll(async () => {
+    await teardownUser(user1.profile.login)
     await teardownUser(user2.profile.login)
+    await teardownUser(userToActivate.profile.login)
   })
   afterAll(async () => {
+    await teardownUser(user1.profile.login)
     await teardownUser(user2.profile.login)
+    await teardownUser(userToActivate.profile.login)
   })
 
   describe('get brands', () => {
@@ -111,32 +124,32 @@ describe.skip('OktaUsers', () => {
         })
     })
   })
-  describe.skip('#create', () => {
+  describe('#create', () => {
     it('should create a user', async() => {
-      logger.info('Testing create user', user1)
       return await userService.create(user1)
         .then((item) => {
           expect(item.profile.email).toBe("info@eddiemt.com")
         })
     })
   })
-  describe.skip('#activate', () => {
+  describe('#activate', () => {
     it('should activate a staged user', async() => {
-      return await userService.activate('info@eddiemt.com')
-        .then((item) => {
-          expect(item).toBeDefined()
-        })
-    })
-  })
-  describe.skip('#resetPassword', () => {
+      const createdUser = await userService.create(userToActivate, false);
+      await userService.activate(createdUser.id);
+      const newUser = await userService.userApi.getUser({ userId: createdUser.id });
+      expect(newUser).toBeDefined();
+      expect(newUser.status).toBe('PROVISIONED');
+    });
+  });
+  describe('#resetPassword', () => {
     it('should reset a password for user', () => {
-      return userService.adminResetPassword('00u7r84k5qpwDXA5D357')
+      return userService.adminResetPassword(USERS.NOT_ACTIVE.id)
         .then((item) => {
           expect(item).toBeDefined()
         })
     })
   })
-  describe.skip('#register and update', () => {
+  describe('#register and update', () => {
     describe('#register', () => {
       it('should register a training provider user', () => {
         return userService.register(user2)
@@ -260,11 +273,11 @@ describe.skip('OktaUsers', () => {
           expect(item.profile.lastName).toEqual(USERS.MCA_BOT.lastName)
         })
     })
-    it.skip('should NOT work for invalid account ', () => {
+    it('should NOT work for invalid account ', () => {
       return userService.getActiveUser(USERS.NOT_ACTIVE.email).catch((err) => {
         expect(err).toBeDefined()
         expect(err.status).toEqual(403)
-        expect(err.message).toEqual('User notactive@test.catapult.cx has not been activated - check with the user')
+        expect(err.message).toEqual('User notactive@smarttest.com has not been activated - check with the user')
       })
     })
     it('should NOT work for inactive account ', () => {

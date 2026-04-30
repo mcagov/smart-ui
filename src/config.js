@@ -128,6 +128,12 @@ const configSchema = {
     default: false,
     env: 'LOCAL_AUTH'
   },
+  useLocalKeycloak: {
+    doc: 'Bypass Okta and use local Keycloak for local development',
+    format: Boolean,
+    default: false,
+    env: 'USE_LOCAL_KEYCLOAK'
+  },
   redis: {
     host: {
       format: String,

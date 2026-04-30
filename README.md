@@ -136,6 +136,27 @@ Change `COMPOSE_PROFILES` in your `.env` file to `COMPOSE_PROFILES=default,attac
 
 [Run the application](#run-the-application).
 
+### Run SMarT UI with Azure B2C authentication
+
+Ensure your `COMPOSE_PROFILES` in your `.env` is set to `COMPOSE_PROFILES=default,attachments,comments`
+
+Then make sure the following are set in the `.env` file too...
+
+```shell
+NODE_ENV=dev
+LOCAL_AUTH=false
+```
+
+You also need to run the main SMART-API in dev mode too. Instructions on how to do this are in the SMarT-API readme.  
+
+If you get `process.on.uncaughtException  certificate has expired`...
+
+You might just need to run...
+
+```shell
+./update-local-certs.sh
+```
+
 ### Testing
 
 #### Unit tests

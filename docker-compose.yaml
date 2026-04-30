@@ -357,6 +357,29 @@ services:
 #           cpus: "1"
 #     memswap_limit: 2g
 
+
+
+  identity-and-access-management:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_DB=dev-file
+      - KC_HTTP_ENABLED=true
+    ports:
+      - "8484:8080"
+    profiles:
+      - default
+    volumes:
+      - ./test/keycloak/:/opt/keycloak/data/
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g
+
 networks:
   app_net:
     driver: bridge
