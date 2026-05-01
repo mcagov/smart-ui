@@ -19,7 +19,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.50
+    image: 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.63
     ports:
       - '8080:8080'
       - '8082:8082'

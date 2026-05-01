@@ -4,8 +4,8 @@ import okta from '@okta/okta-sdk-nodejs';
 import { logger } from '@mca/common-logger';
 import { getEnv, sortName } from '../utils.js';
 import { randomUUID } from 'crypto';
-import { register } from 'node:module'
 
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const USER_STATUSES = { ACTIVE: 'ACTIVE' };
 const defaultRegisterError = 'This email cannot be used, try another'
 const TRAINING_PROVIDER_GROUP_NAME = `mcauk-smart-${getEnv()}-training-providers`;
@@ -93,25 +93,31 @@ class OktaUsers {
     // TODO: Uncomment if needed
     // user.profile.email = updated.email;
     // user.profile.login = updated.email;
-    // user.profile.trainingProviderId = updated.trainingProviderId; 
+    // user.profile.trainingProviderId = updated.trainingProviderId;
     return this.userApi.updateUser({userId:id,  user:user});
   }
 
-  async deactivateOrDeleteUser(id) {
+  async deactivateAndDeleteUser(id) {
     if (!id) {
-      const error = new Error("deactivateOrDeleteUser requires a valid user ID.");
-      logger.error(error.message);
-      throw error;
+      throw new Error("deactivateAndDeleteUser requires a valid user ID.");
     }
     try {
       await this.userApi.deactivateUser({ userId: id });
-      logger.info(`User ${id} deactivated `);
+      logger.info(`User ${id} deactivated`);
     } catch (err) {
-      if (err.status !== 404 && err.status !== 400) {
-        logger.warn(`Deactivate failed for ${id}, Status: ${err.status}`, err);
+      if (err.status !== 404) {
+        logger.warn(`Deactivation failed for ${id}: ${err.message}`);
       }
     }
-    return this.userApi.deleteUser({ userId: id});
+    try {
+      return await this.userApi.deleteUser({ userId: id });
+    } catch (err) {
+      if (err.status === 404) {
+        logger.info(`User ${id} already deleted or not found.`);
+        return true;
+      }
+      throw err;
+    }
   }
 
   async activate(id) {
@@ -171,24 +177,21 @@ class OktaUsers {
       logger.error(log.action, log);
       throw createError(500, 'There is a problem with the sign up service, please try later');
     }
-
     let created;
     try {
       user.groupIds = [group.id];
       created = await this.create(user, false);
       logSuccess('register__create_user', created);
     } catch (err) {
-      const msg = getSignupError(err);
-      logError('register__create_user', err, msg);
-      throw createError(400, msg);
+      logError('register__create_user', err);
+      throw err;
     }
-
     try {
       await this.activate(created.id);
       logSuccess('register__activate_user', created);
     } catch (err) {
       logError('register__activate_user', err, undefined, created);
-      throw createError(400, `${defaultRegisterError}`);
+      throw err;
     }
     return created;
   }
@@ -324,10 +327,19 @@ class OktaUsers {
     return group;
   }
 
-  getUsersByTrainingProviderId(id) {
-    return this._users(this.userApi.listUsers({
-      search: `profile.trainingProviderId eq "${id}"`
-    }));
+  async getUsersByTrainingProviderId(id, retries = 20, waitTime = 500) {
+    try {
+      return await this._users(this.userApi.listUsers({
+        search: `profile.trainingProviderId eq "${id}"`
+      }));
+    } catch (err) {
+      if ((err.status === 404 || err.errorCode === 'E0000007') && retries > 0) {
+        logger.warn(`Okta index stale for provider ${id}. Retrying in ${waitTime}ms. Retries left: ${retries}`);
+        await delay(waitTime);
+        return this.getUsersByTrainingProviderId(id, retries - 1, waitTime * 2);
+      }
+      throw err;
+    }
   }
 
   async getAdminBodyUsers() {
@@ -408,16 +420,40 @@ class OktaUsers {
 
 function getSignupError(err) {
   if (isUserConflictError(err)) {
-    return 'A user with this email already exists, try another';
+    return [{
+      text: 'A user with this email already exists, try another',
+      href: '#email'
+    }];
   }
-  const PREFIX_LENGTH = 10;
-  const summary = err?.errorCauses?.[0]?.errorSummary;
-  if (isPasswordError(err) && summary) {
-    return summary.length > PREFIX_LENGTH
-      ? summary.substring(PREFIX_LENGTH).trim()
+  if (isPasswordError(err)) {
+    const summary = pickErrorString(err, 'password:') || 'Password does not meet security requirements.';
+    const errorText = summary.toLowerCase().startsWith('password: ')
+      ? summary.substring(10).trim()
       : summary;
+    return [{
+      text: errorText,
+      href: '#password'
+    }];
   }
-  return 'Registration failed';
+  return [{
+    text: 'Registration failed. Please try again or contact support.',
+    href: '/support'
+  }];
+}
+
+function pickErrorString(err, matchString) {
+  if (!err) return null;
+  if (err.errorSummary && err.errorSummary.includes(matchString)) {
+    return err.errorSummary;
+  }
+  if (Array.isArray(err.errorCauses)) {
+    const cause = err.errorCauses.find(e => e.errorSummary && e.errorSummary.includes(matchString));
+    if (cause) return cause.errorSummary;
+  }
+  if (err.message && err.message.includes(matchString)) {
+    return err.message;
+  }
+  return null;
 }
 
 function isUserConflictError (err) {
@@ -428,10 +464,18 @@ function isPasswordError (err) {
   return hasError(err, 'password:');
 }
 
-function hasError (err, msg) {
-  return (err &&
-    Array.isArray(err.errorCauses) &&
-    err.errorCauses.findIndex((e) => e.errorSummary && e.errorSummary.includes(msg)) > -1);
+function hasError(err, msg) {
+  if (!err) return false;
+  if (err.message && err.message.includes(msg)) {
+    return true;
+  }
+  if (err.errorSummary && err.errorSummary.includes(msg)) {
+    return true;
+  }
+  if (Array.isArray(err.errorCauses)) {
+    return err.errorCauses.some((e) => e.errorSummary && e.errorSummary.includes(msg));
+  }
+  return false;
 }
 
 function getDeleteUserError(err) {

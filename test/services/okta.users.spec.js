@@ -84,8 +84,8 @@ async function teardownUser (id) {
   try {
     const user = await userService.get(id)
     if (user) {
-      await userService.deactivateOrDeleteUser(user.id)
-      await userService.deactivateOrDeleteUser(user.id)
+      await userService.deactivateAndDeleteUser(user.id)
+      await userService.deactivateAndDeleteUser(user.id)
     }
   } catch (err) {
     console.log(err)

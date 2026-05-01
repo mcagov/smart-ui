@@ -6,14 +6,20 @@ import { logger } from '@mca/common-logger'
 
 let service = new OktaUsers()
 
+
 if (useLocalAuth()) {
   logger.info('Using LocalUsers')
   service = new LocalUsers()
 }
 
-export async function getUsers (req, res, next) {
-  res.locals.users = await service.getUsersByTrainingProviderId(req.params.id)
-  next()
+export async function getUsers(req, res, next) {
+  try {
+    res.locals.users = await service.getUsersByTrainingProviderId(req.params.id);
+    next();
+  } catch (err) {
+    logger.error(`Failed to fetch users for provider ${req.params.id} after retries:`, err.message);
+    next(err);
+  }
 }
 
 export async function getUser (req, res, next) {
@@ -53,23 +59,24 @@ export async function updateUser (req, res, next) {
 }
 
 export async function deactivate(req, res, next) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(401).render('users/edit', {
-      error: govUKErrors(errors.errors)
-    });
-  }
   try {
-    await service.deactivateOrDeleteUser(req.params.userId);
-    res.redirect(`/training-providers/${req.params.id}/users`);
-  } catch (err) {
-    if (err.status === 500) {
-      next(err);
-    } else {
-      res.render('users/confirm-status', {
-        error: getDeleteUserError(err)
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(401).render('users/edit', {
+        error: govUKErrors(errors.errors)
       });
     }
+    await service.deactivateAndDeleteUser(req.params.userId);
+    return res.redirect(`/training-providers/${req.params.id}/users`);
+
+  } catch (err) {
+    if (err.status === 500) return next(err);
+    // Redirect back to the user list where the error will be displayed
+    if (err.status === 404) return res.redirect(`/training-providers/${req.params.id}/users`);
+    return res.render('users/confirm-status', {
+      error: getDeleteUserError(err),
+      providerId: req.params.id
+    });
   }
 }
 
@@ -107,7 +114,7 @@ export async function adminResetPassword (req, res, next) {
   }
 }
 
-export async function registerUser (req, res, next) {
+export async function registerUser(req, res, next) {
   const user = {
     profile: {
       firstName: req.body.firstname,
@@ -117,20 +124,27 @@ export async function registerUser (req, res, next) {
       primaryPhone: req.body.phone,
       trainingProviderId: req.params.id
     }
-  }
-  const errors = validationResult(req)
+  };
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(401).render('users/register', { error: govUKErrors(errors.errors), profile: user.profile })
-  } else {
-    service
-      .register(user)
-      .then((created) => { res.redirect(`/training-providers/${req.params.id}/users/${created.id}`) })
-      .catch((err) => {
-        if (err.status === 500) {
-          next(err)
-        } else {
-          res.render('users/register', { error: getSignupError(err), profile: user.profile })
-        }
-      })
+    return res.status(400).render('users/register', {
+      error: govUKErrors(errors.errors),
+      profile: user.profile
+    });
+  }
+  try {
+    await service.register(user);
+    return res.render('users/register', {
+      status: 'success',
+      email: user.profile.email
+    });
+  } catch (err) {
+    if (err.status === 500) {
+      return next(err);
+    }
+    return res.status(400).render('users/register', {
+      error: getSignupError(err),
+      profile: user.profile
+    });
   }
 }

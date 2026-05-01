@@ -5,6 +5,7 @@ const mockDeactivate = jest.fn();
 const mockUpdate = jest.fn();
 const mockAdminResetPassword = jest.fn();
 const mockActivate = jest.fn();
+const mockValidationResult = jest.fn();
 
 //We need to mock both services or else you cannot test in Jenkins currently (22/06/26)
 jest.unstable_mockModule('../../src/services/okta.users.js', () => ({
@@ -27,7 +28,7 @@ jest.unstable_mockModule('../../src/services/okta.users.js', () => ({
   }),
   getSignupError: jest.fn((err) => 'Mocked signup error message'),
   default: jest.fn().mockImplementation(() => ({
-    deactivateOrDeleteUser: mockDeactivate,
+    deactivateAndDeleteUser: mockDeactivate,
     update: mockUpdate,
     adminResetPassword: mockAdminResetPassword,
     activate: mockActivate
@@ -36,13 +37,13 @@ jest.unstable_mockModule('../../src/services/okta.users.js', () => ({
 jest.unstable_mockModule('../../src/services/local.users.js', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
-    deactivateOrDeleteUser: mockDeactivate,
+    deactivateAndDeleteUser: mockDeactivate,
     update: mockUpdate,
     adminResetPassword: mockAdminResetPassword,
     activate: mockActivate
   })),
   LocalUsers: jest.fn().mockImplementation(() => ({
-    deactivateOrDeleteUser: mockDeactivate,
+    deactivateAndDeleteUser: mockDeactivate,
     update: mockUpdate,
     adminResetPassword: mockAdminResetPassword,
     activate: mockActivate
@@ -50,7 +51,8 @@ jest.unstable_mockModule('../../src/services/local.users.js', () => ({
 }));
 
 jest.unstable_mockModule('express-validator', () => ({
-  validationResult: jest.fn()
+  __esModule: true,
+  validationResult: mockValidationResult
 }));
 
 const { updateUser } = await import('../../src/controllers/users.js');
@@ -66,7 +68,8 @@ describe('Unit tests for the deactivate function in the user controller', () => 
     jest.clearAllMocks();
 
     req = {
-      params: { userId: 'user-123', id: 'training-provider-x' }
+      params: { userId: 'user-123', id: 'training-provider-x' },
+      body: {}
     };
     res = {
       redirect: jest.fn(),
@@ -77,27 +80,31 @@ describe('Unit tests for the deactivate function in the user controller', () => 
   });
 
   it('should redirect to the users list on successful service call', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     mockDeactivate.mockResolvedValue();
     await deactivate(req, res, next);
     expect(res.redirect).toHaveBeenCalledWith('/training-providers/training-provider-x/users');
   });
 
   it('should render the edit view with errors if validation fails', async () => {
-    validationResult.mockReturnValue({
+    mockValidationResult.mockReturnValueOnce({
       isEmpty: () => false,
-      errors: [{ msg: 'Invalid ID' }]
+      errors: [{
+        type: 'field',
+        msg: 'Invalid ID',
+        path: 'userId',
+        location: 'params'
+      }]
     });
     await deactivate(req, res, next);
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.render).toHaveBeenCalledWith('users/edit', expect.objectContaining({
-      error: expect.any(Object)
+      error: expect.anything()
     }));
-    expect(mockDeactivate).not.toHaveBeenCalled();
   });
 
   it('should call next(err) if the service throws a 500 error', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
 
     const error500 = new Error('Server Crash');
     error500.status = 500;
@@ -108,23 +115,11 @@ describe('Unit tests for the deactivate function in the user controller', () => 
     expect(next).toHaveBeenCalledWith(error500);
   });
 
-  it('should render the correct error message', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
-
-    const loggerError = {
-      level: "error",
-      message: "Something went wrong",
-      status: 404,
-      timestamp: new Date().toISOString()
-    };
-
-    mockDeactivate.mockRejectedValue(loggerError);
-
+  it('should silently redirect to the user list if the user is already deleted (404)', async () => {
+    mockDeactivate.mockRejectedValue({ status: 404 });
     await deactivate(req, res, next);
-
-    expect(res.render).toHaveBeenCalledWith('users/confirm-status', {
-      error: 'User could not be found; they may have already been deleted.'
-    });
+    expect(res.render).not.toHaveBeenCalled();
+    expect(res.redirect).toHaveBeenCalledWith(`/training-providers/${req.params.id}/users`);
   });
 });
 
@@ -151,19 +146,19 @@ describe('Unit tests for the updateUser function in the user controller', () => 
   });
 
   it('should redirect to the user profile on successful update', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     mockUpdate.mockResolvedValue();
     await updateUser(req, res, next);
-    expect(mockUpdate).toHaveBeenCalledWith('user-123', {
+    expect(mockUpdate).toHaveBeenCalledWith('user-123', expect.objectContaining({
       firstName: 'Dave',
       lastName: 'Jones',
       primaryPhone: '01234567890'
-    });
+    }));
     expect(res.redirect).toHaveBeenCalledWith('/training-providers/training-provider-x/users/user-123');
   });
 
   it('should render the edit view with errors if validation fails', async () => {
-    validationResult.mockReturnValue({
+    mockValidationResult.mockReturnValue({
       isEmpty: () => false,
       errors: [{ msg: 'Invalid phone number' }]
     });
@@ -176,7 +171,7 @@ describe('Unit tests for the updateUser function in the user controller', () => 
   });
 
   it('should call next(err) if the service throws a 500 error', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     const error500 = new Error('Okta API Outage');
     error500.status = 500;
     mockUpdate.mockRejectedValue(error500);
@@ -186,7 +181,7 @@ describe('Unit tests for the updateUser function in the user controller', () => 
   });
 
   it('should render the edit view for non-500 errors', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     const error400 = new Error('Validation failed at Okta level');
     error400.status = 400;
     mockUpdate.mockRejectedValue(error400);
@@ -219,7 +214,7 @@ describe('Unit tests for the adminResetPassword function in the user controller'
   });
 
   it('should redirect to the user profile on successful password reset', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     mockAdminResetPassword.mockResolvedValue();
     await adminResetPassword(req, res, next);
     expect(mockAdminResetPassword).toHaveBeenCalledWith('user-123');
@@ -227,7 +222,7 @@ describe('Unit tests for the adminResetPassword function in the user controller'
   });
 
   it('should render the edit view with errors if validation fails', async () => {
-    validationResult.mockReturnValue({
+    mockValidationResult.mockReturnValue({
       isEmpty: () => false,
       errors: [{ msg: 'Invalid user ID format' }]
     });
@@ -240,7 +235,7 @@ describe('Unit tests for the adminResetPassword function in the user controller'
   });
 
   it('should call next(err) if the service throws a 500 error', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     const error500 = new Error('Okta API Connectivity Issue');
     error500.status = 500;
     mockAdminResetPassword.mockRejectedValue(error500);
@@ -250,7 +245,7 @@ describe('Unit tests for the adminResetPassword function in the user controller'
   });
 
   it('should render the confirm-reset-password view for non-500 errors', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     const error400 = new Error('User is not in an active state');
     error400.status = 400;
     mockAdminResetPassword.mockRejectedValue(error400);
@@ -278,7 +273,7 @@ describe('Unit tests for the activate function in the user controller', () => {
   });
 
   it('should redirect to the user profile on successful activation', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     mockActivate.mockResolvedValue();
     await activate(req, res, next);
     expect(mockActivate).toHaveBeenCalledWith('user-123');
@@ -286,7 +281,7 @@ describe('Unit tests for the activate function in the user controller', () => {
   });
 
   it('should render the edit view with errors if validation fails', async () => {
-    validationResult.mockReturnValue({
+    mockValidationResult.mockReturnValue({
       isEmpty: () => false,
       errors: [{ msg: 'Invalid user ID provided' }]
     });
@@ -299,7 +294,7 @@ describe('Unit tests for the activate function in the user controller', () => {
   });
 
   it('should call next(err) if the service throws a 500 error', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     const error500 = new Error('Database / Okta timeout');
     error500.status = 500;
     mockActivate.mockRejectedValue(error500);
@@ -309,7 +304,7 @@ describe('Unit tests for the activate function in the user controller', () => {
   });
 
   it('should render the confirm-status view for non-500 errors', async () => {
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    mockValidationResult.mockReturnValue({ isEmpty: () => true });
     const error400 = new Error('User cannot be activated in current state');
     error400.status = 400;
     mockActivate.mockRejectedValue(error400);

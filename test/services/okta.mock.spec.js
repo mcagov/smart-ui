@@ -144,10 +144,10 @@ describe('OktaUsers Service (Unit)', () => {
     });
   });
 
-  describe('deactivateOrDeleteUser()', () => {
+  describe('deactivateAndDeleteUser()', () => {
     it('should attempt deactivate then delete', async () => {
       const user = 'u123'
-      await oktaService.deactivateOrDeleteUser(user);
+      await oktaService.deactivateAndDeleteUser(user);
 
       expect(okta.UserApi.prototype.deactivateUser.calledWith({ userId: 'u123' } )).toBeTruthy();
       expect(okta.UserApi.prototype.deleteUser.calledWith({userId: 'u123'})).toBeTruthy();
@@ -159,7 +159,7 @@ describe('OktaUsers Service (Unit)', () => {
       error.status = 404;
       okta.UserApi.prototype.deactivateUser.rejects(error);
 
-      await oktaService.deactivateOrDeleteUser(user);
+      await oktaService.deactivateAndDeleteUser(user);
 
       expect(okta.UserApi.prototype.deleteUser.calledWith({userId: 'u123'})).toBeTruthy();
     });
