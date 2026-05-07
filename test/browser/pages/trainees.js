@@ -74,23 +74,19 @@ class Trainees extends Page {
     return $('a=Enrol on training')
   }
 
-  get clientCompanyField() {
-    return $('.client-company-value')
+  get clientCompanyRow() {
+    return $('//dt[contains(text(), "Client company")]/..');
+  }
+
+  get clientCompanyValue() {
+    return this.clientCompanyRow.$('.govuk-summary-list__value');
   }
 
   get removeClientLink() {
     return $("//a[contains(., 'Remove') and contains(., 'client company')]");  }
 
-  async clickRemoveClient() {
-    const link = await this.removeClientLink;
-
-    link.scrollIntoView();
-    await link.waitForClickable({
-      timeout: 5000,
-      timeoutMsg: 'Remove link was not clickable after 5s'
-    });
-
-    await link.click();
+  get transferButton() {
+    return $('a.govuk-button[href*="/transfer"]');
   }
 }
 

@@ -10,25 +10,25 @@ describe('Admin removes trainee client company', () => {
 
   it('should login as a training provider', async () => {
     await Login.open()
-    expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
+    await expect(Login.pageTitle).toHaveText('Sign in to MCA SMarT')
     await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
   })
 
   it('should access the trainees page', async () => {
-    await Menu.trainees.click()
-    expect(Trainee.pageTitle).toHaveText('All trainees')
-  })
+    await Menu.trainees.click();
+    await TraineeList.traineesTable.waitForDisplayed();
+    await expect(TraineeList.pageTitle).toHaveText('All trainees');
+  });
 
-  it('should access the specific trainee with correct company name', async () => {
+  it('should access the specific trainee page', async () => {
     await TraineeList.selectTraineeByName(traineeName);
-    expect(browser).toHaveUrl('/trainees/');
-    expect(Trainee.header).toHaveText(traineeName);
-    expect(Trainee.clientCompanyField).toHaveText(companyName);
-  })
+    await expect(Trainee.headingL).toHaveText(`Details for ${traineeName}`);
+  });
 
   it('should check to see the client company name is populated', async () => {
-    expect(Trainee.clientCompanyField).toHaveText(companyName);
-  })
+    await Trainee.clientCompanyValue.waitForExist({ timeout: 5000 });
+    await expect(Trainee.clientCompanyValue).toHaveText(companyName);
+  });
 
   it('should trigger the removal', async () => {
     const removeLink = await Trainee.removeClientLink;

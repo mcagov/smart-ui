@@ -14,8 +14,15 @@
 
             {% from "components/training-provider-select/macro.njk" import trainingProviderSelect %}
 
+            {% set activeProviders = [] %}
+            {% for provider in trainingProviders.data %}
+            {% if provider.status === 'Active' %}
+            {% set activeProviders = (activeProviders.push(provider), activeProviders) %}
+            {% endif %}
+            {% endfor %}
+
             {{ trainingProviderSelect({
-                items: trainingProviders.data,
+                items: activeProviders,
                 value: trainee.trainingProvider.id,
                 label: {text:'Choose the receiving training provider' },
                 errorMessage: 'trainingProvider' | getError(errors)
@@ -33,5 +40,4 @@
         </form>
     </div>
 </div>
-
 {% endblock %}
