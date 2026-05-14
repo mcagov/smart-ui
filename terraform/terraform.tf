@@ -4,7 +4,7 @@ locals {
   vpc_name             = "${local.name_prefix}-vpc"
   cluster_name         = "${local.name_prefix}-eks"
   replication_group_id = "${local.name_prefix}-ui-session-cache"
-  ecr_repo_url         = "009543623063.dkr.ecr.eu-west-2.amazonaws.com"
+  ecr_repo_url         = "${var.ECR_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com"
   common_tags = {
     Organisation = var.organisation
     Project      = var.project

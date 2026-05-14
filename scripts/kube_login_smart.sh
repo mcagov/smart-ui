@@ -11,12 +11,14 @@ while [[ "$choice" != "1" && "$choice" != "2" && "$choice" != "3" ]]; do
     read -p "Enter your choice: " choice
 done
 
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
 if [[ $choice == "1" ]]; then
-    account="009543623063"
+    account="$ACCOUNT_ID"
 elif [[ $choice == "2" ]]; then
-    account="531614758775"
+    account="$ACCOUNT_ID"
 elif [[ $choice == "3" ]]; then
-    account="373269576498"
+    account="$ACCOUNT_ID"
 fi
 
 login=$(aws sts assume-role --role-arn "arn:aws:iam::$account:role/CrossAccount-Administrator" --role-session-name EKS_Access)

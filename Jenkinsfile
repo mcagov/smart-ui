@@ -9,6 +9,8 @@ pipeline {
     }
 
     environment {
+        AWS_DEV_ACCOUNT_ID = credentials('aws-dev-account')
+        TF_VAR_ECR_ACCOUNT_ID = "${AWS_DEV_ACCOUNT_ID}"
         NODE_ENV = 'local'
         POSTGRES_DB = 'smart'
         SMART_API = 'http://service.local.smart.mcga.uk:8080'
@@ -16,15 +18,11 @@ pipeline {
         ATTACHMENTS_API = 'http://service.local.smart.mcga.uk:7080'
         UI_URL = 'https://service.local.smart.mcga.uk'
         HOST = 'service.local.smart.mcga.uk'
-        //DOCKER = credentials('devtools/docker-hub')
-        // SONAR_ORG = "${env.JOB_NAME.toLowerCase().split('/')[0]}"
-        // SONAR_PROJECT = "${env.JOB_NAME.toLowerCase().split('/')[1]}"
-        // SONAR_TOKEN = credentials('devtools/sonar-token')
         LOGGER_TYPE = 'file'
         LOGGER_LEVEL = 'info'
         LOGGER_COLOURIZE = 'false'
         COMPOSE_INTERACTIVE_NO_CLI = '1'
-        DOCKER_REGISTRY = '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
+        DOCKER_REGISTRY = "${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com"
         DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain'
         DOCKER_BUILDKIT = '1'
         ENABLE_XRAY = false
@@ -34,7 +32,7 @@ pipeline {
         AWS_PRIVATE_BUCKET = 'mcauk-smart-dev-attachments'
         APP_BASE_URL = 'http://service.local.smart.mcga.uk'
         LOCAL_AUTH = 'true'
-        SESSION_SECRET = '34b9b922-114c-4cc8-b5f9-b029ebe86f59'
+        SESSION_SECRET = credentials('session-secret')
         OKTA_ORG_URL = 'https://id.preprod.mcga.uk/'
         OKTA_AUD = 'api://local-smart'
         OKTA_SCOPE = 'openid profile offline_access'
@@ -42,7 +40,7 @@ pipeline {
         OKTA_ISSUER_URL = 'https://id.preprod.mcga.uk/oauth2/ausbuj5bluwtaUnO40x7'
         OKTA_CLIENT_ID = '0oabsafq0qdYfzmu70x7'
         ENABLE_REDIS = 'true'
-        REDIS_PASSWORD = 'V*.L=pL9B[kwM8d+'
+        REDIS_PASSWORD = credentials('redis-password')
         REDIS_HOST = 'service.local.smart.mcga.uk'
         REDIS_TLS = 'true'
         REDIS_PORT = '6379'
@@ -68,8 +66,8 @@ pipeline {
                 withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     script {
                         def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
-                        sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin 009543623063.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                        sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner 009543623063 --region eu-west-2 --profile SMarTSupportAccess-009543623063"
+                        sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                        sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner ${AWS_DEV_ACCOUNT_ID} --region eu-west-2 --profile SMarTSupportAccess-${AWS_DEV_ACCOUNT_ID}"
                     }
                 }
             }
@@ -77,7 +75,7 @@ pipeline {
         stage('build and test') {
             agent {
                 docker {
-                    image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest'
+                    image "${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest"
                     alwaysPull true
                     args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
                 }
@@ -97,7 +95,7 @@ pipeline {
 
                             sh 'rm -rf node_modules'
                             sh 'npm --userconfig .npmrc set email mcauk@catapult.cx'
-                            withAWS(roleAccount: '009543623063', role: 'CrossAccount-Deployer', region: "${AWS_REGION}") {
+                            withAWS(roleAccount: "${AWS_DEV_ACCOUNT_ID}", role: 'CrossAccount-Deployer', region: "${AWS_REGION}") {
                                 sh 'npm run ca:setup'
                                 env.OKTA_CLIENT_SECRET = credentials('okta-client-secret')
                                 env.OKTA_ACCESS_API_TOKEN = credentials('okta-access-api-token')
@@ -211,17 +209,18 @@ pipeline {
                     steps {
                         script {
                         def imageTag = (env.BRANCH_NAME == 'master') ? "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" : "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${env.BRANCH_NAME}-TEST"
-                            sh '''
-                            echo "Building docker image ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}"
+                            sh """
+                            echo "Building docker image ${imageTag}"
 
                             docker build ${DOCKER_OPTS} \
-                                -t "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" \
+                                -t "${imageTag}" \
                                 --secret id=npmrc,src=.npmrc \
+                                --build-arg AWS_DEV_ACCOUNT_ID=${AWS_DEV_ACCOUNT_ID} \
                                 --build-arg UI_VERSION=$NEXT_VERSION \
                                 .
 
-                            docker push "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}"
-                            '''
+                            docker push "${imageTag}"
+                            """
                         }
                     }
                 }

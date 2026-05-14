@@ -1,4 +1,6 @@
-FROM 009543623063.dkr.ecr.eu-west-2.amazonaws.com/node:latest
+ARG AWS_DEV_ACCOUNT_ID
+
+FROM ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/node:latest
 
 ARG UI_VERSION=""
 

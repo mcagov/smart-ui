@@ -87,3 +87,8 @@ variable "enable_forecast_workflow" {
     live    = true
   }
 }
+
+variable "ECR_ACCOUNT_ID" {
+  type        = string
+  description = "The AWS Account ID where the centralized ECR images reside (Dev Account)"
+}

@@ -15,9 +15,7 @@
         "test": "NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --forceExit",
         "test-without-coverage": "npm run test -- --coverage=false",
         "test:bdd": "cucumber-js",
-        "ca:login": "npm config --location=project set '//mcga-009543623063.d.codeartifact.eu-west-2.amazonaws.com/npm/mcga-npm/:_authToken' \"$(aws codeartifact get-authorization-token --domain mcga --domain-owner 009543623063 --query authorizationToken --output text)\"",
-        "ca:set-reg": "npm config --location=project set registry https://mcga-009543623063.d.codeartifact.eu-west-2.amazonaws.com/npm/mcga-npm/",
-        "ca:setup": "npm run ca:set-reg && npm run ca:login",
+        "ca:setup": "node scripts/setup-codeartifact-npm-registry.js",
         "test:wdio-chrome": "wdio run test/wdio-chrome.conf.js",
         "test:wdio-debug": "wdio run test/wdio-chrome.conf.js --suite debug",
         "test:wdio-headless": "wdio run test/wdio-headless.conf.js"
