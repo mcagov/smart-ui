@@ -15,7 +15,8 @@ export const config = merge(baseConfig, {
         '--disable-gpu-sandbox',
         '--disable-accelerated-2d-canvas',
         '--disable-accelerated-jpeg-decoding',
-        '--no-sandbox'
+        '--no-sandbox',
+        '--ignore-certificate-errors'
       ]
     }
   }],

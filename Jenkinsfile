@@ -16,8 +16,8 @@ pipeline {
         SMART_API = 'http://service.local.smart.mcga.uk:8080'
         COMMENTS_API = 'http://service.local.smart.mcga.uk:9080'
         ATTACHMENTS_API = 'http://service.local.smart.mcga.uk:7080'
-        UI_URL = 'https://service.local.smart.mcga.uk'
-        HOST = 'service.local.smart.mcga.uk'
+        UI_URL = 'http://localhost:2997'
+        HOST = '0.0.0.0'
         LOGGER_TYPE = 'file'
         LOGGER_LEVEL = 'info'
         LOGGER_COLOURIZE = 'false'
@@ -30,13 +30,13 @@ pipeline {
         AWS_XRAY_LOG_LEVEL = 'silent'
         AWS_REGION = 'eu-west-2'
         AWS_PRIVATE_BUCKET = 'mcauk-smart-dev-attachments'
-        APP_BASE_URL = 'http://service.local.smart.mcga.uk'
+        APP_BASE_URL = 'http://localhost:2997'
         LOCAL_AUTH = 'true'
         SESSION_SECRET = credentials('session-secret')
         OKTA_ORG_URL = 'https://id.preprod.mcga.uk/'
         OKTA_AUD = 'api://local-smart'
         OKTA_SCOPE = 'openid profile offline_access'
-        OKTA_REDIRECT_URI = 'https://service.local.smart.mcga.uk/authorization-code/callback'
+        OKTA_REDIRECT_URI = 'http://localhost:2997/authorization-code/callback'
         OKTA_ISSUER_URL = 'https://id.preprod.mcga.uk/oauth2/ausbuj5bluwtaUnO40x7'
         OKTA_CLIENT_ID = '0oabsafq0qdYfzmu70x7'
         ENABLE_REDIS = 'true'
@@ -153,12 +153,59 @@ pipeline {
                         withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                             script {
                                 env.COMPOSE_PROFILES = 'full'
+                                env.HOST = '0.0.0.0'
+                                env.DOCKER_HOST_IP = sh(script: "ip -4 route show default | awk '{print \$3}'", returnStdout: true).trim()
+                                env.UI_URL = "http://${env.DOCKER_HOST_IP}:2997"
+                                env.APP_BASE_URL = "http://${env.DOCKER_HOST_IP}:2997"
+
                                 sh 'gulp'
                                 sh 'docker compose build'
                                 sh 'docker compose up -d'
-                                // Make sure the API has finished the migration and seed scripts
-                                sh 'sleep 20s'
-                                sh 'npm run test:wdio-headless'
+                                sh '''
+                                    set +x
+
+                                    echo "Discovering host network..."
+
+                                    HOST_IP=$(docker network inspect bridge -f \'{{(index .IPAM.Config 0).Gateway}}\')
+
+                                    if [ -z "$HOST_IP" ]; then
+                                        echo "Failed to find Docker Gateway IP. Falling back to localhost."
+                                        HOST_IP="127.0.0.1"
+                                    fi
+
+                                    export TARGET_URL="http://${HOST_IP}:2997"
+                                    export UI_URL="${TARGET_URL}"
+                                    export APP_BASE_URL="${TARGET_URL}"
+
+                                    echo "Targeting smart-ui at ${TARGET_URL}..."
+
+                                    MAX_RETRIES=30
+                                    ATTEMPT=0
+                                    SUCCESS=0
+
+                                    while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+                                        STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${TARGET_URL}/ 2>/dev/null || echo "000")
+                                        echo "Probe returned HTTP Status: $STATUS"
+
+                                        if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ] || [ "$STATUS" = "304" ]; then
+                                            SUCCESS=1
+                                            break
+                                        fi
+
+                                        sleep 2
+                                        ATTEMPT=$((ATTEMPT + 1))
+                                    done
+
+                                    if [ $SUCCESS -eq 0 ]; then
+                                        echo "UI failed to boot after 60 seconds."
+                                        exit 1
+                                    fi
+
+                                    echo "smart-ui is ready at ${TARGET_URL}"
+
+                                    set -x
+                                    npm run test:wdio-headless
+                                '''
                             }
                         }
                     }
@@ -169,11 +216,10 @@ pipeline {
                             sh 'docker compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
                             sh 'docker compose logs nginx --no-color > docker-ui-test-nginx-logs.txt'
                             archiveArtifacts artifacts: 'docker-ui-test-ui-logs.txt, docker-ui-test-api-logs.txt, docker-ui-test-comments-logs.txt, docker-ui-test-nginx-logs.txt', allowEmptyArchive: true
-                            sh 'docker compose down || true'
-                            // step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/cobertura-coverage.xml'])
+                            sh 'docker compose down -v || true'
                         }
                     }
-               }
+                }
 
                 stage('npm publish') {
                    when {

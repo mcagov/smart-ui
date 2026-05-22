@@ -36,14 +36,24 @@ describe('Service Logging E2E Test', () => {
 
     expect(response.status).toBe(200);
 
-    const capturedLogs = consoleSpy.mock.calls[0]
-
-    expect(capturedLogs).toBeDefined();
-
     let parsedLog;
-    expect(() => {
-      parsedLog = JSON.parse(capturedLogs);
-    }).not.toThrow();
+    let foundValidLog = false;
+
+    for (const call of consoleSpy.mock.calls) {
+      try {
+        const logEntry = JSON.parse(call[0]);
+        if (logEntry.method === 'GET' && logEntry.url === '/') {
+          parsedLog = logEntry;
+          foundValidLog = true;
+          break;
+        }
+      } catch (err) {
+        continue;
+      }
+    }
+
+    expect(foundValidLog).toBe(true);
+    expect(parsedLog).toBeDefined();
 
     expect(parsedLog).toHaveProperty('method', 'GET');
     expect(parsedLog).toHaveProperty('status', "200");

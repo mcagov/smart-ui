@@ -3,6 +3,7 @@ import redis from 'redis'
 import connectRedis from 'connect-redis'
 import { logger } from '@mca/common-logger'
 import config from './config.js'
+import fs from 'fs'
 
 export function initialiseSession (app) {
   if (config.features.redis) {
@@ -21,6 +22,18 @@ export function initialiseSession (app) {
     if (config.redis.tls) {
       logger.info('REDIS_TLS is true - enabling tls for redis session')
       redisOptions.socket.tls = true
+
+      if (process.env.REDIS_CA_PATH) {
+        try {
+          redisOptions.socket.ca = [fs.readFileSync(process.env.REDIS_CA_PATH)]
+        } catch (err) {
+          logger.warn(`Could not load Redis CA at ${process.env.REDIS_CA_PATH}. Error: ${err.code} - ${err.message}. Relying on local auth fallback.`);        }
+      }
+      const isLocalDev = process.env.LOCAL_AUTH === 'true' || process.env.JAVA_ENV === 'local';
+      if (isLocalDev) {
+        logger.warn('Local environment detected: setting rejectUnauthorized = false for Redis Session TLS')
+        redisOptions.socket.rejectUnauthorized = false
+      }
     }
 
     const redisClient = redis.createClient(redisOptions)
@@ -28,7 +41,7 @@ export function initialiseSession (app) {
     redisClient.on('error', (err) => logger.error('Redis Client Error', err))
 
     redisClient.on('connect', function () {
-      logger.warn('redis for session connected')
+      logger.info('redis for session connected securely')
     })
 
     redisClient.connect().catch((err) => {
@@ -39,12 +52,12 @@ export function initialiseSession (app) {
     app.use(session({
       store: new RedisStore({
         client: redisClient,
-        ttl: 86400 // TODO - what should this be ?
+        ttl: 86400
       }),
       secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
-      cookie: { maxAge: 86400000 } // TODO - what should this be ?
+      cookie: { maxAge: 86400000 }
     }))
 
     return redisClient

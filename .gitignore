@@ -3,6 +3,7 @@
 *.sql.gz
 *.tfstate*
 *.zip
+.certs/
 .DS_Store
 .env
 .envrc
@@ -16,6 +17,7 @@
 TESTS-sonar.xml
 coverage
 kubeconfig_*
+leaks_report.json
 node_modules
 public
 reports
@@ -27,7 +29,6 @@ gitleaks-report.json
 terraform/dev.tfplan
 terraform/preprod.tfplan
 terraform/live.tfplan
-leaks_report.json
 
 #local debugging
 local-testing/okta-debug-method.js
