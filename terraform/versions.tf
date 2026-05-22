@@ -7,14 +7,8 @@ terraform {
     region               = "eu-west-2"
   }
   required_providers {
-    acme = {
-      source = "vancluever/acme"
-    }
     aws = {
       source = "hashicorp/aws"
-    }
-    cloudflare = {
-      source = "cloudflare/cloudflare"
     }
     kubectl = {
       source = "gavinbunney/kubectl"

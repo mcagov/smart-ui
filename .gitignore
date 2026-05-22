@@ -27,6 +27,7 @@ test/localstack/data
 wdio-output
 gitleaks-report.json
 terraform/dev.tfplan
+terraform/dev.tfvars
 terraform/preprod.tfplan
 terraform/live.tfplan
 
