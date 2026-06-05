@@ -27,8 +27,9 @@ const UPDATE_DATA = {
 
 describe('Training provider creates an absence', () => {
   before(async () => {
-    const connectionString = `postgres://smart:password@service.local.smart.mcga.uk:${
-      process.env.EXPOSED_POSTGRES_PORT ?? '7432'  }/smart`
+    const dbHost = process.env.DB_HOST || 'service.local.smart.mcga.uk';
+    const dbPort = process.env.EXPOSED_POSTGRES_PORT || '7432';
+    const connectionString = `postgres://smart:password@${dbHost}:${dbPort}/smart`;
 
     const client = new Client({ connectionString })
     await client.connect()

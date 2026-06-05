@@ -18,6 +18,7 @@ pipeline {
         ATTACHMENTS_API = 'http://service.local.smart.mcga.uk:7080'
         UI_URL = 'http://localhost:2997'
         HOST = '0.0.0.0'
+        EXPOSED_POSTGRES_PORT='7234'
         LOGGER_TYPE = 'file'
         LOGGER_LEVEL = 'info'
         LOGGER_COLOURIZE = 'false'
@@ -103,7 +104,7 @@ pipeline {
                                 env.OKTA_SCOPE_AB = sh(script: '''aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                                 env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                             }
-
+                            // TODO stop removing package-lock.json and use npm ci
                             sh 'npm cache clean --force'
                             sh 'rm -rf node_modules package-lock.json'
                             sh 'npm install'
@@ -130,11 +131,55 @@ pipeline {
                             sh 'gulp'
                             sh 'docker compose pull'
                             sh 'docker compose up -d'
-                            // Make sure the API has finished the migration and seed scripts
-                            sh 'sleep 60s'
-                            sh 'docker compose ps'
-                            sh 'docker compose exec redis env'
-                            sh 'npm test'
+
+                            script {
+                                def gatewayIp = sh(script: "docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}'", returnStdout: true).trim()
+
+                                sh """
+                                    set +x
+                                    TARGET_API="http://${gatewayIp}:8080"
+                                    echo "Probing SMarT API at \${TARGET_API} until initialized..."
+
+                                    MAX_RETRIES=30
+                                    ATTEMPT=0
+                                    SUCCESS=0
+
+                                    while [ \$ATTEMPT -lt \$MAX_RETRIES ]; do
+                                        STATUS=\$(curl -s -o /dev/null -w "%{http_code}" \${TARGET_API}/ 2>/dev/null || echo "000")
+                                        echo "API returned HTTP Status: \$STATUS"
+
+                                        if [ "\$STATUS" = "200" ] || [ "\$STATUS" = "302" ] || [ "\$STATUS" = "401" ] || [ "\$STATUS" = "404" ]; then
+                                            echo "SMarT API is ready, starting the tests..."
+                                            SUCCESS=1
+                                            break
+                                        fi
+
+                                        echo "API still booting, waiting 3 seconds... (Attempt \$((ATTEMPT + 1))/\$MAX_RETRIES)"
+                                        sleep 3
+                                        ATTEMPT=\$((ATTEMPT + 1))
+                                    done
+
+                                    if [ \$SUCCESS -eq 0 ]; then
+                                        echo "Error: SMarT API failed to become healthy within the time limit."
+                                        exit 1
+                                    fi
+
+                                    set -x
+                                """
+
+                                withEnv([
+                                    "DB_HOST=${gatewayIp}",
+                                    "SMART_API=http://${gatewayIp}:8080",
+                                    "COMMENTS_API=http://${gatewayIp}:9080",
+                                    "ATTACHMENTS_API=http://${gatewayIp}:7080",
+                                    "UI_URL=http://${gatewayIp}:2997",
+                                    "APP_BASE_URL=http://${gatewayIp}:2997",
+                                    "REDIS_HOST=${gatewayIp}"
+                                ]) {
+                                    sh 'docker compose exec redis env'
+                                    sh 'npm test -- --detectOpenHandles --verbose'
+                                }
+                            }
                         }
                     }
                     post {
@@ -152,60 +197,58 @@ pipeline {
                     steps {
                         withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                             script {
-                                env.COMPOSE_PROFILES = 'full'
-                                env.HOST = '0.0.0.0'
-                                env.DOCKER_HOST_IP = sh(script: "ip -4 route show default | awk '{print \$3}'", returnStdout: true).trim()
-                                env.UI_URL = "http://${env.DOCKER_HOST_IP}:2997"
-                                env.APP_BASE_URL = "http://${env.DOCKER_HOST_IP}:2997"
+                            env.COMPOSE_PROFILES = 'full'
+                            env.HOST = '0.0.0.0'
+                            env.DOCKER_HOST_IP = sh(script: "ip -4 route show default | awk '{print \$3}'", returnStdout: true).trim()
+                            env.UI_URL = "http://${env.DOCKER_HOST_IP}:2997"
+                            env.APP_BASE_URL = "http://${env.DOCKER_HOST_IP}:2997"
 
-                                sh 'gulp'
-                                sh 'docker compose build'
-                                sh 'docker compose up -d'
-                                sh '''
-                                    set +x
+                            sh 'gulp'
+                            sh 'docker compose build'
+                            sh 'docker compose up -d'
+                            sh '''
+                            set +x
+                            echo "Discovering host network..."
+                            HOST_IP=$(docker network inspect bridge -f \'{{(index .IPAM.Config 0).Gateway}}\')
 
-                                    echo "Discovering host network..."
+                            if [ -z "$HOST_IP" ]; then
+                                echo "Failed to find Docker Gateway IP. Falling back to localhost."
+                                HOST_IP="127.0.0.1"
+                            fi
 
-                                    HOST_IP=$(docker network inspect bridge -f \'{{(index .IPAM.Config 0).Gateway}}\')
+                            export TARGET_URL="http://${HOST_IP}:2997"
+                            export UI_URL="${TARGET_URL}"
+                            export APP_BASE_URL="${TARGET_URL}"
 
-                                    if [ -z "$HOST_IP" ]; then
-                                        echo "Failed to find Docker Gateway IP. Falling back to localhost."
-                                        HOST_IP="127.0.0.1"
-                                    fi
+                            echo "Targeting smart-ui at ${TARGET_URL}..."
 
-                                    export TARGET_URL="http://${HOST_IP}:2997"
-                                    export UI_URL="${TARGET_URL}"
-                                    export APP_BASE_URL="${TARGET_URL}"
+                            MAX_RETRIES=30
+                            ATTEMPT=0
+                            SUCCESS=0
 
-                                    echo "Targeting smart-ui at ${TARGET_URL}..."
+                            while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+                                STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${TARGET_URL}/ 2>/dev/null || echo "000")
+                                echo "Probe returned HTTP Status: $STATUS"
 
-                                    MAX_RETRIES=30
-                                    ATTEMPT=0
-                                    SUCCESS=0
+                                if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ] || [ "$STATUS" = "304" ]; then
+                                    SUCCESS=1
+                                    break
+                                fi
 
-                                    while [ $ATTEMPT -lt $MAX_RETRIES ]; do
-                                        STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${TARGET_URL}/ 2>/dev/null || echo "000")
-                                        echo "Probe returned HTTP Status: $STATUS"
+                                sleep 2
+                                ATTEMPT=$((ATTEMPT + 1))
+                            done
 
-                                        if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ] || [ "$STATUS" = "304" ]; then
-                                            SUCCESS=1
-                                            break
-                                        fi
+                            if [ $SUCCESS -eq 0 ]; then
+                                echo "UI failed to boot after 60 seconds."
+                                exit 1
+                            fi
 
-                                        sleep 2
-                                        ATTEMPT=$((ATTEMPT + 1))
-                                    done
-
-                                    if [ $SUCCESS -eq 0 ]; then
-                                        echo "UI failed to boot after 60 seconds."
-                                        exit 1
-                                    fi
-
-                                    echo "smart-ui is ready at ${TARGET_URL}"
-
-                                    set -x
-                                    npm run test:wdio-headless
-                                '''
+                            echo "smart-ui is ready at ${TARGET_URL}"
+                            export DB_HOST="${HOST_IP}"
+                            set -x
+                            npm run test:wdio-headless
+                            '''
                             }
                         }
                     }

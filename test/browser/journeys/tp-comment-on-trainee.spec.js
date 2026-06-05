@@ -13,10 +13,11 @@ const MESSAGES = [
 
 describe('create and reply to a comment on a trainee', () => {
   before(async () => {
-    const conString = 'postgres://smart:password@service.local.smart.mcga.uk:8432/smart-comments'
+    const commentsDbPort = '8432'
+    const dbHost = process.env.DB_HOST || 'service.local.smart.mcga.uk';
+    const conString = `postgres://smart:password@${dbHost}:${commentsDbPort}/smart-comments`;
     const client = new pg.Client(conString)
     await client.connect()
-
     await client.query('delete from message where comment_v2_id in (select id from comment_v2 where subject ~*  $1)', [TRAINEE_NAME])
     await client.query('delete from comment_v2 where subject ~*  $1', [TRAINEE_NAME])
     await client.end()

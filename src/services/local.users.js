@@ -4,7 +4,7 @@ const users = [
     id: '00uicwex5zQFIiC6f301',
     status: 'ACTIVE',
     lastLogin: '',
-    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-dev-super-admin'],
+    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-dev-super-admin', 'mcauk-smart-preprod-report-user'],
     profile: {
       firstName: 'mca',
       lastName: 'ab',
@@ -55,7 +55,7 @@ const users = [
     id: '00uicwex5zQFIiC6f305',
     status: 'ACTIVE',
     lastLogin: '',
-    groups: ['mcauk-smart-dev-administrative-body'],
+    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-preprod-report-user'],
     profile: {
       firstName: 'Craig',
       lastName: 'Cook',
@@ -93,7 +93,7 @@ const users = [
     id: '00uicwex5zQFIiC6f308',
     status: 'ACTIVE',
     lastLogin: '',
-    groups: ['mcauk-smart-dev-administrative-body'],
+    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-preprod-report-user'],
     profile: {
       firstName: 'Jack',
       lastName: 'Bauer',
@@ -105,7 +105,7 @@ const users = [
     id: '00uicwex5zQFIiC6f309',
     status: 'ACTIVE',
     lastLogin: '',
-    groups: ['mcauk-smart-dev-administrative-body'],
+    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-preprod-report-user'],
     profile: {
       firstName: 'Luke',
       lastName: 'Skywalker',
@@ -117,7 +117,7 @@ const users = [
     id: '00uicwex5zQFIiC6f310',
     status: 'ACTIVE',
     lastLogin: '',
-    groups: ['mcauk-smart-dev-administrative-body'],
+    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-preprod-report-user'],
     profile: {
       firstName: 'Anakin',
       lastName: 'Skywalker',
@@ -129,7 +129,7 @@ const users = [
     id: '00uicwex5zQFIiC6f311',
     status: 'ACTIVE',
     lastLogin: '',
-    groups: ['mcauk-smart-dev-administrative-body'],
+    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-preprod-report-user'],
     profile: {
       firstName: 'Jack',
       lastName: 'Reacher',
@@ -141,7 +141,7 @@ const users = [
     id: '00uicwex5zQFIiC6f312',
     status: 'ACTIVE',
     lastLogin: '',
-    groups: ['mcauk-smart-dev-administrative-body'],
+    groups: ['mcauk-smart-dev-administrative-body', 'mcauk-smart-preprod-report-user'],
     profile: {
       firstName: 'Clark',
       lastName: 'Kent',

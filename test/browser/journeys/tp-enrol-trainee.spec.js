@@ -25,7 +25,8 @@ const CREATE_DATA = {
 describe('Training provider enrols a trainee', () => {
 
   before(async () => {
-    const connectionString = `postgres://smart:password@service.local.smart.mcga.uk:${process.env.EXPOSED_POSTGRES_PORT ?? '7432'}/smart`
+    const dbHost = process.env.DB_HOST || 'service.local.smart.mcga.uk';
+    const connectionString = `postgres://smart:password@${dbHost}:${process.env.EXPOSED_POSTGRES_PORT ?? '7432'}/smart`
 
     const client = new Client({ connectionString })
     await client.connect()
