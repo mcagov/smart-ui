@@ -1,0 +1,73 @@
+{% set titleText = 'Create an account' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{{ govukBreadcrumbs({
+items: [
+    {
+        text: "Home",
+        href: "/"
+    },
+    {
+        text: "Training providers",
+        href: "/training-providers"
+    },
+    {
+        text: trainingProvider.companyName,
+        href: "/training-providers/" + trainingProvider.id
+    },
+    {
+        text: 'Users',
+        href: "/training-providers/" + trainingProvider.id + "/users"
+    }
+]
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">{{titleText}}</h1>
+        {% if error %}
+            {{ govukErrorSummary({
+              titleText: "There is a problem",
+              errorList: error
+            }) }}
+        {% endif %}
+        {% if status == 'success' %}
+        {{ govukPanel({
+          titleText: "Account created",
+          html: "Their login will be<br><strong>" + email | escape+ "</strong>"
+        }) }}
+        <div>
+            <p class="govuk-body">The account has now been created. The user will shortly receive an email at
+                <span class="govuk-!-font-weight-bold">{{ email }}</span> with an activation link that they will need to
+                click to set their password and complete the registration process.</p>
+            {% set infoMsg %}
+            If they are having problems getting emails from SMarT, tell the user to check their spam or junk folder.
+            If this does not work, contact <a href="/support" class="govuk-link" target="_blank">support</a> for help.
+            {% endset %}
+            {{ govukInsetText({ html: infoMsg }) }}
+            <a href="/" class="govuk-link">Return to SMarT home</a>
+        </div>
+        {% else %}
+        {% set editEmail = true %}
+        {% include "./user-form.html" %}
+        {% endif %}
+
+        <div class="govuk-!-padding-top-5">
+            <h2 class="govuk-heading-m">User Information</h2>
+            <p class="govuk-body">
+                We collect personal information about users to carry out our official duty and to keep the SMarT service
+                up to date.
+            </p>
+            <p class="govuk-body">
+                For more information on how we use personal information please see our
+                <a href="https://www.gov.uk/government/publications/maritime-and-coastguard-agency-privacy-notices/smart-privacy-information-notice"
+               class="govuk-link">privacy policy</a>.
+            </p>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% set titleText = ('Update' if trainingItem.id else 'Add') + ' a training item' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/discipline-checkboxes/macro.njk" import disciplineCheckboxes %}
+{% from "components/level-checkboxes/macro.njk" import levelCheckboxes %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      <form class="form" action="" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        {{ govukInput({
+            label: {
+              text: 'Description'
+            },
+            id: 'description',
+            name: 'description',
+            classes: "govuk-input--width-20",
+            spellcheck: false,
+            value: trainingItem.description,
+            errorMessage: 'description' | getError(errors)
+        }) }}
+
+        {{ govukRadios({
+          idPrefix: "isLegacy",
+          classes: 'govuk-radios--inline govuk-radios--small',
+          name: "isLegacy",
+          id: "isLegacy",
+          errorMessage: 'isLegacy' | getError(errors),
+          fieldset: {  legend: {  text: "Is Legacy?" }  },
+          items: [
+            {
+              value: true,
+              text: "Yes",
+              checked: true if trainingItem.isLegacy | isTrue
+            },
+            {
+              value: false,
+              text: "No",
+              checked: true if trainingItem.isLegacy | isFalse
+            }
+          ]
+        }) }}
+
+      {{ govukRadios({
+          idPrefix: "experienceRequired",
+          classes: 'govuk-radios--inline govuk-radios--small',
+          name: "experienceRequired",
+          id: "experienceRequired",
+          errorMessage: 'experienceRequired' | getError(errors),
+          fieldset: {  legend: {  text: "Requires experience?" }  },
+          items: [
+          {
+              value: true,
+              text: "Yes",
+              checked: true if trainingItem.experienceRequired | isTrue
+          },
+          {
+              value: false,
+              text: "No",
+              checked: true if trainingItem.experienceRequired | isFalse
+          }
+          ]
+      }) }}
+
+      {{ disciplineCheckboxes({
+          items: disciplines,
+          value: trainingItem.disciplines | summariseArray('id', false),
+          errorMessage: 'discipline' | getError(errors)
+      }) }}
+
+      {{ levelCheckboxes({
+          items: levels,
+          value: trainingItem.levels | summariseArray('id', false),
+          errorMessage: 'level' | getError(errors)
+      }) }}
+
+      {% if not trainingItem.id %}
+
+      {{ govukRadios({
+          idPrefix: "activeStatus",
+          classes: 'govuk-radios--inline govuk-radios--small',
+          name: "activeStatus",
+          id: "activeStatus",
+          errorMessage: 'activeStatus' | getError(errors),
+          fieldset: {  legend: {  text: "Status" }  },
+          items: [
+          {
+              value: 'Active',
+              text: 'Active',
+              checked: true if trainingItem.status == 'Active' else false
+          }, {
+              value: 'Deactivated',
+              text: 'Deactivated',
+              checked: true if trainingItem.status == 'Deactivated' else false
+          }
+          ]
+        }) }}
+      {% else %}
+        <input type="hidden" name="activeStatus" value="{{ trainingItem.status }}">
+      {% endif %}
+
+        {{ govukButton({
+          text: 'Save and continue',
+          attributes: {"id": "save-button" }
+        }) }}
+
+        {{ govukButton({
+          text: 'Cancel',
+          href: '/training-items/' + (trainingItem.id if trainingItem.id),
+          classes: 'govuk-button--secondary'
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

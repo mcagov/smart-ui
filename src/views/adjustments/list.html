@@ -1,0 +1,81 @@
+{% if user.role != 'tp' %}
+  {% set titleText = 'Joiners Profile for ' + trainingProvider.companyName %}
+{% else %}
+  {% set titleText = 'Joiners profile' %}
+{% endif %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if user.role != 'tp' %}
+  <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+{% endif %}
+{% set baseUrl = '/training-providers/' + trainingProvider.id + '/forecasts/adjustments' %}
+
+{% from "components/forecasts-nav/macro.njk" import forecastsNav %}
+{{ forecastsNav({ trainingProvider: trainingProvider, active: 'adjustments',  user:user , activeTp: activeTp }) }}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% from "components/years-nav/macro.njk" import yearsNav %}
+    {{ yearsNav({ availableYears: availableYears, active: forecastAdjustments.meta.year, baseUrl:baseUrl  + '/' }) }}
+  {% if forecastAdjustments.data | length %}
+
+    {% set rows = [] %}
+    {% for forecastAdjustment in forecastAdjustments.data %}
+        {%set tableLink%}
+        <a href="{{baseUrl}}/{{forecastAdjustment.financialYear}}/{{forecastAdjustment.financialPeriod}}/{{forecastAdjustment.training.id}}" class="govuk-link">{{forecastAdjustment.training.trainingItem.description}}</a>
+        {%endset%}
+        {% set rows = (rows.push([
+          { text:  forecastAdjustment.financialYear | financialYearFormat},
+          { text:  forecastAdjustment.financialPeriod | financialPeriodFormat},
+          { html: tableLink },
+          { text:  forecastAdjustment.traineeCount }
+        ]), rows) %}
+    {% endfor %}
+
+    {{ sortableTable({
+        head: [
+          { text: "Year" },
+          { text: "Period", attributes: { "aria-sort": "none", "data-name": "financialPeriod" } },
+          { text: "Training", attributes: { "aria-sort": "none", "data-name": "training.trainingItem.description" } },
+          { text: "Joiners/Leavers"}
+        ],
+        rows: rows,
+        caption: 'Forecast adjustments for the year ' + forecastAdjustments.meta.year +', column headers with buttons are sortable.',
+        meta: forecastAdjustments.meta
+    }) }}
+    {% else %}
+    <p>
+      {% if availableYears | length %}
+        {% if forecastAdjustments.meta.year %}
+          No new joiners found for year {{forecastAdjustments.meta.year|financialYearFormat}}
+        {% else %}
+          Please select a year
+        {% endif %}
+      {% else %}
+        Please generate a forecast before adding joiners.
+      {% endif %}
+    </p>
+    {% endif %}
+</div>
+    <div class="govuk-grid-column-one-third">
+    <h2 class="govuk-heading-m">Actions</h2>
+    {% set formUrl = baseUrl + "/" + currentPaymentSchedule.financialYear %}
+    {% if forecastType == 'monthly' %}
+      {% set formUrl = formUrl + "/" + currentPaymentSchedule.financialPeriod %}
+    {% endif %}
+
+    {{ govukButton({
+        name: 'create',
+        attributes: { id: 'create-button' },
+        text: 'Add new joiners/leavers',
+        href: baseUrl + '/create',
+        classes: "action-button"
+    }) if forecastAdjustments.meta.year >= currentPaymentSchedule.financialYear }}
+
+  </div>
+{% endblock %}
+{% block pageScript %}
+{% endblock %}

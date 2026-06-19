@@ -1,0 +1,23 @@
+{% set titleText = 'Absence summary' %}
+{% extends 'layout.html' %}
+
+{% block content %}
+
+{{ govukBackLink({
+    text: "Back",
+    href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/absences"
+}) }}
+
+<div class='govuk-grid-row'>
+    <div class='govuk-grid-column-two-thirds'>
+        <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+        {% from "components/absence-summary/macro.njk" import mcaAbsenceSummary %}
+        {{ mcaAbsenceSummary({
+            trainingProvider: trainingProvider,
+            absence: absence,
+            trainees: trainee,
+            training: trainingProviderTraining
+        }) }}
+    </div>
+</div>
+{% endblock %}

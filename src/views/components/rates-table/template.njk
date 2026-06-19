@@ -1,0 +1,27 @@
+{% from "table/macro.njk" import govukTable %}
+
+{% set rows = [] %}
+{% for rate in params.rates %}
+    {% set rows = (rows.push([
+    { text: rate.startDate | dateUKFormat },
+    { text: rate.endDate | dateUKFormat },
+    { text: rate.paymentAmount | currencyUK }
+    ]), rows) %}
+{% endfor %}
+
+{{ govukTable({
+caption: 'Table displaying smart item rates',
+    captionClasses: 'govuk-table__caption--m govuk-visually-hidden',
+  head: [
+    {
+      text: "Start Date"
+    },
+    {
+      text: "End Date"
+    },
+    {
+      text: "Amount"
+    }
+  ],
+  rows: rows
+}) }}

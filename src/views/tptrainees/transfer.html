@@ -1,0 +1,43 @@
+{% set titleText = 'Transfer ' + trainee.contactName if trainee.contactName else trainee.matsuNumber %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+        <p>Transfer {{ trainee.contactName  if trainee.contactName else trainee.matsuNumber }} to another training provider?</p>
+
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+            {% from "components/training-provider-select/macro.njk" import trainingProviderSelect %}
+
+            {% set activeProviders = [] %}
+            {% for provider in trainingProviders.data %}
+            {% if provider.status === 'Active' %}
+            {% set activeProviders = (activeProviders.push(provider), activeProviders) %}
+            {% endif %}
+            {% endfor %}
+
+            {{ trainingProviderSelect({
+                items: activeProviders,
+                value: trainee.trainingProvider.id,
+                label: {text:'Choose the receiving training provider' },
+                errorMessage: 'trainingProvider' | getError(errors)
+            }) }}
+
+            {{ govukButton({
+                text: 'Save and continue',
+                attributes: {"id": "save-button" }
+            }) }}
+            {{ govukButton({
+                text: 'Cancel',
+                classes: "govuk-button--secondary",
+                href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

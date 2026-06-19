@@ -1,0 +1,143 @@
+{% set titleText = 'Add New Joiners' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <form class="form" action="" method="post" id="adjustment-form">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+            {% set yearItems = [{ value: '',  text: '--- financial year ---'  }] %}
+            {% for year in range(currentPaymentSchedule.financialYear, currentPaymentSchedule.financialYear + 4) %}
+                {% set yearItems = (yearItems.push({ value: year|string, text: year|financialYearFormat }), yearItems) %}
+            {% endfor %}
+            {{ govukSelect({
+                id: "financialYear",
+                name: "financialYear",
+                label: {
+                    text: "Select the financial year"
+                },
+                attributes: { "data-name": "financialYear" },
+                errorMessage: 'financialYear' | getError(errors),
+                items: yearItems | selectValue(forecastAdjustment.financialYear)
+            }) }}
+
+            {% if paymentSchedules %}
+                {% set periodItems = [{ value: '',  text: '--- financial period ---'  }] %}
+                {% for paymentSchedule in paymentSchedules.data %}
+                    {% if currentPaymentSchedule.financialYear != forecastAdjustment.financialYear or
+                          currentPaymentSchedule.financialPeriod <= paymentSchedule.financialPeriod %}
+                    {% set text %}
+                    {{paymentSchedule.financialPeriod |financialPeriodFormat}} - (
+                    {{paymentSchedule.periodStart}} - {{paymentSchedule.weekEndingSundayDate}})
+                    {% endset %}
+                    {% set periodItems = (periodItems.push({ value: paymentSchedule.financialPeriod |string, text: text }), periodItems) %}
+                    {% endif%}
+                {% endfor %}
+            {% else %}
+                {% set periodItems = [{ value: '',  text: '--- financial period ---'  }] %}
+                {% for period in range(1, 13) -%}
+                    {% set periodItems = (periodItems.push({ value: period|string, text: period |financialPeriodFormat }), periodItems) %}
+                {% endfor %}
+            {% endif %}
+
+            {{ govukSelect({
+                id: "financialPeriod",
+                name: "financialPeriod",
+                label: {
+                    text: "Select the financial period during which the new joiners will start"
+                },
+                attributes: { "data-name": "financialPeriod" },
+                errorMessage: 'financialPeriod' | getError(errors),
+                items: periodItems | selectValue(forecastAdjustment.financialPeriod)
+            }) }}
+
+            {% set smartCategoryItems = [] %}
+            {% for smartCategory in smartCategoriesFiltered %}
+                {% if  smartCategory.text != 'Balancing Claim' and smartCategory.text != 'ECDISHV' and smartCategory.text != 'SMarT 4' and smartCategory.text != 'SMarT Plus Placements' %}
+                    {% set smartCategoryItems = (smartCategoryItems.push( {  text: smartCategory.text,  value: smartCategory.text }), smartCategoryItems) %}
+                {% endif %}
+            {% endfor %}
+            {{ govukSelect({
+                id: "smartCategory",
+                name: "smartCategory",
+                label: {
+                    text: "Select the smart category"
+                },
+                attributes: { "data-name": "smartCategory" },
+                errorMessage: 'smartCategory' | getError(errors),
+                items: smartCategoryItems | selectAddDefault('smart category') | selectValue(forecastAdjustment.smartCategory)
+            }) }}
+
+            {% set trainingItems = [] %}
+            {% for training in trainings.data %}
+                {% set trainingItems = (trainingItems.push( {  text: training.trainingItem.description,  value: training.id }), trainingItems) %}
+            {% endfor %}
+
+            {{ govukSelect({
+                id: "trainingId",
+                name: "trainingId",
+                label: {
+                    text: "Select the training items"
+                },
+                attributes: { "data-name": "trainingId" },
+                errorMessage: 'trainingId' | getError(errors),
+                items: trainingItems | selectAddDefault('training items') | selectValue(forecastAdjustment.trainingId)
+            }) }}
+
+            {{ govukInput({
+                label: { text: 'Number of joiners/leavers'  },
+                classes: 'govuk-input--width-3',
+                id: 'traineeCount',
+                name: 'traineeCount',
+                value: forecastAdjustment.traineeCount if forecastAdjustment.traineeCount else '',
+                hint: {
+                    text: 'Enter the sum of expected joiners in the period, leavers can be entered as negative numbers e.g. -10'
+                },
+                errorMessage: 'traineeCount' | getError(errors)
+            }) }}
+
+            {{ govukButton({
+                name: 'submit',
+                attributes: { id: 'submit' },
+                value: 'save',
+                text: 'Add'
+            }) }}
+            {{ govukButton({
+                name: 'return',
+                value: 'return',
+                text: 'Cancel',
+                href: '/training-providers/' + trainingProvider.id + '/forecasts/adjustments',
+                classes: "govuk-button--secondary"
+            }) }}
+            {{ govukButton({
+                name: 'reset',
+                attributes: { id: 'reset-button' },
+                value: 'reset',
+                text: 'Reset',
+                href: '/training-providers/' + trainingProvider.id + '/forecasts/adjustments/create',
+                classes: "govuk-button--secondary"
+            }) }}
+        </form>
+    </div>
+</div>
+<script nonce='{{ cspNonce }}'>
+  document.addEventListener('DOMContentLoaded', function () {
+    const smartCategory = document.getElementById('smartCategory')
+    smartCategory.addEventListener('change', (event) => {
+        const form = document.getElementById('adjustment-form')
+        form.method = 'get'
+        document.getElementById('submit').click()
+      })
+    const financialYear = document.getElementById('financialYear')
+    financialYear.addEventListener('change', (event) => {
+        const form = document.getElementById('adjustment-form')
+        form.method = 'get'
+        document.getElementById('submit').click()
+      })
+  })
+</script>
+{% endblock %}

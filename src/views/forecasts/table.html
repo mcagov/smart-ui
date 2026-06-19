@@ -1,0 +1,37 @@
+<div>
+    {% set rows = [] %}
+    {% set periods = range(1, 13 , 1) %}
+    {% set endYear = availableYears[0] if availableYears and availableYears | length > 0 else 2022 %}
+    {% for year in range(endYear , 2022, -1) %}
+      {% set yearHref %}/training-providers/{{trainingProvider.id}}/forecasts/annual/{{year}}{% endset %}
+      {% set yearLink %}<a href="{{yearHref}}" class="govuk-link">{{year}}</a>{% endset %}
+      {% set row = [{ html: yearLink }] %}
+      {% for period in periods %}
+        {% set link %}<a href="{{yearHref}}/{{period}}" class="govuk-link">{{year}}/{{period}}</a>{% endset %}
+        {% set row = (row.push({ html: link }), row) %}
+      {% endfor %}
+      {% set rows = (rows.push(row), rows) %}
+    {% endfor %}
+
+    {{ govukTable({
+      caption: 'Table displaying previous forecasts',
+      captionClasses: 'govuk-table__caption--m govuk-visually-hidden',
+      firstCellIsHeader: true,
+      rows: rows,
+        head: [
+            { text: "Year" },
+            { text: "Apr/P1" },
+            { text: "May/P2" },
+            { text: "Jun/P3" },
+            { text: "Jul/P4" },
+            { text: "Aug/P5" },
+            { text: "Sep/P6" },
+            { text: "Oct/P7" },
+            { text: "Nov/P8" },
+            { text: "Dec/P9" },
+            { text: "Jan/P10" },
+            { text: "Feb/P11" },
+            { text: "Mar/P12" }
+        ]
+    }) }}
+</div>

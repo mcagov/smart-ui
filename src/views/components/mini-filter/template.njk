@@ -1,0 +1,35 @@
+<div class="{{ params.columnClasses if params.columnClasses else 'govuk-grid-column-two-thirds' }}"
+style="float:right; display: inline">
+    <form method="get" class="mca-filter-form">
+
+        {{ govukInput({
+          formGroup: { classes: "govuk-!-display-inline" },
+          classes: 'govuk-input govuk-input--width-10',
+          id: 'searchText',
+          name: 'searchText',
+          value: params.meta.queries.searchText,
+          attributes: {
+            placeholder: "Type to filter...",
+            "data-name": "searchText"
+          },
+          label: {
+            text: "Enter text to search claims by trainee name",
+            classes: 'govuk-visually-hidden'
+          }
+        }) }}
+
+      {{ govukButton({
+          name: 'filter-button',
+          attributes: {"id": "filter-button" },
+          text: 'Filter'
+      }) }}
+      {{ govukButton({
+          name: 'reset',
+          text: 'Reset',
+          attributes: {"id": "reset-button" },
+          href: params.resetLink if params.resetLink else '/',
+          classes: 'govuk-button--secondary'
+      }) }}
+
+  </form>
+</div>

@@ -1,0 +1,37 @@
+{% set titleText = 'SMarT Categories' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/admin-nav/macro.njk" import adminNav %}
+
+{{ adminNav({ active: 'smart-categories' }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 id="page-title" class="govuk-heading-l govuk-visually-hidden">{{titleText}}</h1>
+      {% set baseUrl = params.baseUrl %}
+      {% set rows = [] %}
+      {% for item in smartCategories.data %}
+        {% set rows = (rows.push([
+          { text: item.category },
+          { text: govukTag({
+                text: item.status,
+                classes: item.status | getStatusCssClass
+            }) }
+          ]), rows) %}
+      {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            {text: 'Category', attributes: { "aria-sort": "none", "data-name": "category" }  },
+            {text: 'Status' }
+          ],
+          rows: rows,
+          caption: 'Table showing smart categories, column headers with buttons are sortable',
+          meta: smartCategories.meta
+      }) }}
+    </div>
+  </div>
+{% endblock %}

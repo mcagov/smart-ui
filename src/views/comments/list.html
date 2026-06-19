@@ -1,0 +1,104 @@
+{% if resourceUrl %}
+    {% set titleText = 'Comments for '  + resourceSubject %}
+{% elseif user.role == 'admin' %}
+    {% if trainingProvider.companyName %}
+        {% set titleText = 'Comments for ' + trainingProvider.companyName%}
+    {% else %}
+        {% set titleText = 'All comments'  %}
+{% endif %}
+{% else %}
+    {% set titleText = 'Comments'  %}
+{% endif %}
+
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+{% from "components/comments-list/macro.njk" import commentsList %}
+{% from "components/comment-form/macro.njk" import commentForm %}
+
+{% if resourceName != 'trainee' and resourceUrl %}
+{{ govukBackLink({
+    text: "Back to " + resourceSubject,
+    href: resourceUrl
+}) }}
+{% elseif user.role == 'admin' %}
+    {% if trainingProvider.id %}
+        {{ govukBackLink({
+            text: "Back to " + trainingProvider.companyName,
+            href: '/training-providers/' + trainingProvider.id + '/trainees'
+        }) }}
+    {% else %}
+        {{ govukBackLink({
+            text: "Back to Home",
+            href: '/'
+        }) }}
+    {% endif %}
+{% endif %}
+
+<h1 id="page-title" class="govuk-heading-l">{{ titleText }}</h1>
+
+{% if user.role == 'admin'  and not resourceSubject %}
+    {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+    {{ trainingProviderNav({
+        active: 'comments',
+        trainingProvider: trainingProvider,
+        titleText: titleText
+    }) }}
+{% elseif resourceName == 'trainee' %}
+    {% from 'components/trainee-nav/macro.njk' import traineeNav %}
+    {{ traineeNav({
+        active: 'comments',
+        trainingProviderId: trainingProvider.id,
+        trainee: trainee,
+        titleText: titleText,
+        user: user }) }}
+{% endif %}
+
+<div class="govuk-grid-row">
+    {% set customFilters %}
+        {{ govukSelect({
+            id: "resolved",
+            name: "resolved",
+            formGroup: { classes: "govuk-!-display-inline" },
+            classes: "mca-filter",
+            attributes: { "data-name": "resolved" },
+            label: {
+                text: "Select a comment status to filter the list of comments",
+                classes: 'govuk-visually-hidden'
+            },
+            items: [
+                { value: '',  text: '--- status ---'  },
+                { value: 'false',  text: 'Unresolved' },
+                { value: 'true',  text: 'Resolved' }
+            ] | selectValue(comments.meta.queries.resolved)
+        }) }}
+    {% endset %}
+
+    {{ listFilter({
+        columnClasses: "govuk-grid-column-full",
+        resetLink: '?resolved=false',
+        status: { items: statusItems },
+        meta: comments.meta,
+        customFilters: customFilters
+    }) }}
+    <div class="govuk-grid-column-full">
+        {{ commentsList({
+            resourceUrl: resourceUrl,
+            baseUrl: baseUrl,
+            comments: comments,
+            user: user
+        }) }}
+
+        {% if resourceUrl %}
+            {{ commentForm({
+                resourceUrl: resourceUrl,
+                csrfToken: csrfToken,
+                value: message,
+                errorMessage: 'message' | getError(errors)
+            }) }}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

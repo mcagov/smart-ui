@@ -1,0 +1,27 @@
+{% from "date-input/macro.njk"       import govukDateInput %}
+
+{{ govukDateInput({
+    id: params.id,
+    namePrefix: params.name if params.name else params.id,
+    fieldset: { legend: { text: params.legend } } if params.inline != true,
+    hint: {  text: params.hint if params.hint else 'For example, 5 9 2021' } if params.inline != true ,
+    errorMessage: params.id | getError(params.errors),
+    items: [
+        {
+            name: 'day',
+            classes: 'govuk-input--width-2 ',
+            label: ' ' if params.inline else 'Day',
+            value: params.value | day if params.value else '' },
+        {
+            name: 'month',
+            classes: "govuk-input--width-2 ",
+            label: ' ' if params.inline else 'Month',
+            value: params.value | month if params.value else ''  },
+        {
+            name: 'year',
+            classes: 'govuk-input--width-4 ',
+            label: ' ' if params.inline else 'Year',
+            value: params.value | year if params.value else ''  }
+    ]
+}) }}
+

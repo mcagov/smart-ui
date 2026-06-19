@@ -1,0 +1,67 @@
+{% if params.filter %}
+    {% set statusItems = [
+        { value: "", text: "-- status --" },
+        { value: "Active", text: "Active" },
+        { value: "Completed", text: "Completed" },
+        { value: "Left", text: "Left" },
+        { value: "LeaveOfAbsence", text: "Leave of absence" },
+        { value: "Deceased", text: "Deceased" },
+        { value: "Transferring", text: "Transferring to another TP" },
+        { value: "Deactivated", text: "Deactivated (Legacy)" },
+        { value: "Dismissed", text: "Dismissed (Legacy)" },
+        { value: "Ill_health", text: "Ill health (Legacy)" },
+        { value: "Resigned", text: "Resigned (Legacy)" },
+        { value: "Transferred", text: "Transferred (Legacy)" },
+        { value: "Transferred_in", text: "Transferred In (Legacy)" },
+        { value: "Migrated", text: "Migrated (Legacy)" }
+    ] | selectValue(params.value) %}
+    {{ status_filter({ items: statusItems }) }}
+{% elif params.adminEdit %}
+    {% set statusItems = [
+        { value: "Active", text: "Active" },
+        { value: "Completed", text: "Completed" },
+        { value: "Left", text: "Left" },
+        { value: "LeaveOfAbsence", text: "Leave of absence" },
+        { value: "Deceased", text: "Deceased" },
+        { value: "Transferring", text: "Transferring" },
+        { value: "Deactivated", text: "Deactivated" },
+        { value: "Dismissed", text: "Dismissed" },
+        { value: "Ill_health", text: "Ill health" },
+        { value: "Resigned", text: "Resigned" },
+        { value: "Transferred", text: "Transferred" },
+        { value: "Transferred_in", text: "Transferred In" }
+    ] | selectValue(params.value) %}
+    {{ status_filter({ items: statusItems }) }}
+{% elif params.leftEdit %}
+    {% set statusItems = [
+        { value: "Left", text: "Left" },
+        { value: "LeaveOfAbsence", text: "Leave of absence" },
+        { value: "Transferred", text: "Transferred" },
+        { value: "Deceased", text: "Deceased" }
+    ] | selectValue(params.value) %}
+    {% from "select/macro.njk" import govukSelect %}
+    {{ govukSelect({
+        id: 'status',
+        name: 'status',
+        items: statusItems,
+        errorMessage: params.errorMessage
+    }) }}
+{% else %}
+    {% set statusItems = [
+        { value: "", text: "-- status --" },
+        { value: "Active", text: "Active" },
+        { value: "Completed", text: "Completed" },
+        { value: "Left", text: "Left" },
+        { value: "LeaveOfAbsence", text: "Leave of absence" },
+        { value: "Deceased", text: "Deceased" },
+        { value: "Transferring", text: "Transferring to another TP" }
+    ] | selectValue(params.value) %}
+    {% from "select/macro.njk" import govukSelect %}
+    {{ govukSelect({
+        id: 'status',
+        name: 'status',
+        items: statusItems,
+        label: { text: 'Select the training status' },
+        errorMessage: params.errorMessage
+ }) }}
+{% endif %}

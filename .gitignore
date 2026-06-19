@@ -1,0 +1,44 @@
+# Sorted alphabetically for ease of grokking...
+*.log
+*.sql.gz
+*.tfstate*
+*.zip
+.certs/
+.DS_Store
+.env
+.envrc
+.history
+.idea
+.npmrc
+.nyc_output
+.scannerwork
+.terraform
+.vscode
+TESTS-sonar.xml
+coverage
+kubeconfig_*
+leaks_report.json
+node_modules
+public
+reports
+rg-notes.md
+smarts-ui.iml
+test/localstack/data
+wdio-output
+gitleaks-report.json
+terraform/dev.tfplan
+terraform/dev.tfvars
+terraform/preprod.tfplan
+terraform/live.tfplan
+
+#local debugging
+local-testing/okta-debug-method.js
+local-testing/okta-debug.js
+local-testing/debug-real-data-getAll.js
+/local-testing/
+
+#keycloak (local-identity-and-access-management
+test/keycloak/local_user.json
+test/keycloak/h2/keycloakdb.mv.db
+test/keycloak/h2/keycloakdb.trace.db
+

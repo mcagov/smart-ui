@@ -1,0 +1,21 @@
+{% set titleText = 'Claim for ' + trainingProvider.companyName + ' - ' + paymentSchedule.financialYear + '/' +  paymentSchedule.financialPeriod | financialPeriodFormat %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+{{ govukBreadcrumbs({
+  items: [
+    { text: 'Claims', href: '/training-providers/' + trainingProvider.id + '/claims' },
+    { text: paymentSchedule.financialYear , href: '/training-providers/' + trainingProvider.id + '/claims/years/' + paymentSchedule.financialYear  },
+    { text: paymentSchedule.financialPeriod }
+  ]
+}) }}
+
+{% if claimPeriod %}
+  {% include "./period-data.html" %}
+{% else %}
+  {% include "./period-empty.html" %}
+{% endif %}
+{% endblock %}
+{% block pageScript %}
+{% endblock %}

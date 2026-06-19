@@ -1,0 +1,67 @@
+{% set titleText = forecastItems.meta.forecastType + ' forecasts for ' + (trainee.contactName if trainee.contactName else trainee.matsuNumber) %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if user.role == 'admin' %}
+    {{ govukBackLink({
+        text: "Back to " + trainingProvider.companyName,
+        href: '/training-providers/' + trainingProvider.id + '/trainees'
+    }) }}
+{% endif %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% from 'components/trainee-nav/macro.njk' import traineeNav %}
+{{ traineeNav({
+    active: forecastItems.meta.forecastType | lower + '-forecasts',
+    trainingProviderId: trainingProvider.id,
+    trainee: trainee,
+    titleText: titleText,
+    user: user }) }}
+
+{% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+        {% if forecastItems.data.length > 0 %}
+        {% set rows = [] %}
+        {% for item in forecastItems.data %}
+          {% set periodHref %}/training-providers/{{trainingProvider.id}}/forecasts/{{forecastItems.meta.forecastType|lower}}/{{item.financialYear}}/{{item.financialPeriod}}{% endset %}
+          {% set link %}
+            <a href="{{periodHref}}" class="govuk-link">
+              {{item.financialYear}} / {{item.financialPeriod | financialPeriodFormat}}
+            </a>
+          {% endset %}
+
+          {% set rows = (rows.push([
+            { html: link , attributes: { 'nowrap': ''} },
+            { text: item.category },
+            { text: item.smartItemDescription  },
+            { text: item.weeksForecasted if item.weeksForecasted > 0 else '-' },
+            { text: item.paymentAmount | currencyUK},
+            { html: mcaClaimTag({ status: item.status }) } if forecastItems.meta.forecastType == 'Annual'
+          ] | cleanList), rows) %}
+        {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            {  text: "Period", attributes: { "aria-sort": "none", "data-name": "period" } },
+            {  text: "Category" },
+            {  text: "Item"},
+            {  text: "Weeks forecasted" },
+            {  text: "Amount" },
+            {  text: "Status" } if forecastItems.meta.forecastType == 'Annual'
+          ] | cleanList,
+          rows: rows,
+          caption: 'Table showing claims for a trainee, column headers with buttons are sortable',
+          meta: claimItems.meta
+      }) }}
+      {% else %}
+            <p class="govuk-heading-s">There are no trainee claims </p>
+      {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block pageScript %}
+{% endblock %}

@@ -1,0 +1,70 @@
+
+        <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+        <p class="govuk-body">
+          Are you sure you want to change the status of this enrolment?
+        </p>
+        <p class="govuk-body">Changing the status of an enrolment can prevent further claims for the trainee.
+        <p class="govuk-body">
+          <strong>Confirm</strong> - proceed with the status change,
+        </p>
+        <p class="govuk-body">
+          <strong>Cancel</strong> - return to the enrolment record
+        </p>
+        <p class="govuk-body">
+            Are you sure you want to change the status of the <strong>{{enrolment.training.trainingItem.description}}</strong> enrolment for the trainee
+            <strong>{{enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}}</strong>
+            from <strong>{{enrolment.status}}</strong> to  <strong>{{updated.status}}</strong>?</p>
+        <p class="govuk-body">
+            Please contact the Administering Body or MCA if you have further queries or are unsure on how to proceed.
+        </p>
+
+
+{{ govukSummaryList({
+    card: {
+    title: {
+      text: "The impact on a claim where the enrolment status is changed:"
+    }
+  },
+  rows: [
+    {
+      key: {
+        text: "Completed"
+      },
+      value: {
+        text: "Training completed and no further weekly instalments can be claimed."
+      }
+    },
+    {
+      key: {
+        text: "Leave  of absence"
+      },
+      value: {
+        text: "Training not complete, trainee could enrol in the future and continue to claim weekly instalments to the maximum amount allowed, from the point the status was changed to Leave  of absence."
+      }
+    },
+    {
+        key: {
+            text: "Left"
+        } ,
+        value: {
+            text: "Training will not be completed and no further weekly instalments can be claimed against this enrolment. The trainee can be re-enrolled at a later date."
+        }
+    },
+    {
+        key: {
+            text: "Deceased"
+        } ,
+        value: {
+            text: "Training will not be completed and no further weekly instalments can be claimed against this enrolment."
+        }
+    },
+    {
+        key: {
+            text: "Transferring to another TP"
+        },
+        value: {
+            text: "No further weekly instalments can be claimed, the gaining TP will claim from the date of the transfer to the maximum amount allowed."
+        }
+    }
+    ]
+}) }}

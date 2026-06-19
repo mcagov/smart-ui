@@ -1,0 +1,43 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Claims for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Claims'%}
+{% endif %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+  {% if user.role == 'admin' %}
+    {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+    {{ trainingProviderNav({ active: 'claims', trainingProvider: trainingProvider }) }}
+  {% endif %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {% set periodHref %}/training-providers/{{trainingProvider.id}}/claims/years/{{ currentPaymentSchedule.financialYear }}/periods/{{ currentPaymentSchedule.financialPeriod }}{% endset %}
+      {{ govukButton({
+        text: 'Open claim for current period',
+        href: periodHref,
+        attributes: { id: 'open-button'}
+      }) }}
+
+      {% set tableHtml %}
+      <p class="govuk-body">
+        These are all the claims for
+        <span class="govuk-!-font-weight-bold">{{ trainingProvider.companyName }}</span>
+        by year and period.
+      </p>
+      {% include "./table.html" %}
+      {% endset %}
+
+      {{ govukDetails({
+        summaryText: "View claims for previous periods",
+        html: tableHtml
+      }) }}
+    </div>
+  </div>
+
+{% endblock %}

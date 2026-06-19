@@ -1,0 +1,47 @@
+{% set titleText = 'Claims for financial year ' + financialYear.meta.year  %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    {{ govukBreadcrumbs({
+      items: [
+        {
+          text: 'Claims',
+          href: '/training-providers/' + trainingProvider.id + '/claims'
+        },
+        {  text:  financialYear.meta.year }
+      ]
+    }) }}
+
+    {% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+    {% set baseUrl = '/training-providers/' + trainingProvider.id + '/claims/years/' + financialYear.meta.year %}
+    {% set rows = [] %}
+      {% for claim in financialYear.data %}
+        {%set tableLink%}
+        <a href="{{baseUrl}}/periods/{{claim.financialPeriod}}" class="govuk-link">P{{claim.financialPeriod}}</a>
+        {%endset%}
+        {% set rows = (rows.push([
+          { html: tableLink },
+          { html: mcaClaimTag({ status: claim.status }) },
+          { text: claim.periodAmount | currencyUK }
+        ]), rows) %}
+    {% endfor %}
+
+    {{ sortableTable({
+        head: [
+          { text: "Claim period" },
+          { text: "Status"  },
+          { text: "Total Payment" }
+        ],
+        rows: rows,
+        caption: 'Claims for the year ' + financialYear.meta.year,
+        meta: financialYear.meta
+    }) }}
+  </div>
+</div>
+
+{% endblock %}

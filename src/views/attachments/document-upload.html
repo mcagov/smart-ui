@@ -1,0 +1,64 @@
+{% from "file-upload/macro.njk" import govukFileUpload %}
+{% from "button/macro.njk" import govukButton %}
+{% from "error-summary/macro.njk" import govukErrorSummary %}
+{% from "multi-file-upload/macro.njk" import mojMultiFileUpload %}
+
+
+{% macro documentUpload(params) %}
+
+<!--//@formatter:off -->
+<script nonce='{{ params.cspNonce }}'>
+  const resourceAttachments = {{ params.attachments | dump | safe }}
+</script>
+<!--//@formatter:on -->
+
+<script nonce='{{ params.cspNonce }}'>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (
+      MOJFrontend?.MultiFileUpload &&
+      MCGAFrontend?.Attachments
+    ) {
+      window.MCGAFrontend.attachments = new window.MCGAFrontend.Attachments({
+        attachments: resourceAttachments,
+        fileType: '{{ params.fileType }}',
+        resourceUrl: '{{ params.resourceUrl }}',
+        enableAV: {{ params.enableAV | default('false') }},
+      csrf: '{{ params.csrfToken }}'
+    });
+      window.MCGAFrontend.attachments.init();
+    } else {
+      console.error("Missing dependencies. MOJFrontend:", Boolean(window.MOJFrontend), "MCGAFrontend:", Boolean(window.MCGAFrontend));
+    }
+  });
+</script>
+
+{% set uploadHtml %}
+    {{ govukFileUpload({
+        id: "attachments",
+        name: "attachments",
+        classes: 'moj-multi-file-upload__input',
+        label: {
+          text: "Upload a " + params.docDescription,
+          classes: 'govuk-label--m'
+        },
+        attributes: { multiple: '',
+        accept: ".pdf,.docx,.xlsx,.pptx,.xml,.png,.jpg,.jpeg,.gif,.tiff"
+        },
+        errorMessage: params.errorMessage
+      }) }}
+
+    {{ govukButton({
+        text: 'Upload file',
+        classes: 'govuk-button--secondary moj-multi-file-upload__button'
+    }) }}
+{% endset %}
+
+{{ mojMultiFileUpload({
+  uploadedFiles: {
+    heading: { text: 'Files uploaded' },
+    items: params.uploadedFiles
+  },
+  uploadHtml: uploadHtml
+}) }}
+
+{% endmacro %}

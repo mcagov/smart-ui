@@ -1,0 +1,31 @@
+{% set titleText = 'Add new training for ' + trainingProvider.companyName %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText }}</h1>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {% set items = [{ value: "", text: "-- training item --"}] %}
+            {% for item in trainingItems %}
+                {% set items = (items.push({  value: item.id,  text: item.text  }), items) %}
+            {% endfor %}
+
+            {{ govukSelect({
+                id: 'training-item',
+                name: 'training-item',
+                label: {  text: "Select training item"  },
+                items: items
+            }) }}
+
+            {{ govukButton({
+                text: 'Save',
+                attributes: {"id": "save-button" },
+                preventDoubleClick: true
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

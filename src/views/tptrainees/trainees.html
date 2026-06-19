@@ -1,0 +1,61 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Trainees for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Trainees'%}
+{% endif %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% if user.role == 'admin' %}
+    {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+    {{ trainingProviderNav({
+        active: 'trainees',
+        trainingProvider: trainingProvider,
+        titleText: titleText
+        }) }}
+{% endif %}
+
+<div class="govuk-grid-row">
+    {{ listFilter({
+        columnClasses: "govuk-grid-column-three-quarters",
+        resetLink: '/training-providers/' + trainingProvider.id + '/trainees',
+        includeTextFilter: true,
+        includeDobFilter: true,
+        textFilterLabel: 'Enter text to search the trainees by name or postcode',
+        includeStatusFilter: true,
+        statusFilterLabel: 'Select a status to filter the list of trainees',
+        hideLabels: true,
+        meta: trainees.meta
+    }) }}
+
+    <div class="govuk-grid-column-one-quarter">
+        <label class="govuk-label govuk-label--m">Actions</label>
+        {{ govukButton({
+            text: 'Add trainee',
+            href: '/training-providers/' + trainingProvider.id + '/trainees/create'
+        }) }}
+    </div>
+
+    <div class="govuk-grid-column-full">
+        {% from 'components/traineetable/macro.njk' import traineeTable %}
+        {{ traineeTable({
+            trainees: trainees,
+            baseUrl: '/training-providers/' + trainingProvider.id + '/trainees/',
+            showTrainingProvider: false,
+            showSm1WeeksClaimed: true
+        }) }}
+    </div>
+</div>
+{% block afterScript %}
+{% if user.role == 'admin' %}
+<script nonce='{{ cspNonce }}'>
+  const trainees = {{ trainees | dump | safe }}
+  console.log(trainees)
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

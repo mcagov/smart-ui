@@ -1,0 +1,105 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Representatives for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Representatives'%}
+{% endif %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    <form class="form" action="" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      {{ govukInput({
+        label: {
+          text: 'Representative'
+        },
+        id: 'representative',
+        name: 'representative',
+        classes: 'govuk-input--width-30',
+        spellcheck: false,
+        value: trainingProvider.representative if trainingProvider.representative else '',
+        errorMessage: 'representative' | getError(errors)
+      }) }}
+      {{ govukInput({
+        label: {
+        text: 'Representative contact number'
+        },
+        hint: {
+        text: 'Optional, must be a minimum of 11 digits, can include spaces and country code'
+        },
+        id: 'rep-contact-number',
+        name: 'rep-contact-number',
+        classes: 'govuk-input--width-20',
+        inputmode: 'numeric',
+        pattern: '^[+]?[0-9 ()]*',
+        value: trainingProvider.representativeContactNumber if trainingProvider.representativeContactNumber else '',
+        errorMessage: 'rep-contact-number' | getError(errors)
+      }) }}
+      {{ govukInput({
+        label: {
+          text: 'Liaison Officer'
+        },
+        id: 'liaison-officer',
+        hint: {
+          text: 'Optional, if its different to the representative'
+        },
+        name: 'liaison-officer',
+        spellcheck: false,
+        classes: 'govuk-input--width-30',
+        value: trainingProvider.liaisonOfficer if trainingProvider.liaisonOfficer else '',
+        errorMessage: 'liaison-officer' | getError(errors)
+      }) }}
+      {{ govukInput({
+        label: {
+        text: 'Liaison officer contact number'
+        },
+        hint: {
+        text: 'Optional, must be a minimum of 11 digits, can include spaces and country code'
+        },
+        id: 'lo-contact-number',
+        name: 'lo-contact-number',
+        classes: 'govuk-input--width-20',
+        inputmode: 'numeric',
+        pattern: '^[+]?[0-9 ()]*',
+        value: trainingProvider.liaisonOfficerContactNumber if trainingProvider.liaisonOfficerContactNumber else '',
+        errorMessage: 'lo-contact-number' | getError(errors)
+      }) }}
+      {{ govukInput({
+        label: {
+          text: 'Training Officer'
+        },
+        id: 'training-officer',
+        hint: {
+          text: 'Optional, if its different to the representative'
+        },
+        name: 'training-officer',
+        spellcheck: false,
+        classes: 'govuk-input--width-30',
+        value: trainingProvider.trainingOfficer if trainingProvider.trainingOfficer else '',
+        errorMessage: 'training-officer' | getError(errors)
+      }) }}
+      {{ govukInput({
+        label: {
+          text: 'Training officer contact number'
+        },
+        hint: {
+          text: 'Optional, must be a minimum of 11 digits, can include spaces and country code'
+        },
+        id: 'to-contact-number',
+        name: 'to-contact-number',
+        classes: 'govuk-input--width-20',
+        inputmode: 'numeric',
+        pattern: '^[+]?[0-9 ()]*',
+        value: trainingProvider.trainingOfficerContactNumber if trainingProvider.trainingOfficerContactNumber else '',
+        errorMessage: 'to-contact-number' | getError(errors)
+      }) }}
+      {{ govukButton({
+        text: 'Save and continue'
+      }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}

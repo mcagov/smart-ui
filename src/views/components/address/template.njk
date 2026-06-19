@@ -1,0 +1,56 @@
+{% from "input/macro.njk" import govukInput %}
+{% from "fieldset/macro.njk" import govukFieldset %}
+
+{% call govukFieldset({
+  legend: {
+    text: params.title,
+    isPageHeading: false
+  }
+}) %}
+{{ govukInput({
+    label: {
+      html: 'Building and street <span class="govuk-visually-hidden">line 1 of 2</span>'
+    },
+    id: "address-line-1",
+    name: "address-line-1",
+    autocomplete: "address-line1",
+    value: params.data.address1 if params.data.address1 else "",
+    errorMessage: 'address-line-1' | getError(params.errors)
+  }) }}
+
+{{ govukInput({
+    label: {
+      html: '<span class="govuk-visually-hidden">Building and street line 2 of 2</span>'
+    },
+    id: "address-line-2",
+    name: "address-line-2",
+    autocomplete: "address-line2",
+    value: params.data.address2 if params.data.address2 else "",
+    errorMessage: 'address-line-2' | getError(params.errors)
+  }) }}
+
+{{ govukInput({
+    label: {
+      text: "Town or city"
+    },
+    classes: "govuk-!-width-two-thirds",
+    id: "address-town",
+    name: "address-town",
+    autocomplete: "address-level2",
+    value: params.data.townOrCity if params.data.townOrCity else "",
+    errorMessage: 'address-town' | getError(params.errors)
+  }) }}
+
+{{ govukInput({
+    label: {
+      text: "Postcode"
+    },
+    classes: "govuk-input--width-10",
+    id: "address-postcode",
+    name: "address-postcode",
+    autocomplete: "postal-code",
+    value: params.data.postcode if params.data.postcode else "",
+    errorMessage: 'address-postcode' | getError(params.errors)
+  }) }}
+
+{% endcall %}

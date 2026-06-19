@@ -1,0 +1,148 @@
+{% set titleText = 'Cookies on SMarT' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if status %}
+                {% from "notification-banner/macro.njk" import govukNotificationBanner %}
+                {% set html %}
+                <p class="govuk-notification-banner__heading">
+                    You’ve {{ status }}ed analytics cookies. You can
+                    <a class="govuk-notification-banner__link" href="/cookies">
+                        change your cookie settings</a>
+                    at any time.
+                </p>
+                {% endset %}
+                {{ govukNotificationBanner({
+                    type: "success",
+                    html: html
+                }) }}
+            {% endif %}
+            <div>
+                <h1 class="govuk-heading-xl">{{titleText}}</h1>
+                <p>SMarT puts small files (known as ‘cookies’) on to your computer to collect information about how you browse the site. Find out more about the cookies we use, what they’re for and when they expire</p>
+                <p>
+                    <a href="https://ico.org.uk/for-the-public/online/cookies/">Find out how to manage cookies</a>.</p>
+            </div>
+
+            <div>
+                <h2 class="govuk-heading-l" id="cookies-that-measure-website-use">Cookies that measure website use</h2>
+
+                <p>We use Google Analytics software (Universal Analytics) to collect anonymised information about how you use GOV.UK. We do this to help make sure the site is meeting the needs of its users and to help us make improvements to the site and to government digital services.
+                </p>
+
+                {{ govukInsetText({
+                    text: "We do not allow Google to use or share the data about how you use this site."
+                }) }}
+
+                <p>Google Analytics stores information about:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>how you got to the site</li>
+                    <li>the pages you visit on GOV.UK and how long you spend on them</li>
+                    <li>what you click on while you’re visiting the site</li>
+                </ul>
+                <p>Google Analytics sets the following cookies.</p>
+
+                {{ govukTable({
+                    classes: "app-table--fixed",
+                    caption: "Cookies relating to our cookies message",
+                    captionClasses: "govuk-visually-hidden",
+                    head: [
+                        { text: "Name" },
+                        { text: "Purpose" },
+                        { text: "Expires" }
+                    ],
+                    rows: [
+                    [
+                        { text: "_ga" },
+                        { text: "These help us count how many people visit GOV.UK by tracking if you’ve visited before" },
+                        { text: "2 years" }
+                    ],
+                    [
+                        { text: "_gid" },
+                        { text: "These help us count how many people visit GOV.UK by tracking if you’ve visited before" },
+                        { text: "24 hours" }
+                    ],
+                    [
+                        { text: "_gat" },
+                        { text: "This randomly generated number is used to reduce the number of requests made" },
+                        { text: "1 minute" }
+                    ]
+                    ]
+                }) }}
+
+                <form action="/cookies" id="cookies-form" method="post">
+                    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                    {{ govukRadios({
+                        classes: "govuk-radios",
+                        idPrefix: 'usage',
+                        name: 'usage',
+                        items: [ {
+                            value: "on",
+                            text: "Use cookies that measure my website use",
+                            checked: true if cookiePolicy.usage == "on"
+                        }, {
+                            value: "off",
+                            text: "Do not use cookies that measure my website use",
+                            checked: true if cookiePolicy.usage == "off"
+                        }]
+                    }) }}
+
+                    <button type="submit" id="save-button" class="govuk-button">
+                        Save changes
+                    </button>
+                    <a href="/" class="govuk-button govuk-button--secondary govuk-!-margin-left-2">Return to SMarT home</a>
+
+                </form>
+
+                <p>You can further opt out of Google Analytics cookies for all websites by visiting
+                    <a href="https://tools.google.com/dlpage/gaoptout">this page on Google</a>.</p>
+            </div>
+
+            <h2 class="govuk-heading-l" id="strictly-necessary-cookies">Strictly necessary cookies</h2>
+            <p>These essential cookies do things like remember your progress through a form (for example a licence application)</p>
+            <p>They always need to be on.</p>
+            <h3 class="govuk-heading-m">Our cookie message</h3>
+
+            <p>You'll see a message about cookies when you first visit the SMarT. We’ll store a cookie so that your computer knows you’ve seen it and knows not to show it again.</p>
+
+            {{ govukTable({
+                classes: "app-table--fixed",
+                caption: "Cookies relating to our cookies message",
+                captionClasses: "govuk-visually-hidden",
+                head: [
+                    { text: "Name" },
+                    { text: "Purpose" },
+                    { text: "Expires" }
+                ],
+                rows: [
+                [
+                    { text: "smart-cookie-preferences" },
+                    { text: "Saves your cookie consent settings" },
+                    { text: "1 year" }
+                ],
+                [
+                    { text: "connect.sid" },
+                    { text: "Lets us know that you have logged in" },
+                    { text: "1 day" }
+                ],
+                [
+                    { text: "_csrf" },
+                    { text: "This is set to verify that your requests haven’t been tampered with by a malicious third party" },
+                    { text: "24 hours" }
+                ],
+                [
+                    { text: "XSRF-TOKEN" },
+                    { text: "This is set to verify that your requests haven’t been tampered with by a malicious third party" },
+                    { text: "24 hours" }
+                ]
+                ]
+            }) }}
+
+        </div>
+    </div>
+
+{% endblock %}

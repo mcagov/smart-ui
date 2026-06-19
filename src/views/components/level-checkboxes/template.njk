@@ -1,0 +1,17 @@
+{% set items = [] %}
+{% for item in params.items %}
+    {% set items = (items.push({ text: item.text, value: item.id}), items) %}
+{% endfor %}
+
+{% set id = params.id if params.id else 'level' %}
+
+{% from "checkboxes/macro.njk" import govukCheckboxes %}
+{{ govukCheckboxes({
+    idPrefix: id,
+    name: id,
+    hint: { text: "Select all that apply." },
+    items: items | selectValue(params.value),
+    classes: 'govuk-checkboxes--small',
+    fieldset: { legend: { text: "Which levels is this training for?" } },
+    errorMessage: params.errorMessage
+}) }}

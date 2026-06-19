@@ -1,0 +1,35 @@
+{% set items = [{
+    value: "",
+    text: "--- status ---",
+    selected: params.value === "",
+    attributes: { "aria-hidden": "true" }
+},{
+    value: "Active",
+    text: "Active",
+    selected: params.value === "Active"
+}, {
+    value: "Deactivated",
+    text: "Deactivated",
+    selected: params.value === "Deactivated"
+}, {
+    value: "Pending",
+    text: "Pending",
+    selected: params.value === "Pending"
+}, {
+    value: "Review",
+    text: "Review",
+    selected: params.value === "Review"
+}] if not params.items else params.items %}
+
+{% from "select/macro.njk" import govukSelect %}
+{{ govukSelect({
+    id: 'status-filter',
+    name: 'status',
+    formGroup: { classes: "govuk-!-display-inline"},
+    attributes: { "data-name": "status" },
+    items: items,
+    label: {
+        text: "Select a status to filter the list of items",
+        classes: 'govuk-visually-hidden' if hideLabels
+    }
+}) }}

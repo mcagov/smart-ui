@@ -1,0 +1,36 @@
+{% set titleText = 'Resolve comment' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <p class="govuk-body"><strong>Do you want to resolve this comment? </strong></p>
+
+        {% from "components/comment-summary/macro.njk" import commentSummary %}
+
+        {{ commentSummary({
+            comment: comment,
+            withMessage: true,
+            user: user
+        }) }}
+
+        <form action="" id="resolve-comment-form" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {{ govukButton({
+                text: "Yes",
+                preventDoubleClick: true,
+                attributes: { id: 'save-button' }
+            }) }}
+            {{ govukButton({
+                text: "No",
+                classes: "govuk-button--secondary",
+                href: baseUrl,
+                attributes: { id: 'cancel-button' }
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

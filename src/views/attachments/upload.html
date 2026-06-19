@@ -1,0 +1,57 @@
+{% set fileType = query.fileType %}
+{% set docDescription = query.docDescription %}
+{% set titleText = 'Upload ' +  docDescription%}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "attachments/document-upload.html" import documentUpload %}
+
+{{ govukBackLink({
+    text: "Back",
+    href: resourceUrl + '/attachments'
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">{{ titleText }}</h1>
+        {% block uploads %}
+        <form action="{{ resourceUrl }}/attachments" method="post" enctype="multipart/form-data">
+            {{ documentUpload({
+            fileType: fileType,
+            docDescription: docDescription,
+            csrfToken: csrfToken,
+            attachments: ((attachments.data or []) | where ("fileType", fileType)),
+            cspNonce: cspNonce,
+            enableAV: enableAV,
+            resourceUrl: resourceUrl
+            }) }}
+        </form>
+        {% endblock %}
+    </div>
+
+    <div class="govuk-grid-column-one-third">
+        <aside class="app-related-items" role="complementary">
+            <h2 class="govuk-heading-m" id="subsection-title-1">About attachments</h2>
+            <p>
+                Please make sure your file falls within the following rules.
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Must have a file name, and the name can be no longer than 64 characters.</li>
+                <li>A filename can contain alpha-numerics, but not '<>:"/!|?*</li>
+                <li>A file must be no bigger than 500MBs in size.</li>
+                <li>The file must have one of the following extension types - </li>
+                <li>Documents...</li>
+                <li>.pdf, .docx, .xlsx, .pptx, .xml</li>
+                <li>Images...</li>
+                <li>.png, ,jpg, .jpeg, .gif, .tiff</li>
+
+            </ul>
+        </aside>
+        {% block progress %}
+
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

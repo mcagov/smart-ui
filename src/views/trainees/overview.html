@@ -1,0 +1,27 @@
+{% set titleText = 'Trainee overview'%}
+
+{% extends "layout.html" %}
+{% block content %}
+
+{{ govukBackLink({
+    text: "Back",
+    href: "/trainees"
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+        {% from "components/traineesummary/macro.njk" import smartsTraineeSummary %}
+        {{ smartsTraineeSummary({
+            trainee: trainee,
+            clientCompanies: allClientCompanies,
+            editable: false
+        }) }}
+    </div>
+    <div class="govuk-grid-column-one-third">
+        <div class="govuk-!-padding-bottom-9"> </div>
+        <div class="govuk-!-padding-bottom-4"> </div>
+    </div>
+</div>
+
+{% endblock %}

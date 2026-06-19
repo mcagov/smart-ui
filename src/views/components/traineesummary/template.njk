@@ -1,0 +1,131 @@
+{% from "summary-list/macro.njk" import govukSummaryList %}
+{% from "tag/macro.njk" import govukTag %}
+{% set trainee = params.trainee %}
+{% set trainingProvider = params.trainingProvider %}
+{% set clientCompanies = params.clientCompanies %}
+{% set clientCompanyText = (trainee.clientCompany.companyName if trainee.clientCompany.companyName else '') + (' - ' + trainee.clientCompany.companyNumber if trainee.clientCompany.companyNumber) %}
+{% set editable = params.editable %}
+{% set hrefBase = '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id %}
+{% if params.return %}
+    {% set returnParam = '?return=' + params.return %}
+{% else %}
+    {% set returnParam = '' %}
+{% endif %}
+{% if trainee.gender %}
+    {% set gender = trainee.gender.replace('_', ' ') %}
+{% else %}
+    {% set rgender = 'N/A' %}
+{% endif %}
+{{ govukSummaryList({
+    rows: [
+        {
+            key: { text: "Contact name" },
+            value: { text: trainee.contactName },
+            actions: {
+                items: [ {
+                    href: hrefBase + "/details" + returnParam,
+                    text: "Change",
+                    visuallyHiddenText: " contact name"
+                }] if editable else []
+            }
+        },
+        {
+            key: { text: "Dummy NI" },
+            value: { text: trainee.matsuNumber }
+        } if trainee.matsuNumber,
+        {
+            key: { text: "SM1 Weeks Claimed" },
+            value: { text: trainee.smart1WeeksClaimed  }
+        } if trainee.smart1WeeksClaimed ,
+        {
+            key: { text: "Covid Weeks Claimed" },
+            value: { text: trainee.covidWeeksClaimed  }
+        } if trainee.covidWeeksClaimed ,
+        {
+            key: { text: "Nationality" },
+            value: { text: trainee.nationality },
+                actions: {
+                items: [ {
+                    href: hrefBase + "/details" + returnParam,
+                    text: "Change",
+                    visuallyHiddenText: " nationality"
+                }] if editable else []
+            }
+        },
+        {
+            key: { text: "Date of Birth" },
+            value: { text: trainee.dateOfBirth | dateUKFormat },
+            actions: {
+            items: [ {
+                href: hrefBase + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " date of birth"
+            }] if editable else []
+        }
+        },
+        {
+            key: { text: "Place Of Birth" },
+            value: { text: trainee.placeOfBirth },
+            actions: {
+            items: [ {
+                href: hrefBase + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " place of birth"
+            }] if editable else []
+        }
+        },
+        {
+            key: { text: "Address" },
+            value: {
+            html: '<p class="govuk-body">' + trainee.addressLine1 | escape + '</p>' +
+            '<p class="govuk-body">' + trainee.addressLine2 | escape + '</p>' +
+            '<p class="govuk-body">' + trainee.townArea | escape + '</p>' +
+            '<p class="govuk-body">' + trainee.postcode | escape+ '</p>'
+        },
+            actions: {
+            items: [  {
+                href: hrefBase + "/address" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " address"
+            }] if editable else []
+        }
+        },
+        {
+            key: { text: "Gender" },
+            value: { text: gender },
+            actions: {
+                items: [ {
+                    href: hrefBase + "/details" + returnParam,
+                    text: "Change",
+                    visuallyHiddenText: " gender"
+                } ] if editable else []
+            }
+        },
+        {
+            key: { text: "Client company" },
+            value: {
+                text: clientCompanyText
+            },
+            actions: {
+                items: [ {
+                    href: hrefBase + "/details" + returnParam,
+                    text: "Change",
+                    visuallyHiddenText: " client company"
+                },{
+                    href: hrefBase + "/remove-client-company" + returnParam,
+                    text: "Remove",
+                    visuallyHiddenText: " client company"
+                } ] if editable else []
+            }
+        } ,
+        {
+            key: { text: "Status" },
+            value: {
+                text: govukTag({
+                    text: trainee.status,
+                    classes: trainee.status | getStatusCssClass
+                })
+            }
+        }
+    ] | cleanList
+}) }}

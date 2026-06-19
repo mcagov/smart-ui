@@ -1,0 +1,29 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "tag/macro.njk" import govukTag %}
+{% set rows = [] %}
+{% for enrolment in params.enrolments.data %}
+    {%set tableLink%}
+    <a href="{{params.baseUrl}}/trainees/{{enrolment.trainee.id}}/enrolments/{{enrolment.id}}" class="govuk-link">{{enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}}</a>
+    {%endset%}
+    {% set rows = (rows.push([
+        { html: tableLink },
+        { text: enrolment.startDate | dateUKFormat},
+        { text: enrolment.expectedEndDate | dateUKFormat},
+        { text: govukTag({
+            text: 'Left' if enrolment.status== 'Left' else 'Active',
+            classes: 'govuk-tag--red' if enrolment.status == 'Left' else 'govuk-tag--green'
+        }) }
+    ]), rows) %}
+{% endfor %}
+{% from "components/sortable-table/macro.njk" import sortableTable %}
+{{ sortableTable({
+    head: [
+        { text: 'Name' ,attributes: { "aria-sort": "none", "data-name": "trainee.contactName" } },
+        { text: 'Start date'  ,attributes: { "aria-sort": "none", "data-name": "startDate" } },
+        { text: 'Finish date'  ,attributes: { "aria-sort": "none", "data-name": "expectedEndDate" } },
+        { text: 'Status' }
+    ],
+    rows: rows,
+    caption: 'Table showing enrolments, column headers with buttons are sortable',
+    meta: params.enrolments.meta
+}) }}

@@ -1,0 +1,393 @@
+{% set titleText = 'Invoice Report'%}
+
+{% extends "layout.html" %}
+{% block content %}
+
+{{ govukBackLink({
+text: "Back",
+href: "/reports"
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+        <form id="invoice-report-form" class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+            {{ govukInput({
+            id: 'financialYear',
+            name: 'financialYear',
+            label: {
+            text: 'Financial Year',
+            classes: "govuk-label--m"
+            },
+            hint: {
+            text: 'Enter the financial year (e.g., 2024)'
+            },
+            classes: "govuk-input--width-10"
+            }) }}
+
+            {{ govukSelect({
+            id: 'financialPeriod',
+            name: 'financialPeriod',
+            label: {
+            text: 'Financial Period',
+            classes: "govuk-label--m"
+            },
+            items: [
+                { value: '1',  text: 'P1' },
+                { value: '2',  text: 'P2' },
+                { value: '3',  text: 'P3' },
+                { value: '4',  text: 'P4' },
+                { value: '5',  text: 'P5' },
+                { value: '6',  text: 'P6' },
+                { value: '7',  text: 'P7' },
+                { value: '8',  text: 'P8' },
+                { value: '9',  text: 'P9' },
+                { value: '10',  text: 'P10' },
+                { value: '11',  text: 'P11' },
+                { value: '12',  text: 'P12' }
+            ]
+            }) }}
+
+            {% set items = [{ text: '', value: '' }] %}
+            {% for trainingProvider in trainingProvidersDD %}
+            {% set items = (items.push( {  text: trainingProvider.text,  value: trainingProvider.id }), items) %}
+            {% endfor %}
+
+            {{ govukSelect({
+            id: 'trainingProvider',
+            name: 'trainingProvider',
+            label: {
+            text: 'Training Provider',
+            classes: "govuk-label--m"
+            },
+            items: items
+            }) }}
+
+            <div class="govuk-button-group">
+                {{ govukButton({
+                text: "Generate",
+                attributes: {
+                id: 'generate-button',
+                type: 'button'
+                },
+                preventDoubleClick: true
+                }) }}
+
+                {{ govukButton({
+                text: "Download",
+                classes: "govuk-button--secondary",
+                attributes: {
+                id: 'download-button',
+                type: 'button',
+                disabled: 'disabled'
+                }
+                }) }}
+
+                {{ govukButton({
+                text: "Refresh",
+                classes: "govuk-button--secondary",
+                attributes: {
+                id: 'refresh-button',
+                type: 'button'
+                }
+                }) }}
+            </div>
+        </form>
+
+        <div id="report-status" class="govuk-!-margin-top-6" style="display: none;">
+            <div id="status-message"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block pageScript %}
+<script nonce='{{ cspNonce }}'>
+  (function() {
+    const form = document.getElementById('invoice-report-form');
+    const generateButton = document.getElementById('generate-button');
+    const downloadButton = document.getElementById('download-button');
+    const refreshButton = document.getElementById('refresh-button');
+    const reportStatus = document.getElementById('report-status');
+    const statusMessage = document.getElementById('status-message');
+
+    const financialYearInput = document.getElementById('financialYear');
+    const financialPeriodInput = document.getElementById('financialPeriod');
+    const trainingProviderInput = document.getElementById('trainingProvider');
+
+    function getApiUrl() {
+      return '/api/reports/invoice-report';
+    }
+
+    function getFilename() {
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
+
+      if (financialYear && financialPeriod && trainingProviderId) {
+        return 'invoice-report-' + financialYear + '-P' + financialPeriod + '-TP' + trainingProviderId + '.xlsx';
+      }
+      if (financialYear && financialPeriod) {
+        return 'invoice-report-' + financialYear + '-P' + financialPeriod + '.xlsx';
+      }
+      return 'invoice-report.xlsx';
+    }
+
+    function showStatus(message, isError = false) {
+      reportStatus.style.display = 'block';
+      statusMessage.innerHTML = isError
+        ? '<div class="govuk-error-message">' + message + '</div>'
+        : '<div class="govuk-notification-banner" role="region"><div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">' + message + '</p></div></div>';
+    }
+
+    function hideStatus() {
+      reportStatus.style.display = 'none';
+      statusMessage.innerHTML = '';
+    }
+
+    function validateInputs() {
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+
+      if (!financialYear || !financialPeriod) {
+        showStatus('Please fill in all required fields', true);
+        return false;
+      }
+
+      return true;
+    }
+
+    generateButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
+
+      const apiUrl = getApiUrl();
+      const requestBody = {
+        financialYear: financialYear,
+        financialPeriod: financialPeriod,
+        trainingProviderId: trainingProviderId,
+        _csrf: '{{ csrfToken }}'
+      };
+
+      console.log('Calling API URL:', apiUrl);
+      showStatus('Generating report...');
+      generateButton.disabled = true;
+      downloadButton.disabled = true;
+
+      request({
+        url: apiUrl,
+        method: 'PUT',
+        data: requestBody
+      }, function(xhr) {
+        console.log('Success response:', xhr.status);
+
+        if (xhr.status === 201 || xhr.status === 200) {
+          showStatus('Report generated successfully. You can now download it.');
+          downloadButton.disabled = false;
+          generateButton.disabled = false;
+
+          setTimeout(function() {
+            hideStatus();
+          }, 3000);
+        } else {
+          const errorMsg = xhr.responseText || xhr.statusText || 'Unexpected status code: ' + xhr.status;
+          showStatus('Error generating the report: ' + errorMsg, true);
+          downloadButton.disabled = true;
+          generateButton.disabled = false;
+        }
+      }, function(xhr) {
+        console.error('Error generating report:', xhr);
+        let errorMsg = 'Unknown error';
+
+        if (xhr.responseText) {
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            errorMsg = errorResponse.error || errorResponse.message || xhr.statusText || 'Unknown error';
+          } catch (e) {
+            errorMsg = xhr.responseText || xhr.statusText || 'Unknown error';
+          }
+        } else if (xhr.status === 0) {
+          errorMsg = 'Cannot connect to server. Please ensure Docker containers are running.';
+        } else {
+          errorMsg = xhr.statusText || 'Server error (status: ' + xhr.status + ')';
+        }
+
+        showStatus('Error generating the report: ' + errorMsg, true);
+        downloadButton.disabled = true;
+        generateButton.disabled = false;
+      });
+    });
+
+    downloadButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
+
+      // Use the generic download endpoint with reportType and reportParams
+      const reportParams = trainingProviderId
+        ? [financialYear, financialPeriod, trainingProviderId]
+        : [financialYear, financialPeriod];
+
+      const downloadUrl = '/api/reports/invoice-report/download?' +
+        reportParams.map(param => 'reportParams=' + encodeURIComponent(param)).join('&');
+
+      console.log('Getting presigned URL from:', downloadUrl);
+      showStatus('Preparing download...');
+      downloadButton.disabled = true;
+
+      request({
+        url: downloadUrl,
+        method: 'GET'
+      }, function(xhr) {
+        console.log('Presigned URL response:', xhr.status);
+
+        if (xhr.status === 200) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            const presignedUrl = response.presignedUrl;
+
+            if (!presignedUrl) {
+              showStatus('Error: No download URL received', true);
+              downloadButton.disabled = false;
+              return;
+            }
+
+            console.log('Starting download from presigned URL');
+
+            const filename = getFilename();
+            const link = document.createElement('a');
+            link.href = presignedUrl;
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showStatus('Download started successfully');
+
+            setTimeout(function() {
+              hideStatus();
+              downloadButton.disabled = false;
+            }, 2000);
+          } catch (error) {
+            console.error('Error parsing presigned URL response:', error);
+            showStatus('Error preparing download: ' + error.message, true);
+            downloadButton.disabled = false;
+          }
+        } else {
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            const errorMsg = errorResponse.error || xhr.statusText || 'Unexpected status code: ' + xhr.status;
+            showStatus('Error preparing download: ' + errorMsg, true);
+          } catch (e) {
+            showStatus('Error preparing download: ' + xhr.statusText, true);
+          }
+          downloadButton.disabled = false;
+        }
+      }, function(xhr) {
+        console.error('Error getting presigned URL:', xhr);
+        let errorMsg = 'Unknown error';
+
+        if (xhr.responseText) {
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            errorMsg = errorResponse.error || errorResponse.message || xhr.statusText || 'Unknown error';
+          } catch (e) {
+            errorMsg = xhr.responseText || xhr.statusText || 'Unknown error';
+          }
+        } else if (xhr.status === 0) {
+          errorMsg = 'Cannot connect to server. Please ensure Docker containers are running.';
+        } else {
+          errorMsg = xhr.statusText || 'Server error (status: ' + xhr.status + ')';
+        }
+
+        showStatus('Error preparing download: ' + errorMsg, true);
+        downloadButton.disabled = false;
+      });
+    });
+
+    function resetButtons() {
+      refreshButton.disabled = false;
+      generateButton.disabled = false;
+      generateButton.innerHTML = 'Generate';
+      downloadButton.disabled = true;
+    }
+
+    refreshButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const financialYear = financialYearInput.value.trim();
+      const financialPeriod = financialPeriodInput.value.trim();
+      const trainingProviderId = trainingProviderInput.value.trim();
+
+      const reportParams = trainingProviderId
+        ? [financialYear, financialPeriod, trainingProviderId]
+        : [financialYear, financialPeriod];
+
+      const checkReportUrl = getApiUrl() +
+        '?' + reportParams.map(param => 'reportParams=' + encodeURIComponent(param)).join('&');
+
+      console.log('Checking if report exists at:', checkReportUrl);
+      showStatus('Checking if report exists');
+      refreshButton.disabled = true;
+
+      request({
+        url: checkReportUrl,
+        method: 'HEAD'
+        }, function(res) {
+          console.log('Check report exists response:', res.status);
+
+          if (res.status === 200) {
+            refreshButton.disabled = false;
+            generateButton.disabled = false;
+            generateButton.innerHTML = 'Regenerate';
+            downloadButton.disabled = false;
+            hideStatus();
+            return;
+          }
+          else {
+            return;
+          }
+        }, function(res) {
+          if (res.status === 404) {
+            refreshButton.disabled = false;
+            generateButton.disabled = false;
+            generateButton.innerHTML = 'Generate';
+            downloadButton.disabled = true;
+            hideStatus();
+            return;
+          }
+          else {
+            console.error('Error checking if report exists at:', res);
+            resetButtons();
+            showStatus('Could not check if report exists. Try again');
+            return;
+          }
+      });
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% set titleText = 'Contact details' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">{{titleText}}</h1>
+      <h2 class="govuk-heading-s">    The SMarT Administrator      </h2>
+      {{ govukSummaryList({
+  rows: [{
+      key: {
+        text: "Name"
+      },
+      value: {
+        text: "The SMarT Administrator"
+      }
+    },
+    {
+      key: {
+        text: "Address"
+      },
+      value: {
+        html: "MaTSU<br>The Gemini Building<br>Fermi Avenue<br>Harwell<br>Didcot<br>OX11 0QR<br>"
+      }
+    },
+    {
+      key: {
+        text: "Contact details"
+      },
+      value: {
+        html: '<p class="govuk-body">01235 753244</p><p class="govuk-body"><a class="govuk-link" href="mailto:smart.enquiries@ricardo.com">
+                            smart.enquiries@ricardo.com</a></p>'
+      }
+    }
+  ]
+}) }}
+    </div>
+  </div>
+{% endblock %}

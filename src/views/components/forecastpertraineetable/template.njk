@@ -1,0 +1,35 @@
+{% from "table/macro.njk" import govukTable %}
+
+ {% set rows = [] %}
+ {% for trainee in params.forecastPerTrainee %}
+		{%set tableLink%}
+		<a href="/providers/trainees/{{trainee.info.id}}/overview" class="govuk-link">{{trainee.info.ref}}</a>
+		{%endset%}
+     {% set rows = (rows.push([
+     { html: tableLink },
+     { text: trainee.weeksAbsent },
+     { text: trainee.weeksClaimed },
+     { text: trainee.totalClaimed | currencyUK }
+     ]), rows) %}
+ {% endfor %}
+
+ {{ govukTable({
+   caption: params.title,
+   captionClasses: "govuk-table__caption--m",
+   firstCellIsHeader: false,
+   head: [
+ 	      {
+ 	        text: "Trainee ref"
+ 	      },
+ 	      {
+ 	        text: "weeksAbsent"
+ 	      },
+ 	      {
+ 	        text: "weeksClaimed"
+ 	      },
+ 	      {
+ 	        text: "totalClaimed"
+ 	      }
+ 	    ],
+   rows: rows
+ }) }}

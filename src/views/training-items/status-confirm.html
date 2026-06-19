@@ -1,0 +1,40 @@
+{% set titleText = ('Deactivate' if trainingItem.status == 'Active' else 'Activate') + ' training item' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <p class="govuk-body"><strong>Are you sure you want to {{"Deactivate" if trainingItem.status == "Active" else "Activate"}} this training item?</strong></p>
+
+        <form action="" id="stats-form" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            <input type="hidden" name="status" value="{{"Deactivated" if trainingItem.status == "Active" else "Active"}}">
+
+        {{ govukSummaryList({
+            rows: [{
+                key: { text: "Description" },
+                value: { text: trainingItem.description }
+            }]
+        }) }}
+
+            {{ govukButton({
+                text: "Deactivate" if trainingItem.status == "Active" else "Activate",
+                preventDoubleClick: true,
+                classes: "govuk-button--warning" if trainingItem.status == "Active" else "govuk-button--primary",
+                attributes: { id: 'save-button' }
+            }) }}
+            {{ govukButton({
+                text: "Cancel",
+                classes: "govuk-button--secondary",
+                href: "/training-items/" + trainingItem.id  ,
+                attributes: { id: 'cancel-button' }
+            }) }}
+        </form>
+    </div>
+</div>
+
+{% endblock %}

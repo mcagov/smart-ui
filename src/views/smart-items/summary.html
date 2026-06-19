@@ -1,0 +1,85 @@
+{% set titleText = 'SMarT Item' %}
+
+{% extends "layout.html" %}
+
+{% from "components/rates-table/macro.njk" import ratesTable %}
+
+{% block content %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "/smart-items"
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        {{ govukSummaryList({
+          rows: [
+          {
+            key: { text: "Smart Category" },
+            value: {  text: smartItem.smartCategory.category },
+            actions: {
+              items: [{
+                href: "/smart-items/" + smartItem.id + "/details",
+                text: "Change",
+                visuallyHiddenText: " smart category"
+              }] }
+          },
+          {
+            key: {  text: "Description"  },
+            value: {  text: smartItem.description },
+            actions: {
+            items: [{
+              href: "/smart-items/" + smartItem.id + "/details",
+              text: "Change",
+              visuallyHiddenText: " smart item"
+            }] }
+          },
+          {
+            key: { text: "Payment Type" },
+            value: {  text: smartItem.paymentType },
+            actions: {
+            items: [{
+              href: "/smart-items/" + smartItem.id + "/details",
+              text: "Change",
+              visuallyHiddenText: " payment type"
+            }] }
+          },
+          {
+            key: {  text: "Number of Instalments" },
+            value: {  text: smartItem.numberOfInstalments  },
+            actions: {
+            items: [{
+              href: "/smart-items/" + smartItem.id + "/details",
+              text: "Change",
+              visuallyHiddenText: " number of instalments"
+            }]
+            }
+          },
+          {
+            key: { text: "Status"  },
+            value: { text: govukTag({ text: smartItem.status, classes: smartItem.status | getStatusCssClass }) },
+            actions: {
+              items: [{
+                href: "/smart-items/" + smartItem.id + "/details",
+                text: "Change",
+                visuallyHiddenText: " status"
+              }] }
+          }]
+        }) }}
+    </div>
+    <div class="govuk-grid-column-two-thirds">
+        <h2 class="govuk-heading-m">Rates</h2>
+        {{ ratesTable({rates: smartItem.rates}) }}
+    </div>
+    <div class="govuk-grid-column-one-third">
+        <h2 class="govuk-heading-m">Actions</h2>
+        {{ govukButton({
+          text: 'Add a rate',
+          href: '/smart-items/' + smartItem.id + '/rates'
+        }) }}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,59 @@
+{% set titleText = 'Reject transfer' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/smart-date/macro.njk" import smartDate %}
+
+{{ govukBackLink({
+    text: "Back to " + trainee.contactName,
+    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments/' + enrolment.id + '/details'
+}) }}
+
+<div class='govuk-grid-row'>
+    <div class='govuk-grid-column-two-thirds'>
+        <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+        <p class="govuk-heading-s">Are you sure you want to reject this transfer?</p>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {{ govukSummaryList({
+                rows: [
+                    {
+                        key: { text: 'Trainee' },
+                        value: { text: enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}
+                    },
+                    {
+                        key: { text: 'Weeks Claimed' },
+                        value: { text: enrolment.trainee.smart1WeeksClaimed }
+                    } if enrolment.trainee.smart1WeeksClaimed,
+                    {
+                        key: { text: 'Started' },
+                        value: {  text: enrolment.startDate | dateUKFormat }
+                    } if not enrolment.canEdit,
+                    {
+                        key: { text: 'Expected End Date' if enrolment.status == 'Active' else 'Ended'  },
+                        value: {  text: enrolment.expectedEndDate | dateUKFormat }
+                    },
+                    {
+                        key: { text: "Current Status" },
+                        value: { text: govukTag({  text: enrolment.status, classes: enrolment.status | getStatusCssClass }) }
+                    }
+                ] | cleanList
+            }) }}
+
+            {{ govukButton({
+                text: "Reject transfer",
+                preventDoubleClick: true
+            }) }}
+
+            {{ govukButton({
+                text: "Cancel",
+                classes: "govuk-button--secondary",
+                href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/" + enrolment.id + "/details"
+            }) }}
+
+        </form>
+    </div>
+</div>
+{% endblock %}

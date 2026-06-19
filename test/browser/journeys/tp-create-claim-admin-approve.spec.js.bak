@@ -1,0 +1,171 @@
+import Login from '../pages/login.page.js'
+import Claims from '../pages/claims.js'
+import Menu from '../pages/menu.js'
+
+import { getPeriod } from '../../../src/utils'
+
+const thisPeriod = getPeriod(new Date())
+
+describe('submit and approve a claim', () => {
+  describe('training provider submits a claim', () => {
+    it('should login as a training provider', async () => {
+      await Login.open()
+      await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+      await Login.login('mca.tp1@service.dev.smart.mcga.uk', '123456789')
+    })
+
+    it('should load claims page', async () => {
+      await Menu.claims.click()
+      await expect(Claims.pageTitle).toHaveText('Claims')
+      await expect(Claims.openClaimButton).toExist()
+    })
+
+    it('should load page for claim period', async () => {
+      await Claims.openClaimButton.click()
+      await expect(Claims.pageTitle).toHaveText(`Claim for ${thisPeriod.year}/${thisPeriod.period}`)
+      await expect(Claims.generateClaimButton).toExist()
+      await expect(Claims.cancelButton).toExist()
+      await expect(Claims.commentsButton).toExist()
+    })
+
+    it('should cancel and return to claims page', async () => {
+      await Claims.cancelButton.click()
+      await expect(Claims.pageTitle).toHaveText('Claims')
+      await expect(Claims.openClaimButton).toExist()
+    })
+
+    it('should generate the claim', async () => {
+      await Claims.openClaimButton.click()
+      await expect(Claims.pageTitle).toHaveText(`Claim for ${thisPeriod.year}/${thisPeriod.period}`)
+      await Claims.generateClaimButton.click()
+
+      await expect(Claims.findTag('Pending')).toBeExisting()
+      await expect(Claims.filterResults).toBeElementsArrayOfSize({ gte: 1 })
+
+      await expect(Claims.commentsButton).toExist()
+      await expect(Claims.reGenerateClaimButton).toExist()
+      await expect(Claims.submitClaimButton).toExist()
+      await expect(Claims.reviewClaimButton).not.toExist()
+      await expect(Claims.reviewedClaimButton).not.toExist()
+      await expect(Claims.approveClaimButton).not.toExist()
+      await expect(Claims.rejectClaimButton).not.toExist()
+    })
+
+    it('should open submit page then return on cancel', async () => {
+      await Claims.submitClaimButton.click()
+      await expect(Claims.pageTitle).toHaveText('Are you sure you want to submit the claim?')
+      await expect(Claims.save).toExist()
+      await expect(Claims.cancelButton).toExist()
+
+      await Claims.cancelButton.click()
+      await expect(Claims.pageTitle).toHaveText(`McDonald-Cameron - ${thisPeriod.year}/${thisPeriod.period}`)
+      await expect(Claims.findTag('Pending')).toBeExisting()
+    })
+
+    it('should submit the claim ', async () => {
+      await Claims.submitClaimButton.click()
+      await expect(Claims.pageTitle).toHaveText('Are you sure you want to submit the claim?')
+      await Claims.save.click()
+      await expect(Claims.pageTitle).toHaveText(`McDonald-Cameron - ${thisPeriod.year}/${thisPeriod.period}`)
+      await expect(Claims.findTag('Submitted')).toBeExisting()
+    })
+  })
+
+  describe('admin approves a claim', () => {
+    it('should login as an admin', async () => {
+      await Login.open()
+      await expect(Login.pageTitle).toHaveTextContaining('Sign in to MCA SMarT')
+      await Login.login('mca.ab@service.dev.smart.mcga.uk', '123456789')
+    })
+
+    it('should load claims page with filters', async () => {
+      await Menu.claims.click()
+      await expect(Claims.pageTitle).toHaveText('Claims')
+      await expect(Claims.filterStatus).toExist()
+      await expect(Claims.filterYear).toExist()
+      await expect(Claims.filterPeriod).toExist()
+      await expect(Claims.filterButton).toExist()
+      await expect(Claims.resetButton).toExist()
+
+      await expect(Claims.filterResults).toBeElementsArrayOfSize(1)
+    })
+
+    it('should reset filters to show all claims', async () => {
+      await Claims.resetButton.click()
+
+      await expect(Claims.pageTitle).toHaveText('Claims')
+      await expect(Claims.filterStatus).toExist()
+      await expect(Claims.filterYear).toExist()
+      await expect(Claims.filterPeriod).toExist()
+      await expect(Claims.filterButton).toExist()
+      await expect(Claims.resetButton).toExist()
+
+      await expect(Claims.filterResults).toBeElementsArrayOfSize(10)
+    })
+
+    it('should filters for submitted claims', async () => {
+      await Claims.filterStatus.selectByVisibleText('Submitted')
+      await Claims.filterButton.click()
+
+      await expect(Claims.pageTitle).toHaveText('Claims')
+      await expect(Claims.filterStatus).toExist()
+      await expect(Claims.filterYear).toExist()
+      await expect(Claims.filterPeriod).toExist()
+      await expect(Claims.filterButton).toExist()
+      await expect(Claims.resetButton).toExist()
+
+      await expect(Claims.filterResults).toBeElementsArrayOfSize(1)
+    })
+
+    it('should open submitted claim', async () => {
+      await Claims.filterResult.click()
+      await expect(Claims.pageTitle).toHaveText(`McDonald-Cameron - ${thisPeriod.year}/${thisPeriod.period}`)
+      await expect(Claims.findTag('Submitted')).toBeExisting()
+      await expect(Claims.generateClaimButton).not.toExist()
+      await expect(Claims.buttonMenu).toExist()
+      await expect(Claims.submitClaimButton).not.toExist()
+      await expect(Claims.reviewClaimButton).toExist()
+      await expect(Claims.approveClaimButton).toExist()
+      await expect(Claims.rejectClaimButton).toExist()
+      await expect(Claims.pendingClaimButton).toExist()
+      await expect(Claims.commentsButton).toExist()
+    })
+
+    it('should open approve page then return on cancel', async () => {
+      await Claims.buttonMenu.click()
+      await Claims.approveClaimButton.click()
+      await expect(Claims.pageTitle).toHaveText('Are you sure you want to approve the claim?')
+      await expect(Claims.save).toExist()
+      await expect(Claims.cancelButton).toExist()
+
+      await Claims.cancelButton.click()
+      await expect(Claims.pageTitle).toHaveText(`McDonald-Cameron - ${thisPeriod.year}/${thisPeriod.period}`)
+      await expect(Claims.findTag('Submitted')).toBeExisting()
+    })
+
+    it('should approve the claim ', async () => {
+      await Claims.buttonMenu.click()
+      await Claims.approveClaimButton.click()
+      await expect(Claims.pageTitle).toHaveText('Are you sure you want to approve the claim?')
+      await Claims.save.click()
+      await expect(Claims.pageTitle).toHaveText(`McDonald-Cameron - ${thisPeriod.year}/${thisPeriod.period}`)
+      await expect(Claims.findTag('Approved')).toBeExisting()
+    })
+
+    it('should filter for submitted claims', async () => {
+      await Menu.claims.click()
+
+      await Claims.filterStatus.selectByVisibleText('Approved')
+      await Claims.filterButton.click()
+
+      await expect(Claims.pageTitle).toHaveText('Claims')
+      await expect(Claims.filterStatus).toExist()
+      await expect(Claims.filterYear).toExist()
+      await expect(Claims.filterPeriod).toExist()
+      await expect(Claims.filterButton).toExist()
+      await expect(Claims.resetButton).toExist()
+
+      await expect(Claims.filterResults).toBeElementsArrayOfSize(1)
+    })
+  })
+})

@@ -1,0 +1,16 @@
+{
+  "reject": [
+    "@wdio/*",
+    "ajv",
+    "cache-manager",
+    "connect-redis",
+    "del",
+    "express-openapi-validator",
+    "expect-webdriverio",
+    "helmet",
+    "internal-ip",
+    "pagedjs",
+    "query-string",
+    "url-join"
+  ]
+}

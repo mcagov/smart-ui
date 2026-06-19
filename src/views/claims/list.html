@@ -1,0 +1,103 @@
+{% set titleText = 'Claims' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    {% set statusItems = [
+        { value: '',  text: '--- status ---'  },
+        { value: 'Migrated',  text: 'Migrated' },
+        { value: 'Pending',  text: 'Pending' },
+        { value: 'Submitted',  text: 'Submitted' },
+        { value: 'Reviewing',  text: 'Reviewing' },
+        { value: 'Reviewed',  text: 'Reviewed' },
+        { value: 'Approved', text: 'Approved' },
+        { value: 'Rejected', text: 'Rejected' }
+    ] | selectValue(claimPeriods.meta.queries.status) %}
+
+    {% set years = (15 | yearsOptions) %}
+
+    {% set customFilters %}
+        {{ govukSelect({
+            id: "financialYear",
+            name: "financialYear",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: { "data-name": "financialYear", "data-events": '["change"]' },
+            label: {
+              text: 'Filter claims by year',
+              classes: 'govuk-visually-hidden'
+            },
+            items: years | selectValue(claimPeriods.meta.queries.financialYear)
+        }) }}
+
+        {{ govukSelect({
+            id: "financialPeriod",
+            name: "financialPeriod",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: {"data-name": "financialPeriod" },
+            label: {
+              text: 'Filter claims by period',
+              classes: 'govuk-visually-hidden'
+            },
+            items: [
+                { value: '',  text: '--- period ---'  },
+                { value: '1',  text: 'P1' },
+                { value: '2',  text: 'P2' },
+                { value: '3',  text: 'P3' },
+                { value: '4',  text: 'P4' },
+                { value: '5',  text: 'P5' },
+                { value: '6',  text: 'P6' },
+                { value: '7',  text: 'P7' },
+                { value: '8',  text: 'P8' },
+                { value: '9',  text: 'P9' },
+                { value: '10',  text: 'P10' },
+                { value: '11',  text: 'P11' },
+                { value: '12',  text: 'P12' }
+            ] | selectValue(claimPeriods.meta.queries.financialPeriod)
+        }) }}
+    {% endset %}
+
+    {{ listFilter({
+        columnClasses: "govuk-grid-column-full",
+        resetLink: "/claims",
+        includeStatusFilter: true,
+        status: { items: statusItems },
+        meta: claimPeriods.meta,
+        customFilters: customFilters
+    }) }}
+
+    <div class="govuk-grid-column-full">
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        {% set rows = [] %}
+        {% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+        {% for item in claimPeriods.data %}
+            {% set href %}/training-providers/{{item.trainingProvider.id}}/claims/years/{{item.financialYear}}/periods/{{item.financialPeriod}}{% endset %}
+            {% set link %}<a href="{{href}}" class="govuk-link">{{item.financialPeriod}}</a>{% endset %}
+            {% set rows = (rows.push([
+                { text: item.trainingProvider.companyName },
+                { text: item.financialYear },
+                { html: link },
+                { html: mcaClaimTag({ status: item.status }) },
+                { text: item.periodAmount | currencyUK }
+            ]), rows) %}
+        {% endfor %}
+
+        {{ sortableTable({
+            head: [
+                { text: 'Training provider', attributes: { "aria-sort": "none", "data-name": "trainingProvider.companyName" } },
+                { text: 'Year', attributes: { "aria-sort": "none", "data-name": "financialYear" } },
+                { text: 'Period', attributes: { "aria-sort": "none", "data-name": "financialPeriod" } },
+                { text: 'Status', attributes: { "aria-sort": "none", "data-name": "status" } },
+                { text: 'Amount', attributes: { "aria-sort": "none", "data-name": "periodAmount" } }
+            ],
+            rows: rows,
+            caption: 'Table showing all claims for the training provider, column headers with buttons are sortable',
+            meta: claimPeriods.meta
+        }) }}
+    </div>
+</div>
+
+{% endblock %}

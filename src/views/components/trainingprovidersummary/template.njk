@@ -1,0 +1,203 @@
+{% from "summary-list/macro.njk" import govukSummaryList %}
+{%- from "tag/macro.njk" import govukTag -%}
+
+{% if params.return %}
+    {% set returnParam = '?return=' + params.return %}
+{% else %}
+    {% set returnParam = '' %}
+{% endif %}
+
+{% set statusClass = "govuk-tag--green" if params.trainingProvider.status == 'Active' else "govuk-tag--grey" %}
+{% if params.trainingProvider.status == 'Deactivated' %}
+    {% set statusClass = "govuk-tag--red" %}
+{% endif %}
+
+{{ govukSummaryList({
+    rows: [
+        {
+            key: { text: "Status"},
+            value: {
+            text:  govukTag({
+                text: params.trainingProvider.status,
+                classes: statusClass
+            }) }
+        },
+        {
+            key: { text: "Company name" },
+            value: { text:  params.trainingProvider.companyName },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " company name"
+            }] if params.user.role == 'admin'}
+        },
+        {
+            key: { text: "Company number" },
+            value: { text:  params.trainingProvider.companyNumber },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " company number"
+            } ] }
+        },
+        {
+            key: { text: "DUNS number" },
+            value: { text:  params.trainingProvider.dunsNumber },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " duns number"
+            } ] }
+        },
+        {
+            key: { text: "Max number of trainees" },
+            value: { text:  params.trainingProvider.maxNoTrainees },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " max number of trainees"
+            } if params.user.role == 'admin'  ] | cleanList}
+        },
+        {
+            key: { text: "Phone number" },
+            value: { text:  params.trainingProvider.phone },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " phone number"
+            }]}
+        },
+        {
+            key: { text: "Email" },
+            value: { text:  params.trainingProvider.email },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " email"
+            }] }
+        },
+        {
+            key: { text: "Vessel names" },
+            value: { text:  params.trainingProvider.vesselNames },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/details" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " vessel names"
+            }] }
+        },
+        {
+            key: { text: "Address" },
+            value: {
+                html: '<p class="govuk-body">' + params.trainingProvider.addressLine1 | escape + '</p>' +
+                '<p class="govuk-body">' + params.trainingProvider.addressLine2 | escape + '</p>' +
+                '<p class="govuk-body">' + params.trainingProvider.townArea | escape + '</p>' +
+                '<p class="govuk-body">' + params.trainingProvider.postcode | escape + '</p>'
+            },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/address" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " address"
+            }] }
+        }
+    ] | cleanList
+}) }}
+
+<h2 class="govuk-heading-m">Representatives</h2>
+{{ govukSummaryList({
+    rows: [
+        {
+            key: { text: "Representative name" },
+            value: { text: params.trainingProvider.representative | escape },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/representative" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " representative name"
+            } ] }
+        },
+        {
+            key: { text: "Representative contact number" },
+            value: { text: params.trainingProvider.representativeContactNumber | escape },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/representative" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " representative number"
+            } ] }
+        },
+        {
+            key: { text: "Liaison officer" },
+            value: { text: params.trainingProvider.liaisonOfficer | escape },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/representative" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " liaison officer"
+            } ] }
+        },
+        {
+            key: { text: "Liaison officer contact number" },
+            value: { text: params.trainingProvider.liaisonOfficerContactNumber | escape },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/representative" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " liaison officer contact number"
+            } ] }
+        },
+        {
+            key: { text: "Training officer" },
+            value: { text: params.trainingProvider.trainingOfficer | escape },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/representative" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " training officer"
+            }]}
+        },
+        {
+            key: { text: "Training officer contact number" },
+            value: { text: params.trainingProvider.trainingOfficerContactNumber | escape },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/representative" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " training officer contact number"
+            }]}
+        }
+    ] | cleanList
+}) }}
+<h2 class="govuk-heading-m">Banking details</h2>
+{{ govukSummaryList({
+    rows: [
+        {
+            key: { text: "Sort code" },
+            value: { text:  params.trainingProvider.sortCode },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/banking" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " sort code"
+            }]}
+        },
+        {
+            key: { text: "Account number" },
+            value: { text:  params.trainingProvider.accountNumber },
+            actions: {
+            items: [ {
+                href: "/training-providers/" + params.trainingProvider.id + "/banking" + returnParam,
+                text: "Change",
+                visuallyHiddenText: " account number"
+            }]}
+        }
+    ] | cleanList
+}) }}
+

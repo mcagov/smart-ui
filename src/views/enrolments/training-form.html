@@ -1,0 +1,33 @@
+<h2 class="govuk-heading-m">Select from available training</h2>
+{% set rows = [] %}
+{% for item in training.data %}
+    {% set check %}
+    <div class="govuk-radios__item govuk-radios--small">
+        <input class="govuk-radios__input" id="{{ item.id }}" name="training" type="radio" value="{{ item.id }}">
+        <label class="govuk-label govuk-radios__label" for="{{ item.id }}">
+            <span class="govuk-visually-hidden">click to select training {{ item.trainingItem.description }}</span>
+        </label>
+    </div>
+    {% endset %}
+
+    {% set rows = (rows.push([
+        { html: check},
+        { text: item.trainingItem.description },
+        { text: item.trainingItem.disciplines | summariseArray('discipline') },
+        { text: item.trainingItem.levels | summariseArray('level') }
+    ]), rows) %}
+{% endfor %}
+
+{{ govukTable({
+    attributes: { 'data-module': 'mcga-sortable-table', 'mcga-sort' :  smartCategories.meta.sort ,'mcga-order' : smartCategories.meta.order },
+    caption: 'Table displaying training available to the trainee',
+    captionClasses: 'govuk-table__caption--m govuk-visually-hidden',
+    firstCellIsHeader: false,
+    head: [
+        { html: '<span class="govuk-visually-hidden">Select training</span>' },
+        { text: 'Description' },
+        { text: 'Disciplines'  },
+        { text: 'Levels' }
+    ],
+    rows: rows})
+}}

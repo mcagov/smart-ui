@@ -1,0 +1,51 @@
+{% set titleText = 'Confirm action' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+        {% if status == 'deactivate' %}
+            {% set status = 'delete' if user.status == 'DEPROVISIONED' else 'deactivate' %}
+        {% endif %}
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <p class="govuk-body"><strong>Are you sure you want to {{ statusText }} the {{ entityName }}?</strong></p>
+
+        {% set cancelHref = '/training-providers/' + trainingProvider.id %}
+        {% if entityName == 'trainee' %}
+            {% set cancelHref = cancelHref + '/trainees/' + traineeId %}
+        {% elseif entityName == 'claim' %}
+            {% set cancelHref = cancelHref + '/' + entityType + 's' %}
+            {% if year %}
+                {% set cancelHref = cancelHref + '/years/' + year %}
+                {% if period %}
+                    {% set cancelHref = cancelHref + '/periods/' + period %}
+                {% endif%}
+            {% endif%}
+        {% elseif 'forecast' in entityName  %}
+            {% set cancelHref = cancelHref + '/forecasts/annual'  %}
+            {% if year %}
+                {% set cancelHref = cancelHref + '/' + year %}
+            {% endif%}
+        {% endif %}
+
+        <form action="{{ formUrl }}" id="stats-form" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {{ govukButton({
+                text: "Confirm",
+                preventDoubleClick: true,
+                attributes: { id: 'save-button' }
+            }) }}
+            {{ govukButton({
+                text: "Cancel",
+                classes: "govuk-button--secondary",
+                href: cancelHref,
+                attributes: { id: 'cancel-button' }
+            }) }}
+        </form>
+    </div>
+</div>
+
+{% endblock %}

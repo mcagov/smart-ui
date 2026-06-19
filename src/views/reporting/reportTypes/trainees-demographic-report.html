@@ -1,0 +1,384 @@
+{% set titleText = 'Trainees Demographic Report'%}
+
+{% extends "layout.html" %}
+{% block content %}
+
+{{ govukBackLink({
+text: "Back",
+href: "/reports"
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">{{titleText}}</h1>
+        <form id="trainees-demographic-report-form" class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-half">
+                    <h2 class="govuk-heading-m">Start Period</h2>
+                    {{ govukInput({
+                    id: 'startFinancialYear',
+                    name: 'startFinancialYear',
+                    label: {
+                    text: 'Start Financial Year'
+                    },
+                    hint: {
+                    text: 'e.g. 2024'
+                    },
+                    classes: "govuk-input--width-10"
+                    }) }}
+
+                    {{ govukSelect({
+                    id: 'startFinancialPeriod',
+                    name: 'startFinancialPeriod',
+                    label: {
+                    text: 'Start Financial Period'
+                    },
+                    items: [
+                        { value: '1',  text: 'P1' },
+                        { value: '2',  text: 'P2' },
+                        { value: '3',  text: 'P3' },
+                        { value: '4',  text: 'P4' },
+                        { value: '5',  text: 'P5' },
+                        { value: '6',  text: 'P6' },
+                        { value: '7',  text: 'P7' },
+                        { value: '8',  text: 'P8' },
+                        { value: '9',  text: 'P9' },
+                        { value: '10',  text: 'P10' },
+                        { value: '11',  text: 'P11' },
+                        { value: '12',  text: 'P12' }
+                    ]
+                    }) }}
+                </div>
+                <div class="govuk-grid-column-one-half">
+                    <h2 class="govuk-heading-m">End Period</h2>
+                    {{ govukInput({
+                    id: 'endFinancialYear',
+                    name: 'endFinancialYear',
+                    label: {
+                    text: 'End Financial Year'
+                    },
+                    hint: {
+                    text: 'e.g. 2024'
+                    },
+                    classes: "govuk-input--width-10"
+                    }) }}
+
+                    {{ govukSelect({
+                    id: 'endFinancialPeriod',
+                    name: 'endFinancialPeriod',
+                    label: {
+                    text: 'End Financial Period'
+                    },
+                    items: [
+                        { value: '1',  text: 'P1' },
+                        { value: '2',  text: 'P2' },
+                        { value: '3',  text: 'P3' },
+                        { value: '4',  text: 'P4' },
+                        { value: '5',  text: 'P5' },
+                        { value: '6',  text: 'P6' },
+                        { value: '7',  text: 'P7' },
+                        { value: '8',  text: 'P8' },
+                        { value: '9',  text: 'P9' },
+                        { value: '10',  text: 'P10' },
+                        { value: '11',  text: 'P11' },
+                        { value: '12',  text: 'P12' }
+                    ]
+                    }) }}
+                </div>
+            </div>
+
+            <div class="govuk-button-group govuk-!-margin-top-6">
+                {{ govukButton({
+                text: "Generate",
+                attributes: {
+                id: 'generate-button',
+                type: 'button',
+                disabled: 'disabled'
+                },
+                preventDoubleClick: true
+                }) }}
+
+                {{ govukButton({
+                text: "Download",
+                classes: "govuk-button--secondary",
+                attributes: {
+                id: 'download-button',
+                type: 'button',
+                disabled: 'disabled'
+                }
+                }) }}
+
+                {{ govukButton({
+                text: "Refresh",
+                classes: "govuk-button--secondary",
+                attributes: {
+                id: 'refresh-button',
+                type: 'button'
+                }
+                }) }}
+            </div>
+        </form>
+
+        <div id="report-status" class="govuk-!-margin-top-6" style="display: none;">
+            <div id="status-message"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block pageScript %}
+<script nonce='{{ cspNonce }}'>
+  (function() {
+    const form = document.getElementById('trainees-demographic-report-form');
+    const generateButton = document.getElementById('generate-button');
+    const downloadButton = document.getElementById('download-button');
+    const refreshButton = document.getElementById('refresh-button');
+    const reportStatus = document.getElementById('report-status');
+    const statusMessage = document.getElementById('status-message');
+
+    const startFinancialYearInput = document.getElementById('startFinancialYear');
+    const startFinancialPeriodInput = document.getElementById('startFinancialPeriod');
+    const endFinancialYearInput = document.getElementById('endFinancialYear');
+    const endFinancialPeriodInput = document.getElementById('endFinancialPeriod');
+
+    function getApiUrl() {
+      return '/api/reports/trainees-demographic-report';
+    }
+
+    function getFilename() {
+      const sYear = startFinancialYearInput.value.trim();
+      const sPeriod = startFinancialPeriodInput.value.trim();
+      const eYear = endFinancialYearInput.value.trim();
+      const ePeriod = endFinancialPeriodInput.value.trim();
+
+      if (sYear && sPeriod && eYear && ePeriod) {
+        return 'trainees-demographic-report-' + sYear + 'P' + sPeriod + '-to-' + eYear + 'P' + ePeriod + '.xlsx';
+      }
+      return 'trainees-demographic-report.xlsx';
+    }
+
+    function showStatus(message, isError = false) {
+      reportStatus.style.display = 'block';
+      statusMessage.innerHTML = isError
+        ? '<div class="govuk-error-message">' + message + '</div>'
+        : '<div class="govuk-notification-banner" role="region"><div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">' + message + '</p></div></div>';
+    }
+
+    function hideStatus() {
+      reportStatus.style.display = 'none';
+      statusMessage.innerHTML = '';
+    }
+
+    function validateInputs() {
+      const sYear = parseInt(startFinancialYearInput.value.trim(), 10);
+      const sPeriod = parseInt(startFinancialPeriodInput.value.trim(), 10);
+      const eYear = parseInt(endFinancialYearInput.value.trim(), 10);
+      const ePeriod = parseInt(endFinancialPeriodInput.value.trim(), 10);
+
+      if (!sYear || !sPeriod || !eYear || !ePeriod) {
+        showStatus('Please fill in all required fields', true);
+        return false;
+      }
+
+      if (sYear > eYear || (sYear === eYear && sPeriod > ePeriod)) {
+        showStatus('Start period cannot be after end period', true);
+        return false;
+      }
+
+      return true;
+    }
+
+    generateButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const apiUrl = getApiUrl();
+      const requestBody = {
+        startFinancialYear: startFinancialYearInput.value.trim(),
+        startFinancialPeriod: startFinancialPeriodInput.value.trim(),
+        endFinancialYear: endFinancialYearInput.value.trim(),
+        endFinancialPeriod: endFinancialPeriodInput.value.trim(),
+        _csrf: '{{ csrfToken }}'
+      };
+
+      console.log('Calling API URL:', apiUrl);
+      showStatus('Generating report...');
+      generateButton.disabled = true;
+
+      request({
+        url: apiUrl,
+        method: 'PUT',
+        data: requestBody
+      }, function(xhr) {
+        console.log('Success response:', xhr.status, xhr.responseText);
+
+        if (xhr.status === 201 || xhr.status === 200) {
+          showStatus('Report has been generated successfully');
+          downloadButton.disabled = false;
+          generateButton.disabled = false;
+        } else {
+          let errorMsg = 'Failed to generate report';
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            errorMsg = errorData.error || errorMsg;
+          } catch (e) {}
+          showStatus(errorMsg, true);
+        }
+        generateButton.disabled = false;
+      }, function(xhr) {
+        console.error('Error response:', xhr.status, xhr.responseText);
+        let errorMsg = 'An error occurred while generating the report';
+        try {
+          const errorData = JSON.parse(xhr.responseText);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {}
+        showStatus(errorMsg, true);
+        generateButton.disabled = false;
+      });
+    });
+
+    downloadButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const params = [
+        startFinancialYearInput.value.trim(),
+        startFinancialPeriodInput.value.trim(),
+        endFinancialYearInput.value.trim(),
+        endFinancialPeriodInput.value.trim()
+      ];
+
+      const downloadUrl = getApiUrl() + '/download' +
+        '?reportParams=' + encodeURIComponent(params);
+
+      console.log('Getting presigned URL from:', downloadUrl);
+      showStatus('Preparing download...');
+      downloadButton.disabled = true;
+
+      request({
+        url: downloadUrl,
+        method: 'GET'
+      }, function(xhr) {
+        if (xhr.status === 200) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            const presignedUrl = response.presignedUrl;
+
+            if (!presignedUrl) {
+              showStatus('Error: No download URL received', true);
+              downloadButton.disabled = false;
+              return;
+            }
+
+            const filename = getFilename();
+            const link = document.createElement('a');
+            link.href = presignedUrl;
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showStatus('Download started successfully');
+
+            setTimeout(function() {
+              hideStatus();
+              downloadButton.disabled = false;
+            }, 2000);
+          } catch (error) {
+            showStatus('Error preparing download: ' + error.message, true);
+            downloadButton.disabled = false;
+          }
+        } else {
+          showStatus('Error preparing download: ' + xhr.statusText, true);
+          downloadButton.disabled = false;
+        }
+      }, function(xhr) {
+        showStatus('Error preparing download', true);
+        downloadButton.disabled = false;
+      });
+    });
+
+    function request(options, success, error) {
+      const xhr = new XMLHttpRequest();
+      xhr.open(options.method || 'GET', options.url);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          success(xhr);
+        } else {
+          error(xhr);
+        }
+      };
+      xhr.onerror = function() {
+        error(xhr);
+      };
+      xhr.send(options.data ? JSON.stringify(options.data) : null);
+    }
+
+    function resetButtons() {
+      refreshButton.disabled = false;
+      generateButton.disabled = true;
+      generateButton.innerHTML = 'Generate';
+      downloadButton.disabled = true;
+    }
+
+    refreshButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideStatus();
+
+      if (!validateInputs()) {
+        return;
+      }
+
+      const params = [
+        startFinancialYearInput.value.trim(),
+        startFinancialPeriodInput.value.trim(),
+        endFinancialYearInput.value.trim(),
+        endFinancialPeriodInput.value.trim()
+      ];
+
+      const checkReportUrl = getApiUrl() +
+        '?reportParams=' + encodeURIComponent(params);
+
+      showStatus('Checking if report exists');
+      refreshButton.disabled = true;
+
+      request({
+        url: checkReportUrl,
+        method: 'HEAD'
+      }, function(res) {
+        if (res.status === 200) {
+          refreshButton.disabled = false;
+          generateButton.disabled = false;
+          generateButton.innerHTML = 'Regenerate';
+          downloadButton.disabled = false;
+          hideStatus();
+        }
+      }, function(res) {
+        if (res.status === 404) {
+          refreshButton.disabled = false;
+          generateButton.disabled = false;
+          generateButton.innerHTML = 'Generate';
+          downloadButton.disabled = true;
+          hideStatus();
+        } else {
+          resetButtons();
+          showStatus('Could not check if report exists. Try again');
+        }
+      });
+    });
+  })();
+</script>
+{% endblock %}

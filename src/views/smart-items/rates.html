@@ -1,0 +1,92 @@
+{% set titleText = 'Add New Rate' %}
+
+{% extends "layout.html" %}
+
+{% from "components/rates-table/macro.njk" import ratesTable %}
+{% block content %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      <form class="form" action="" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        {{ govukDateInput({
+          id: 'startDate',
+          namePrefix: 'startDate',
+          fieldset: {
+            legend: {
+              text: 'When do you want the rate to start',
+              isPageHeading: true,
+              classes: 'govuk-fieldset__legend--m'
+            }
+          },
+          hint: {
+            text: 'For example, 5 9 2021.'
+          },
+          errorMessage: 'startDate' | getError(errors),
+          items: [{
+              name: 'day',
+              classes: 'govuk-input--width-2',
+              value: newRate["startDate-day"]
+            },
+            {
+              name: 'month',
+              classes: 'govuk-input--width-2',
+              value: newRate["startDate-month"]
+            },
+            {
+              name: 'year',
+              classes: 'govuk-input--width-4',
+              value: newRate["startDate-year"]
+            }]
+        }) }}
+
+        {{ govukInput({
+            label: {
+              text: 'Payment Amount',
+              classes: "govuk-label--m"
+            },
+            id: 'paymentAmount',
+            name: 'paymentAmount',
+            classes: "govuk-input--width-20",
+            prefix: {
+              text: "£"
+            },
+            spellcheck: false,
+            value: newRate.paymentAmount,
+            errorMessage: 'paymentAmount' | getError(errors)
+        }) }}
+
+        {{ govukButton({
+          text: 'Save and continue'
+        }) }}
+      </form>
+    </div>
+    <div class="govuk-grid-column-two-thirds">
+      <h2 class="govuk-heading-m">Smart Item</h2>
+      {{ govukSummaryList({
+          rows: [{
+            key: {
+              text: "Smart Category"
+            },
+              value: {
+                text: smartItem.smartCategory.category
+              }
+            },{
+            key: {
+              text: "Item"
+            },
+            value: {
+              text: smartItem.description
+            }
+          }]
+        }) }}
+    </div>
+    <div class="govuk-grid-column-two-thirds">
+      <h2 class="govuk-heading-m">Existing Rates</h2>
+      {% from "components/trainingtable/macro.njk" import trainingTable %}
+      {{ ratesTable({rates: smartItem.rates}) }}
+    </div>
+  </div>
+{% endblock %}

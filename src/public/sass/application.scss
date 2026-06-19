@@ -1,0 +1,207 @@
+$govuk-global-styles: true;
+$govuk-suppressed-warnings: (
+  ie8
+);
+@import "govuk-frontend/dist/govuk/all";
+//$govuk-assets-path: '/public/';
+
+// Patterns that aren't in Frontend
+@import "patterns/task-list";
+@import "patterns/related-items";
+@import "patterns/collapsibles";
+
+// Components that aren't in Frontend
+@import "components/cookie-banner";
+
+@import "@ministryofjustice/frontend/moj/all";
+
+
+// Add extra styles here, or re-organise the Sass files in whichever way makes most sense to you
+
+[aria-sort] button,
+[aria-sort] button:hover {
+  padding: 0 10px 0 0;
+}
+
+.govuk-input--width-8 {
+  max-width: 9em;
+}
+
+.govuk-width-container {
+  max-width: 1100px;
+}
+
+.app-hr {
+  border-top: 1px solid #b1b4b6;
+  padding-top: 10px;
+}
+
+.app-related-items {
+  border-top: 1px solid #1d70b8;
+  padding-top: 10px;
+}
+
+.app-disabled {
+  opacity: 0.5;
+}
+
+.action-button {
+  min-width: 210px;
+}
+
+.govuk-\!-display-inline:after {
+  content: "";
+  display: inline;
+  clear: none;
+}
+
+.search-group {
+  background-color: #b1b4b6;
+  padding: 15px 10px;
+}
+
+.mca-comment-meta {
+  font-style: italic;
+  color: $govuk-secondary-text-colour;
+  padding-top: 5px;
+}
+
+.mca-comment-depth-1 {
+  margin-left: 10px;
+}
+
+.mca-comment-depth-2 {
+  margin-left: 20px;
+}
+
+.mca-comment-depth-3 {
+  margin-left: 30px;
+}
+
+.mca-comment-depth-4 {
+  margin-left: 40px;
+}
+
+.mca-comment-depth-5 {
+  margin-left: 50px;
+}
+
+.mca-comment-depth-6 {
+  margin-left: 60px;
+}
+
+.mca-comment-depth-7 {
+  margin-left: 70px;
+}
+
+.mca-comment-depth-8 {
+  margin-left: 80px;
+}
+
+.mca-comment-depth-9 {
+  margin-left: 90px;
+}
+
+.mca-comment-depth-10 {
+  margin-left: 100px;
+}
+
+.govuk-header__button-link {
+  font-family: "GDS Transport", arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 700;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-size: 0.875rem;
+  line-height: 1;
+  display: inline;
+  text-align: center;
+  margin: 0px;
+  padding: 0px;
+}
+
+@media (min-width: 40.0625em) {
+  .govuk-header__button-link {
+    font-size: 16px;
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+}
+
+.moj-message-list {
+  overflow-y: auto;
+}
+.moj-messages-container{
+  border: none;
+}
+
+[aria-sort] button:before {
+  all: unset;
+}
+
+[aria-sort] button:after {
+  all: unset;
+}
+
+[aria-sort="ascending"] button:after {
+  all: unset;
+}
+
+[aria-sort="descending"] button:after {
+  all: unset;
+}
+
+
+[aria-sort] button span:before {
+  content: " \25bc";
+  position: absolute;
+  right: -1px;
+  top: 9px;
+  font-size: 0.5em;
+}
+
+[aria-sort="ascending"] button span:before,
+[aria-sort="descending"] button span:before  {
+  content: none;
+}
+
+
+[aria-sort] button span:after {
+  content: " \25b2";
+  position: absolute;
+  right: -1px;
+  top: 1px;
+  font-size: 0.5em;
+}
+
+
+[aria-sort="ascending"] button span:after {
+  content: " \25b2";
+  font-size: .8em;
+  position: absolute;
+  right: -5px;
+  top: 2px;
+}
+
+[aria-sort="descending"] button span:after {
+  content: " \25bc";
+  font-size: .8em;
+  position: absolute;
+  right: -5px;
+  top: 2px;
+}
+
+.moj-multi-file-upload__pending {
+  color: #FF8C00;
+  font-weight: bold;
+}
+
+.moj-multi-file-upload__pending svg {
+  fill: currentColor;
+  float: left;
+  margin-right: 10px;
+}

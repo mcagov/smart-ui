@@ -1,0 +1,19 @@
+<script nonce='{{cspNonce}}' src="/public/js/cookie-manager-1.0.0.min.js"></script>
+<script nonce='{{cspNonce}}' src="/assets/js/jquery.js"></script>
+<script type="module" nonce='{{cspNonce}}' src="/assets/js/govuk-frontend.min.js"></script>
+<script type="module" nonce='{{cspNonce}}' src="/assets/js/moj-frontend.min.js"></script>
+<script nonce='{{cspNonce}}' src="/public/js/utils.js"></script>
+<script nonce='{{cspNonce}}' src="/public/js/all.js"></script>
+<script nonce='{{cspNonce}}' src="/public/js/sortable-table.js"></script>
+<script nonce='{{cspNonce}}' src="/public/js/accessible-autocomplete.min.js"></script>
+<script nonce='{{cspNonce}}' src="/public/js/attachments.js"></script>
+<script nonce='{{cspNonce}}'> document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+<script nonce='{{cspNonce}}' type="module">
+  import * as GOVUKFrontend from '/assets/js/govuk-frontend.min.js'
+  import * as MOJFrontend from '/assets/js/moj-frontend.min.js'
+
+  GOVUKFrontend.initAll()
+  MOJFrontend.initAll()
+
+  window.MOJFrontend = MOJFrontend;
+</script>

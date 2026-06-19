@@ -1,0 +1,24 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set items = [
+    {
+        text: 'All Trainees',
+        href: '/trainees',
+        active: true if params.active == 'all-trainees' else false,
+        attributes: { id: 'all-trainees' }
+    },{
+        text: 'Duplicate Trainees',
+        href: '/trainees/duplicates',
+        active: true if params.active == 'duplicate-trainees' else false,
+        attributes: { id: 'duplicate-trainees' }
+    },{
+        text: 'Transferring Trainees',
+        href: '/trainees/transferring',
+        active: true if params.active == 'transferring-trainees' else false,
+        attributes: { id: 'transferring-trainees' }
+    }] %}
+
+{{ mojSubNavigation({
+    label: 'Admin Trainee Sub navigation',
+    items: items
+}) }}

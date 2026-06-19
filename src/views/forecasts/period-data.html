@@ -1,0 +1,71 @@
+{% from "components/forecasts-nav/macro.njk" import forecastsNav %}
+{% set baseUrl = '/training-providers/' + trainingProvider.id +
+                 '/forecasts/' + forecastType + '/' + items.meta.year +
+                 '/' + items.meta.period   %}
+{{ forecastsNav({ trainingProvider: trainingProvider, active: forecastType,  user:user , activeTp: activeTp }) }}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-m">{{forecastType | capitalize}} Forecast for {{ items.meta.year | financialYearFormat }} - {{items.meta.period | financialPeriodFormat}}</h1>
+      {% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "Status" },
+            value: { text: govukTag({  text: period.status, classes: period.status | getStatusCssClass }) }
+          },
+          {
+            key: { text: "Total" },
+            value: {  text: period.periodAmount | currencyUK }
+          },
+          {
+            key: { text: "Notes" },
+            value: {  text: period.notes }
+          } if period.notes
+        ] | cleanList
+      }) }}
+  </div>
+  <div class="govuk-grid-column-one-third">
+    <h2 class="govuk-heading-m">Actions</h2>
+    <form action="{{ formUrl }}" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        {{ govukButton({
+          text: "Comments",
+          href: baseUrl  + '/comments',
+          classes: "action-button govuk-button--secondary",
+          attributes: { id: 'comments-button'}
+        }) }}
+    </form>
+  </div>
+  {% if items.data.length > 0 %}
+    <div class="govuk-grid-column-full">
+        <h2 class="govuk-heading-m">Forecast items</h2>
+        {% set rows = [] %}
+        {% for item in items.data %}
+          {% set rows = (rows.push([
+            { text: item.category },
+            { text: item.smartItem.description },
+            { text: item.forecastSource | capitalize},
+            { text: item.traineeCount },
+            { text: item.weeksForecasted },
+            { text: (item.rateAmount if item.rateAmount else '0') | currencyUK},
+            { text: (item.paymentAmount if item.paymentAmount else '0') | currencyUK }
+          ]), rows) %}
+        {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            {  text: "Category", attributes: { "aria-sort": "none", "data-name": "category" } },
+            {  text: "Item", attributes: { "aria-sort": "none", "data-name": "smartItem.description" }  },
+            {  text: "Source"  },
+            {  text: "Trainee Count"  },
+            {  text: "Weeks forecasted"},
+            {  text: "Rate Amount"  },
+            {  text: "Amount", attributes: { "aria-sort": "none", "data-name": "paymentAmount" }  }
+          ],
+          rows: rows,
+          caption: 'Table showing forecasts, column headers with buttons are sortable',
+          meta: items.meta
+      }) }}
+    </div>
+  {% endif %}
+</div>

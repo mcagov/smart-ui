@@ -1,0 +1,23 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "tag/macro.njk" import govukTag %}
+
+{% set rows = [] %}
+{% for workflowLog in params.workflowLogs.data %}
+    {% set rows = (rows.push([
+        { text: workflowLog.created | dateTimeUKFormat ,attributes: { 'width': '25%'}  } ,
+        { text: workflowLog.message }
+    ]), rows) %}
+{% endfor %}
+
+
+{% from "components/sortable-table/macro.njk" import sortableTable %}
+{{ sortableTable({
+    head: [
+        { text: 'Date', attributes: { "aria-sort": "none", "data-name": "created" } },
+        { text: 'Message', attributes: { "aria-sort": "none", "data-name": "message" } }
+    ]  ,
+    rows: rows,
+    caption: 'Table showing workflow logs, column headers with buttons are sortable',
+    meta: params.workflowLogs.meta,
+    noDataMessage: params.noDataMessage
+}) }}

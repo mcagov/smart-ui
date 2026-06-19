@@ -1,0 +1,7 @@
+ARG AWS_DEV_ACCOUNT_ID
+
+FROM ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/node:latest
+
+EXPOSE 2997
+WORKDIR /workspace
+CMD node ./src/bin/www.js

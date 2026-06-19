@@ -1,0 +1,38 @@
+{% from "button/macro.njk" import govukButton %}
+{% from "moj/components/messages/macro.njk" import mojMessages %}
+{% if params.comments.data and params.comments.data.length > 0 %}
+    {% from "components/sortable-table/macro.njk" import sortableTable %}
+    {% set rows = [] %}
+    {% for comment in params.comments.data %}
+        {%set messagesLink%}
+        <a class="govuk-link govuk-!-margin-right-1" href="{{params.baseUrl}}/{{ comment.id }}/messages">{{comment.messageCount}}</a>
+        {%endset%}
+        {%set entityLink%}
+        <a class="govuk-link govuk-!-margin-right-1" href="{{ comment.resourceUrl }}">{{comment.subject}}</a>
+        {%endset%}
+        {% set rows = (rows.push([
+            { text: comment.tpName } if params.user.isAdmin,
+            { html: entityLink },
+            { html: messagesLink },
+            { text: comment.updated | dateUKFormat },
+            { text: 'Yes' if comment.resolved else 'No' }
+        ] | cleanList ), rows) %}
+    {% endfor %}
+
+    {{ sortableTable({
+        head: [
+            { text: "Training provider" }if params.user.isAdmin,
+            { text: 'Subject', attributes: { "aria-sort": "none", "data-name": "subject" }  } ,
+            { text: "Reply count", attributes: { "aria-sort": "none", "data-name": "messageCount" }  },
+            { text: "Updated", attributes: { "aria-sort": "none", "data-name": "updated" } },
+            { text: "Resolved" }
+        ],
+        rows: rows,
+        caption: 'Table showing comments, column headers with buttons are sortable',
+        meta: params.comments.meta
+    }) }}
+
+{% else %}
+    <p class="govuk-heading-m">There are no comments</p>
+{% endif %}
+

@@ -1,0 +1,100 @@
+{% from "summary-list/macro.njk" import govukSummaryList %}
+{% from "tag/macro.njk" import govukTag %}
+
+{% set allDisciplines = '' %}
+{% for disciplines in params.trainingItem.disciplines %}
+  {% set allDisciplines = allDisciplines + '<p class="govuk-body">' + disciplines + '</p><p class="govuk-body">' %}
+{% endfor %}
+
+{% set allQualifications = '' %}
+{% for qualification in params.trainingItem.qualifications %}
+  {% set allQualifications = allQualifications + '<p class="govuk-body">' + qualification + '</p><p class="govuk-body">' %}
+{% endfor %}
+
+{{ govukSummaryList({
+  rows: [
+    {
+      key: {
+        text: "Capacity"
+      },
+      value: {
+        text: params.trainingItem.capacity if params.trainingItem.capacity else 'N/A'
+      },
+      actions: {
+        items: [
+          {
+            href: "#",
+            text: "Change",
+            visuallyHiddenText: " capacity"
+          }
+        ]
+      }
+    },
+    {
+      key: {
+        text: "Disciplines"
+      },
+      value: {
+        html: (allDisciplines | safe)
+      },
+      actions: {
+        items: [
+          {
+            href: "#",
+            text: "Change",
+            visuallyHiddenText: " disciplines"
+          }
+        ]
+      }
+    },
+    {
+      key: {
+        text: "Qualifications"
+      },
+      value: {
+        html: (allQualifications | safe)
+      },
+      actions: {
+        items: [
+          {
+            href: "#",
+            text: "Change",
+            visuallyHiddenText: " qualifications"
+          }
+        ]
+      }
+    },
+    {
+      key: {
+        text: "Funding level"
+      },
+      value: {
+        text: params.trainingItem.smartCategory
+      },
+      actions: {
+        items: [
+          {
+            href: "#",
+            text: "Change",
+            visuallyHiddenText: " funding level"
+          }
+        ]
+      }
+    },
+     {
+       key: {
+         text: "Status"
+       },
+       value: {
+         text: govukTag({
+                       text: params.trainingItem.status,
+                       classes: "govuk-tag--green" if params.trainingItem.status == 'Active' else "govuk-tag--red"
+                     })
+       },
+       actions: {
+         items: [
+         ]
+       }
+     }
+  ]
+}) }}

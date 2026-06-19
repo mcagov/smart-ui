@@ -1,0 +1,118 @@
+{% set titleText = ('Edit' if otherClaim.id else 'Create') + ' other claim' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+    {% from "components/smart-date/macro.njk" import smartDate %}
+    {{ govukBackLink({
+        text: "Back to claim",
+        href: "/training-providers/" + trainingProviderId + "/claims/years/" + year + "/periods/" + period+ "/other-claims"
+    }) }}
+    <div class='govuk-grid-row'>
+        <div class='govuk-grid-column-two-thirds'>
+            <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+            <form class="form" action="" method="post">
+                <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+                {# {{ govukInput({
+                    label: {
+                        text: "Weeks Claim",
+                        classes: "govuk-label--s" },
+                    classes: "govuk-input--width-10",
+                    id: "ocWeeksClaimed",
+                    name: "ocWeeksClaimed",
+                    value: otherClaim.ocWeeksClaimed,
+                    hint: { text: "Optionally indicate how many weeks this claim is for." },
+                    errorMessage: 'ocWeeksClaimed' | getError(errors)
+                }) }} #}
+
+                {# {{ govukInput({
+                    label: {
+                        text: "Units Claim",
+                        classes: "govuk-label--s" },
+                    classes: "govuk-input--width-10",
+                    id: "ocUnitsClaimed",
+                    name: "ocUnitsClaimed",
+                    value: otherClaim.ocUnitsClaimed,
+                    hint: { text: "Optionally indicate how many units this claim is for." },
+                    errorMessage: 'ocUnitsClaimed' | getError(errors)
+                }) }} #}
+
+                {# {{ govukInput({
+                    label: {
+                        text: "Trainees claimed for",
+                        classes: "govuk-label--s" },
+                    classes: "govuk-input--width-10",
+                    id: "ocTraineesClaimed",
+                    name: "ocTraineesClaimed",
+                    value: otherClaim.ocTraineesClaimed,
+                    hint: { text: "Optionally indicate how many trainees this claim is for." },
+                    errorMessage: 'ocTraineesClaimed' | getError(errors)
+                }) }} #}
+
+               {# {{ govukInput({
+                    label: {
+                        text: "Balancing Claim Amount",
+                        classes: "govuk-label--s" },
+                    classes: "govuk-input--width-10",
+                    id: "bcAmount",
+                    name: "bcAmount",
+                    value: otherClaim.amount,
+                    prefix: {
+                        text: "£"
+                    },
+                    errorMessage: 'bcAmount' | getError(errors)
+                }) }} #}
+
+                {{ govukInput({
+                    label: {
+                        text: "Other Claim Amount",
+                        classes: "govuk-label--s" },
+                    classes: "govuk-input--width-10",
+                    id: "ocPaymentAmount",
+                    name: "ocPaymentAmount",
+                    value: otherClaim.paymentAmount,
+                    prefix: {
+                        text: "£"
+                    },
+                    errorMessage: 'ocPaymentAmount' | getError(errors)
+                }) }}
+
+                {{ govukTextarea({
+                name: "ocComment",
+                id: "ocComment",
+                value: otherClaim.comment,
+                errorMessage: 'ocComment' | getError(errors),
+                label: {
+                    text: "Comment",
+                    classes: "govuk-label--s"
+                },
+                hint: {
+                    text: "Please describe the reason for this other claim."
+                }
+                }) }}
+
+                    <div class="govuk-form-group">
+                        {{ govukButton({
+                            text: "Submit",
+                            preventDoubleClick: true
+                        }) }}
+
+                        {{ govukButton({
+                            text: "Cancel",
+                            classes: "govuk-button--secondary",
+                            href: "/training-providers/" + trainingProviderId + "/claims/years/" + year + "/periods/" + period+ "/other-claims"
+                        }) }}
+
+                        {% if otherClaim.id %}
+                        {{ govukButton({
+                            text: "Delete",
+                            classes: "govuk-button--warning",
+                            href: "/training-providers/" + trainingProviderId + "/claims/years/" + year + "/periods/" + period+ "/other-claim/" +  otherClaim.id + "/delete"
+                        }) }}
+                        {%endif%}
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endblock %}

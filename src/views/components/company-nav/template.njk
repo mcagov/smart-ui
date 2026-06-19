@@ -1,0 +1,34 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set items = [
+    {
+        text: 'Summary',
+        href: "/training-providers/" + params.trainingProvider.id + "/company",
+        active: true if params.active == 'summary' else false,
+        attributes: { id: 'summary' }
+    },
+    {
+        text: 'Details',
+        href: "/training-providers/" + params.trainingProvider.id ,
+        active: true if params.active == 'details' else false,
+        attributes: { id: 'details' }
+    }, {
+        text: 'My Details',
+        href: "/my-details",
+        active: true if params.active == 'my-details' else false,
+        attributes: { id: 'my-details' }
+    }, {
+        text: 'Users',
+        href: "/training-providers/" + params.trainingProvider.id + "/users",
+        active: true if params.active == 'users' else false,
+        attributes: { id: 'users' }
+    }, {
+        text: 'Payment Schedules',
+        href: "/training-providers/" + params.trainingProvider.id + "/payment-schedules",
+        active: true if params.active == 'payment-schedules' else false,
+        attributes: { id: 'payment-schedules' }
+    }] %}
+{{ mojSubNavigation({
+    label: 'Company Sub navigation',
+    items: items
+}) }}

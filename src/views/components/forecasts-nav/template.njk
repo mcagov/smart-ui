@@ -1,0 +1,46 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set trainingProvider = params.trainingProvider.id if params.trainingProvider.id else params.activeTp %}
+{% set tpSummaryLink = "/training-providers/" + trainingProvider + "/forecasts" %}
+{% set abSummaryLink = "/forecasts?activeTp=" + params.activeTp %}
+{% set items = [
+    {
+        text: 'Summary',
+        href: tpSummaryLink if params.user.role === 'tp' else abSummaryLink,
+        active: true if params.active == 'summary' else false,
+        attributes: { id: 'details' }
+    },
+    {
+        text: 'Approvals',
+        href: "/forecasts/pending?activeTp=" + params.activeTp,
+        active: true if params.active == 'forecasts' else false,
+        attributes: { id: 'forecasts' }
+    } if params.user.role === 'admin',
+    {
+        text: 'Annual',
+        href: "/training-providers/" + trainingProvider + "/forecasts/annual",
+        active: true if params.active == 'annual' else false,
+        attributes: { id: 'annual' }
+    } if params.activeTp,
+    {
+        text: 'Monthly',
+        href: "/training-providers/" + trainingProvider + "/forecasts/monthly",
+        active: true if params.active == 'monthly' else false,
+        attributes: { id: 'monthly' }
+    } if params.activeTp,
+    {
+        text: 'Joiners & Leavers Profile',
+        href: "/training-providers/" + trainingProvider + "/forecasts/adjustments",
+        active: true if params.active == 'adjustments' else false,
+        attributes: { id: 'adjustments' }
+    } if params.activeTp,
+    {
+        text: 'Logs',
+        href: "/training-providers/" + trainingProvider + "/forecasts/view-logs",
+        active: true if params.active == 'logs' else false,
+        attributes: { id: 'logs' }
+    } ] | cleanList %}
+{{ mojSubNavigation({
+    label: 'Forecasts Sub navigation',
+    items: items
+}) }}

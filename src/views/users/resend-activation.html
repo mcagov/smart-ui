@@ -1,0 +1,53 @@
+{% set titleText = 'Resend activation link' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-xl">{{titleText}}</h1>
+            {% if error %}
+                {{ govukErrorSummary({
+                  titleText: "There is a problem",
+                  errorList: error
+                }) }}
+            {% endif %}
+            {% if status == 'success' %}
+                {{ govukPanel({
+                  titleText: "Request received",
+                  html: "Resending activation link for<br><strong>" + email | escape+ "</strong>"
+                }) }}
+                <p>We have received your request to resend your activation link. If an account exists for the email
+                    <span class="govuk-!-font-weight-bold">{{ email }}</span>
+                    it will shortly receive an email with instructions on completing your account activation.</p>
+                {% set infoMsg %}
+                If you're having problems getting emails from SMarT, check your spam or junk folder. If this does not work, contact <a href="/support" class="govuk-link" target="_blank">support</a> for help.
+                {% endset %}
+                {{ govukInsetText({ html: infoMsg }) }}
+                <a href="/">Return to SMarT home</a>
+            {% else %}
+                <p>We'll send you an email with a link to complete your account activation.</p>
+                <form action="/resend-activation" id="password-reset-form" method="post">
+                    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                    {{ govukInput({
+                      label: {
+                        text: "Email address"
+                      },
+                      classes: "govuk-input--width-20",
+                      id: "email",
+                      name: "email",
+                      type: "email",
+                      autocomplete: "email",
+                      value: email if email,
+                      errorMessage: 'email' | getError(error),
+                      attributes: { spellcheck: "false" }
+                    }) }}
+
+                    <button type="submit" class="govuk-button">
+                        Send email
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,3 @@
+<input type="hidden" name="{{ params.id }}-day" id="{{ params.id }}-day" value="{{ params.value | day if params.value else '' }}" />
+<input type="hidden" name="{{ params.id }}-month" id="{{ params.id }}-month" value="{{ params.value | month if params.value else '' }}" />
+<input type="hidden" name="{{ params.id }}-year" id="{{ params.id }}-year" value="{{ params.value | year if params.value else '' }}" />

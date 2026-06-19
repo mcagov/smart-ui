@@ -1,0 +1,70 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set items = [
+    {
+        text: 'Details',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id,
+        active: true if params.active == 'details' else false,
+        attributes: { id: 'details' }
+    },{
+        text: 'Enrolments',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id + '/enrolments?status=Active',
+        active: true if params.active == 'enrolments' else false,
+        attributes: { id: 'enrolments' }
+    },{
+        text: 'Absences',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id + '/absences',
+        active: true if params.active == 'absences' else false,
+        attributes: { id: 'absences' }
+    },{
+        text: 'Comments',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id + '/comments?resolved=false',
+        active: true if params.active == 'comments' else false,
+        attributes: { id: 'comments' }
+    },{
+        text: 'Attachments',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id + '/attachments',
+        active: true if params.active == 'attachments' else false,
+        attributes: { id: 'attachments' }
+    },{
+        text: 'Claims',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id + '/claims',
+        active: true if params.active == 'claims' else false,
+        attributes: { id: 'claims' }
+    },{
+        text: 'Monthly Forecast',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id + '/monthly-forecasts',
+        active: true if params.active == 'monthly-forecasts' else false,
+        attributes: { id: 'monthly-forecasts' }
+    } if params.user.isSuperAdmin ,
+    {
+        text: 'Annual Forecast',
+        href: '/training-providers/' + params.trainingProviderId + '/trainees/' + params.trainee.id + '/annual-forecasts',
+        active: true if params.active == 'annual-forecasts' else false,
+        attributes: { id: 'annual-forecasts' }
+    } if params.user.isSuperAdmin
+] | cleanList %}
+
+{% if params.trainee | underReview %}
+{% from "moj/components/banner/macro.njk" import mojBanner %}
+
+{% set html %}
+  <p class="govuk-notification-banner__heading">
+    This trainee is under review and cannot be enrolled on training until the review is complete.
+  </p>
+  {% if params.user.role != 'admin' %}
+  <p class="govuk-body">Contact the admin body for more details.</p>
+  {% endif %}
+{% endset %}
+
+{{ mojBanner({
+  type: 'warning',
+  html: html,
+  iconFallbackText: 'Warning'
+}) }}
+{% endif %}
+
+{{ mojSubNavigation({
+    label: 'Trainee Sub navigation',
+    items: items
+}) }}

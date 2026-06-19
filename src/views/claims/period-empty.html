@@ -1,0 +1,34 @@
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      <form action="{{ formUrl }}" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        <p>The claim for this period has not yet been generated, would you like to generate it now?</p>
+        <p>The claim will be automatically populated based upon the training enrolments and absences that have been marked against the trainees that you manage.</p>
+        {{ govukWarningText({
+          text: "Make sure your trainee enrolments and absences are up to date before generating the claim.",
+          iconFallbackText: "Warning"
+        }) }}
+        {{ govukButton({
+          text: "Generate claim",
+          preventDoubleClick: true,
+          attributes: { id: 'generate-button' }
+        }) }}
+        {{ govukButton({
+          text: "Cancel",
+          classes: "govuk-button--secondary",
+          href: '/training-providers/' + trainingProvider.id + '/claims',
+          attributes: { id: 'cancel-button' }
+        }) }}
+      </form>
+    </div>
+    <div class="govuk-grid-column-one-third">
+      <h2 class="govuk-heading-m">Actions</h2>
+      {{ govukButton({
+        text: "Comments",
+        href: '/training-providers/' + trainingProvider.id + '/claims/years/' + paymentSchedule.financialYear + '/periods/' + paymentSchedule.financialPeriod + '/comments',
+        classes: "action-button govuk-button--secondary",
+        attributes: { id: 'comments-button'}
+      }) }}
+    </div>
+  </div>

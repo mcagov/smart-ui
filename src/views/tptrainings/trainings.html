@@ -1,0 +1,45 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Trainings for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Trainings'%}
+{% endif %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% if user.role == 'admin' %}
+    {% from "components/training-provider-nav/macro.njk" import trainingProviderNav %}
+    {{ trainingProviderNav({ active: 'training', trainingProvider: trainingProvider }) }}
+{% endif %}
+
+<div class="govuk-grid-row">
+    {{ listFilter({
+      columnClasses: "govuk-grid-column-three-quarters",
+      resetLink: "?",
+      includeTextFilter: true,
+      textFilterLabel: 'Enter text to search the trainings',
+      includeStatusFilter: true,
+      meta: trainingProviderTrainings.meta
+    }) }}
+
+    {% if user.role == 'admin' %}
+    <div class="govuk-grid-column-one-quarter">
+        <h2 class="govuk-heading-m">Actions</h2>
+        {{ govukButton({
+            text: 'Add training',
+            href: '/training-providers/' + trainingProvider.id + '/trainings/create',
+            classes: 'action-button',
+            attributes: { id: 'add-training' }
+        }) }}
+    </div>
+    {% endif %}
+
+    <div class="govuk-grid-column-full">
+        {% from "components/trainingtable/macro.njk" import trainingTable %}
+        {{ trainingTable({trainings: trainingProviderTrainings, trainingProviderId: trainingProvider.id}) }}
+    </div>
+</div>
+{% endblock %}

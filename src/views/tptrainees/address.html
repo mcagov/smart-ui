@@ -1,0 +1,29 @@
+{% set titleText = 'Trainee address' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    <form class="form" action="" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      {% from 'components/address/macro.njk' import address %}
+      {{ address({
+          errors: errors,
+          title: "Enter the address of the trainees permanent residence, as appears on residency documentation",
+          data: {
+            address1: trainee.addressLine1,
+            address2: trainee.addressLine2,
+            townOrCity: trainee.townArea,
+            postcode: trainee.postcode
+        }
+      }) }}
+      {{ govukButton({
+        text: 'Save and continue'
+      }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}

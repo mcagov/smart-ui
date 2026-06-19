@@ -1,0 +1,59 @@
+{% set titleText = 'Training providers' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+  <div class="govuk-grid-row">
+    {{ listFilter({
+      columnClasses: "govuk-grid-column-three-quarters",
+      includeTextFilter: true,
+      textFilterLabel: 'Enter text to search the training providers',
+      includeStatusFilter: true,
+      resetLink: "/training-providers",
+      meta: data.meta
+    }) }}
+
+    <div class="govuk-grid-column-one-quarter">
+      <label class="govuk-label govuk-label--m">Actions</label>
+      {{ govukButton({
+        text: 'Add training provider',
+        href: '/training-providers/create'
+      }) }}
+    </div>
+
+    <div class="govuk-grid-column-full">
+      <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+      {% set rows = [] %}
+
+      {% for tp in data.trainingProviders %}
+        {%set tableLink%}
+        <a href='/training-providers/{{tp.id}}' class='govuk-link'>{{tp.companyName}}</a>
+        {%endset%}
+
+        {% set rows = (rows.push([
+          { html: tableLink},
+          { text: tp.representative },
+          { text: tp.phone },
+          { text: govukTag({
+                text: tp.status,
+                classes: "govuk-tag--green" if tp.status == 'Active' else "govuk-tag--red"
+              }) }
+          ]), rows) %}
+      {% endfor %}
+
+      {{ sortableTable({
+        head: [
+          { text: 'Company name', attributes: { "aria-sort": "none", "data-name": "companyName" } },
+          { text: 'Representative', attributes: { "aria-sort": "none", "data-name": "representative" } },
+          { text: 'Phone number', attributes: { "aria-sort": "none", "data-name": "phone" } },
+          { text: 'Status' }
+        ],
+        rows: rows,
+        caption: 'Table showing training providers, column headers with buttons are sortable',
+        meta: data.meta
+      }) }}
+    </div>
+  </div>
+
+{% endblock %}

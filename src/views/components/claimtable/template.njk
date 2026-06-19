@@ -1,0 +1,37 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "components/trainingstatus/macro.njk" import smartsTrainingStatus %}
+{% set rows = [] %}
+
+{% for training in params.trainings %}
+		{%set tableLink%}
+			<a href="/providers/claims/{{training.id}}/overview" class="govuk-link">{{training.title}}</a>
+		{%endset%}
+    {% set rows = (rows.push([
+    { html: tableLink},
+    { text: params.claims.calculateTrainingForecastTotal(training.id)  | currencyUK },
+    { text: '00.00' | currencyUK },
+    { text: smartsTrainingStatus( { status: training.status } ) }
+    ]), rows) %}
+{% endfor %}
+{{ govukTable({
+  caption: params.title,
+  captionClasses: "govuk-table__caption--m",
+  firstCellIsHeader: false,
+  head: [
+	      {
+	        text: "Title"
+	      },
+	      {
+	        text: "Forecast"
+	      },
+	      {
+	        text: "Claimed"
+	      },
+	      {
+	        text: "Status"
+	      }
+	    ],
+  rows: rows
+}) }}
+
+

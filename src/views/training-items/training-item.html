@@ -1,0 +1,21 @@
+{% set titleText = data.trainingItem.capacity %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "/training-items"
+}) }}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    {% from "components/trainingitemssummary/macro.njk" import trainingItemSummary %}
+    {{ trainingItemSummary({ trainingItem: trainingItem }) }}
+
+  </div>
+</div>
+
+{% endblock %}

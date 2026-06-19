@@ -1,0 +1,16 @@
+{% from "components/hidden-date/macro.njk" import hiddenDate %}
+
+<input type="hidden" name="discipline" id="discipline" value="{{ enrolment.disciplineId }}" />
+<input type="hidden" name="level" id="level" value="{{ enrolment.levelId }}" />
+<input type="hidden" name="qualification" id="qualification" value="{{ enrolment.qualificationId }}" />
+<input type="hidden" name="experienced" id="experienced" value="{{ enrolment.isExperiencedSeafarer }}" />
+<input type="hidden" name="graduate" id="graduate" value="{{ enrolment.isGraduateEngineer }}" />
+
+{{ hiddenDate({
+    id: 'start-date',
+    value: enrolment.startDate
+}) }}
+{{ hiddenDate({
+    id: 'end-date',
+    value: enrolment.expectedEndDate
+}) }}

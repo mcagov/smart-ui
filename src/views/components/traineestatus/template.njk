@@ -1,0 +1,6 @@
+{% from "tag/macro.njk" import govukTag %}
+
+{{ govukTag({
+  text: params.status,
+  classes: params.status | getTrainingCssClass
+}) }}

@@ -1,0 +1,97 @@
+{% set titleText = 'User - ' + tpUser.profile.firstName + ' ' + tpUser.profile.lastName %}
+
+{% extends "layout.html" %}
+
+{% set noBreadcrumb = "true" %}
+
+{% block content %}
+
+{{ govukBackLink({
+    text: "Back",
+    href: "/training-providers/" + trainingProvider.id + "/users"
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h2 class="govuk-heading-l" id="page-title">{{titleText}}</h2>
+        <table class="govuk-table" aria-describedby="page-title">
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Name</th>
+                <td class="govuk-table__cell">{{ tpUser.profile.firstName }} {{ tpUser.profile.lastName }}</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Email</th>
+                <td class="govuk-table__cell">{{ tpUser.profile.email }}</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Phone</th>
+                <td class="govuk-table__cell">{{ tpUser.profile.primaryPhone }}</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Status</th>
+                <td class="govuk-table__cell">{{ tpUser.status }}</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Last login</th>
+                <td class="govuk-table__cell">{{ tpUser.lastLogin | dateTimeUKFormat if tpUser.lastLogin else 'Never' }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="govuk-grid-column-one-third">
+        {% if user.role == 'admin'%}
+        <aside class="app-related-items" role="complementary">
+
+            <h2 class="govuk-heading-m">Manage user</h2>
+            <nav role="navigation" aria-labelledby="subsection-title">
+                <ul class="govuk-list govuk-!-font-size-16">
+                    <li>
+                        {{ govukButton({
+                            text: "Delete" if tpUser.status === 'DEPROVISIONED' else 'Deactivate',
+                            classes: "govuk-button--warning action-button",
+                            href: "/training-providers/" + trainingProvider.id + "/users/" + tpUser.id + "/deactivate"
+                        }) }}
+                    </li>
+                    {# {% if tpUser.status == 'DEPROVISIONED' %}
+                    <li>
+                        {{ govukButton({
+                            text: "Delete",
+                            classes: "govuk-button--warning action-button",
+                            href: "/training-providers/" + trainingProvider.id + "/users/" + tpUser.id + "/deactivate"
+                        }) }}
+                    </li>
+                    {% endif %} #}
+                    {% if tpUser.status == 'DEPROVISIONED' %}
+                    <li>
+                        {{ govukButton({
+                            text: "Activate",
+                            classes: "govuk-button--warning action-button",
+                            href: "/training-providers/" + trainingProvider.id + "/users/" + tpUser.id + "/activate"
+                        }) }}
+                    </li>
+                    {% endif %}
+                    <li>
+                        {{ govukButton({
+                            text: "Reset password",
+                            classes: "govuk-button--warning action-button",
+                            href: "/training-providers/" + trainingProvider.id + "/users/" + tpUser.id + "/admin-reset-password"
+                        }) }}
+                    </li>
+                    <li>
+                        {{ govukButton({
+                            text: "Change details",
+                            classes: "action-button",
+                            href: "/training-providers/" + trainingProvider.id + "/users/" + tpUser.id + "/edit"
+                        }) }}
+                    </li>
+                </ul>
+            </nav>
+
+        </aside>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

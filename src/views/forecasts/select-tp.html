@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block content %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if user.role == 'tp' %}
+        <h1 id="page-title" class="govuk-heading-l">Forecasts</h1>
+      {% endif %}
+
+      {% set periodHref %}/training-providers/{{trainingProvider.id}}/forecasts/years/{{ currentPaymentSchedule.financialYear }}/periods/{{ currentPaymentSchedule.financialPeriod }}{% endset %}
+      {{ govukButton({
+        text: 'Open forecast for current period',
+        href: periodHref,
+        attributes: { id: 'open-button'}
+      }) }}
+
+      {% set tableHtml %}
+        {% if availableYears and availableYears | length > 0 %}
+        <p class="govuk-body">
+          These are all the forecasts for
+          <span class="govuk-!-font-weight-bold">{{ trainingProvider.companyName }}</span>
+          by year and period.
+        </p>
+        {% include "./table.html" %}
+        {% else %}
+        <p class="govuk-body">
+          There are no forecasts available for <span class="govuk-!-font-weight-bold">{{ trainingProvider.companyName }}</span>, try creating a forecast.
+        </p>
+        {% endif %}
+      {% endset %}
+
+      {{ govukDetails({
+        summaryText: "View forecasts for previous periods",
+        html: tableHtml
+      }) }}
+    </div>
+  </div>
+
+{% endblock %}

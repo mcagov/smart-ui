@@ -1,0 +1,31 @@
+{% from "table/macro.njk" import govukTable %}
+{% from "tag/macro.njk" import govukTag %}
+
+{% set rows = [] %}
+{% for training in params.trainings.data %}
+    {%set tableLink%}
+    <a href="/training-providers/{{params.trainingProviderId}}/trainings/{{training.id}}" class="govuk-link">{{training.trainingItem.description}}</a>
+    {%endset%}
+    {% set rows = (rows.push([
+    { html: tableLink},
+    { text: training.trainingItem.disciplines | summariseArray('discipline')  },
+    { text: training.trainingItem.levels | summariseArray('level')  },
+    { text: govukTag({
+        text: training.status,
+        classes: training.status | getStatusCssClass
+    }) }
+    ]), rows) %}
+{% endfor %}
+
+{% from "components/sortable-table/macro.njk" import sortableTable %}
+{{ sortableTable({
+    head: [
+      { text: "Description", attributes: { "aria-sort": "none", "data-name": "trainingItem.description" } },
+      { text: "Disciplines", attributes: { "aria-sort": "none", "data-name": "trainingItem.disciplines.discipline" } },
+      { text: "Levels", attributes: { "aria-sort": "none", "data-name": "trainingItem.levels.level" } },
+      { text: "Status" }
+    ],
+    rows: rows,
+    caption: 'Table showing trainings, column headers with buttons are sortable',
+    meta: params.trainings.meta
+}) }}

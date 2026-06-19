@@ -1,0 +1,45 @@
+{% set titleText = ('Update' if absence.id else 'Create') + ' an unauthorised absence' %}
+
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class='govuk-grid-row'>
+  <div class='govuk-grid-column-two-thirds'>
+    <h1 id='page-title' class='govuk-heading-l'>{{ titleText }}</h1>
+    <p> Only record absences that occurred during the working week.</p>
+    <form class="form" action="" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      {{ smartDate({
+        id: 'start-date',
+        value: absence.startDate,
+        legend: 'When did the absence start?',
+        errors: errors
+      }) }}
+
+      {{ govukInput({
+        label: { text: 'Number of days'  },
+        hint: {  text: 'You can use half days.' },
+        classes: 'govuk-input--width-3',
+        id: 'duration',
+        name: 'duration',
+        value: absence.duration if absence.duration else '',
+        errorMessage: 'duration' | getError(errors)
+      }) }}
+      {{ govukWarningText({
+        text: "This is a migrated absence and will not be included in any future claim calculation.",
+        iconFallbackText: "Warning"
+      })  if absence.isMigrated}}
+      {{ govukButton({
+        text: 'Submit',
+        preventDoubleClick: true
+      }) }}
+      {{ govukButton({
+        text: "Cancel",
+        classes: "govuk-button--secondary",
+        href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/absences"
+      }) }}
+    </form>
+  </div>
+</div>
+<script type="text/javascript" src="/public/js/accessible-autocomplete.min.js"></script>
+{% endblock %}

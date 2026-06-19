@@ -1,0 +1,414 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        ansiColor('xterm')
+        buildDiscarder(logRotator(numToKeepStr:'10'))
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        AWS_DEV_ACCOUNT_ID = credentials('aws-dev-account')
+        TF_VAR_ECR_ACCOUNT_ID = "${AWS_DEV_ACCOUNT_ID}"
+        NODE_ENV = 'local'
+        POSTGRES_DB = 'smart'
+        SMART_API = 'http://service.local.smart.mcga.uk:8080'
+        COMMENTS_API = 'http://service.local.smart.mcga.uk:9080'
+        ATTACHMENTS_API = 'http://service.local.smart.mcga.uk:7080'
+        UI_URL = 'http://localhost:2997'
+        HOST = '0.0.0.0'
+        EXPOSED_POSTGRES_PORT='7234'
+        LOGGER_TYPE = 'file'
+        LOGGER_LEVEL = 'info'
+        LOGGER_COLOURIZE = 'false'
+        COMPOSE_INTERACTIVE_NO_CLI = '1'
+        DOCKER_REGISTRY = "${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com"
+        DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain'
+        DOCKER_BUILDKIT = '1'
+        ENABLE_XRAY = false
+        AWS_XRAY_CONTEXT_MISSING = 'LOG_ERROR'
+        AWS_XRAY_LOG_LEVEL = 'silent'
+        AWS_REGION = 'eu-west-2'
+        AWS_PRIVATE_BUCKET = 'mcauk-smart-dev-attachments'
+        APP_BASE_URL = 'http://localhost:2997'
+        LOCAL_AUTH = 'true'
+        SESSION_SECRET = credentials('session-secret')
+        OKTA_ORG_URL = 'https://id.preprod.mcga.uk/'
+        OKTA_AUD = 'api://local-smart'
+        OKTA_SCOPE = 'openid profile offline_access'
+        OKTA_REDIRECT_URI = 'http://localhost:2997/authorization-code/callback'
+        OKTA_ISSUER_URL = 'https://id.preprod.mcga.uk/oauth2/ausbuj5bluwtaUnO40x7'
+        OKTA_CLIENT_ID = '0oabsafq0qdYfzmu70x7'
+        ENABLE_REDIS = 'true'
+        REDIS_PASSWORD = credentials('redis-password')
+        REDIS_HOST = 'service.local.smart.mcga.uk'
+        REDIS_TLS = 'true'
+        REDIS_PORT = '6379'
+        CUCUMBER_PUBLISH_ENABLED = 'false'
+        API_SPRING_PROFILES = 'default, dev, test,local-auth'
+        JAVA_ENV = 'local'
+        NODE_OPTIONS = "--experimental-vm-modules --experimental-specifier-resolution=node"
+        ATTACHMENTS_BUCKET = 'mcauk-smart-dev-attachments'
+        STAGING_BUCKET='mcauk-smart-dev-staging-attachments'
+        EVENTS_QUEUE_URL="http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events"
+        AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials' // ID for AWS credentials in Jenkins
+        GITHUB = credentials('github-ssh')
+        SAFE_BRANCH = "${env.BRANCH_NAME.replaceAll('/', '-')}"
+    }
+
+    parameters {
+        booleanParam(name: 'PUSH_TEST_CONTAINER', defaultValue: false, description: 'If checked, builds and pushes a test container to ECR')
+    }
+
+    stages {
+        stage('Authenticate to ECR') {
+             steps {
+                withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
+                        sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                        sh "aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner ${AWS_DEV_ACCOUNT_ID} --region eu-west-2 --profile SMarTSupportAccess-${AWS_DEV_ACCOUNT_ID}"
+                    }
+                }
+            }
+        }
+        stage('build and test') {
+            agent {
+                docker {
+                    image "${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/jenkins-npm-ci:latest"
+                    alwaysPull true
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
+                }
+            }
+            stages{
+                stage('setup'){
+                    steps {
+                        script {
+                            scmSkip(deleteBuild: true, skipPattern:'.*\\[skip ci\\].*')
+
+                            // Get the build user
+                            wrap([$class: 'BuildUser']) {
+                                env.BUILDER = sh(script: '[[ -z "${BUILD_USER}" ]] && echo -n "$(git show -s --pretty=%ae)" || echo -n "${BUILD_USER}"', returnStdout: true).trim()
+                            }
+
+                            // env.SLACK_ID = getSlackid.forEmail "${env.BUILDER}"
+
+                            sh 'rm -rf node_modules'
+                            sh 'npm --userconfig .npmrc set email mcauk@catapult.cx'
+                            withAWS(roleAccount: "${AWS_DEV_ACCOUNT_ID}", role: 'CrossAccount-Deployer', region: "${AWS_REGION}") {
+                                sh 'npm run ca:setup'
+                                env.OKTA_CLIENT_SECRET = credentials('okta-client-secret')
+                                env.OKTA_ACCESS_API_TOKEN = credentials('okta-access-api-token')
+                                env.LOCAL_AUTH_JWT_KEY = credentials('local-auth-jwt-key')
+                                env.OKTA_SCOPE_AB = sh(script: '''aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
+                                env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
+                            }
+                            // TODO stop removing package-lock.json and use npm ci
+                            sh 'npm cache clean --force'
+                            sh 'rm -rf node_modules package-lock.json'
+                            sh 'npm install'
+                            //sh 'npm ci'
+
+                            // Get next version
+                            env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
+                            env.BASE_VERSION = sh(script: 'node -p -e "require(\'./package.json\').version" | grep -o \'^[0-9]*\\.[0-9]*\'', returnStdout: true).trim()
+                            env.LATEST_VERSION = sh(script: 'npm view $(node -p "require(\'./package.json\').name")@"~${BASE_VERSION}" version --json | grep \'"\' | cut -d \'"\' -f 2 | sort --version-sort --reverse | head -n 1', returnStdout: true).trim()
+                            env.NEXT_VERSION = sh(script: '[[ -z "$LATEST_VERSION" ]] && echo "${BASE_VERSION}.0" || semver -i patch $LATEST_VERSION', returnStdout: true).trim()
+                            env.DOCKER_IMAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name" | cut -d "/" -f 2', returnStdout: true).trim()
+
+                            buildName "${NEXT_VERSION}"
+                        }
+                    }
+                }
+                stage('test') {
+                    environment{
+                        COMPOSE_PROFILES = 'default,api'
+                    }
+                    steps {
+                        withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh 'pwd'
+                            sh 'gulp'
+                            sh 'docker compose pull'
+                            sh 'docker compose up -d'
+
+                            script {
+                                def gatewayIp = sh(script: "docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}'", returnStdout: true).trim()
+
+                                sh """
+                                    set +x
+                                    TARGET_API="http://${gatewayIp}:8080"
+                                    echo "Probing SMarT API at \${TARGET_API} until initialized..."
+
+                                    MAX_RETRIES=30
+                                    ATTEMPT=0
+                                    SUCCESS=0
+
+                                    while [ \$ATTEMPT -lt \$MAX_RETRIES ]; do
+                                        STATUS=\$(curl -s -o /dev/null -w "%{http_code}" \${TARGET_API}/ 2>/dev/null || echo "000")
+                                        echo "API returned HTTP Status: \$STATUS"
+
+                                        if [ "\$STATUS" = "200" ] || [ "\$STATUS" = "302" ] || [ "\$STATUS" = "401" ] || [ "\$STATUS" = "404" ]; then
+                                            echo "SMarT API is ready, starting the tests..."
+                                            SUCCESS=1
+                                            break
+                                        fi
+
+                                        echo "API still booting, waiting 3 seconds... (Attempt \$((ATTEMPT + 1))/\$MAX_RETRIES)"
+                                        sleep 3
+                                        ATTEMPT=\$((ATTEMPT + 1))
+                                    done
+
+                                    if [ \$SUCCESS -eq 0 ]; then
+                                        echo "Error: SMarT API failed to become healthy within the time limit."
+                                        exit 1
+                                    fi
+
+                                    set -x
+                                """
+
+                                withEnv([
+                                    "DB_HOST=${gatewayIp}",
+                                    "SMART_API=http://${gatewayIp}:8080",
+                                    "COMMENTS_API=http://${gatewayIp}:9080",
+                                    "ATTACHMENTS_API=http://${gatewayIp}:7080",
+                                    "UI_URL=http://${gatewayIp}:2997",
+                                    "APP_BASE_URL=http://${gatewayIp}:2997",
+                                    "REDIS_HOST=${gatewayIp}"
+                                ]) {
+                                    sh 'docker compose exec redis env'
+                                    sh 'npm test -- --detectOpenHandles --verbose'
+                                }
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                                sh 'docker compose logs --no-color > docker-test-logs.txt'
+                                archiveArtifacts artifacts: 'docker-test-logs.txt', allowEmptyArchive: true
+                                sh 'docker compose down || true'
+                            }
+                        }
+                    }
+                }
+
+                stage('ui test') {
+                    steps {
+                        withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            script {
+                            env.COMPOSE_PROFILES = 'full'
+                            env.HOST = '0.0.0.0'
+                            env.DOCKER_HOST_IP = sh(script: "ip -4 route show default | awk '{print \$3}'", returnStdout: true).trim()
+                            env.UI_URL = "http://${env.DOCKER_HOST_IP}:2997"
+                            env.APP_BASE_URL = "http://${env.DOCKER_HOST_IP}:2997"
+
+                            sh 'gulp'
+                            sh 'docker compose build'
+                            sh 'docker compose up -d'
+                            sh '''
+                            set +x
+                            echo "Discovering host network..."
+                            HOST_IP=$(docker network inspect bridge -f \'{{(index .IPAM.Config 0).Gateway}}\')
+
+                            if [ -z "$HOST_IP" ]; then
+                                echo "Failed to find Docker Gateway IP. Falling back to localhost."
+                                HOST_IP="127.0.0.1"
+                            fi
+
+                            export TARGET_URL="http://${HOST_IP}:2997"
+                            export UI_URL="${TARGET_URL}"
+                            export APP_BASE_URL="${TARGET_URL}"
+
+                            echo "Targeting smart-ui at ${TARGET_URL}..."
+
+                            MAX_RETRIES=30
+                            ATTEMPT=0
+                            SUCCESS=0
+
+                            while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+                                STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${TARGET_URL}/ 2>/dev/null || echo "000")
+                                echo "Probe returned HTTP Status: $STATUS"
+
+                                if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ] || [ "$STATUS" = "304" ]; then
+                                    SUCCESS=1
+                                    break
+                                fi
+
+                                sleep 2
+                                ATTEMPT=$((ATTEMPT + 1))
+                            done
+
+                            if [ $SUCCESS -eq 0 ]; then
+                                echo "UI failed to boot after 60 seconds."
+                                exit 1
+                            fi
+
+                            echo "smart-ui is ready at ${TARGET_URL}"
+                            export DB_HOST="${HOST_IP}"
+                            set -x
+                            npm run test:wdio-headless
+                            '''
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            sh 'docker compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt'
+                            sh 'docker compose logs smart-api --no-color > docker-ui-test-api-logs.txt'
+                            sh 'docker compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt'
+                            sh 'docker compose logs nginx --no-color > docker-ui-test-nginx-logs.txt'
+                            archiveArtifacts artifacts: 'docker-ui-test-ui-logs.txt, docker-ui-test-api-logs.txt, docker-ui-test-comments-logs.txt, docker-ui-test-nginx-logs.txt', allowEmptyArchive: true
+                            sh 'docker compose down -v || true'
+                        }
+                    }
+                }
+
+                stage('npm publish') {
+                   when {
+                       anyOf{
+                            branch 'master'
+                            expression { params.PUSH_TEST_CONTAINER}
+                       }
+                   }
+                    steps {
+                        script {
+                           sh 'npm --no-git-tag-version --allow-same-version version ${NEXT_VERSION}'
+                           sh 'pwd'
+                           sh 'npm publish'
+//                            sshagent(credentials: ['github-ssh']) {
+//                                 sh '''
+//                                     git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION} || true"
+//                                     git push git@github.com:mcagov/smart-ui.git "v${NEXT_VERSION}"
+//                                 '''
+//                            }
+//                            sh 'git tag -a v${NEXT_VERSION} -m "release ${NEXT_VERSION}"'
+//                            sh 'git push origin v${NEXT_VERSION}'
+                        }
+                    }
+                }
+
+                stage('docker-publish') {
+                    when {
+                        anyOf{
+                        branch 'master'
+                        expression { params.PUSH_TEST_CONTAINER}
+                        }
+                    }
+                    steps {
+                        script {
+                        def imageTag = (env.BRANCH_NAME == 'master') ? "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" : "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${env.BRANCH_NAME}-TEST"
+                            sh """
+                            echo "Building docker image ${imageTag}"
+
+                            docker build ${DOCKER_OPTS} \
+                                -t "${imageTag}" \
+                                --secret id=npmrc,src=.npmrc \
+                                --build-arg AWS_DEV_ACCOUNT_ID=${AWS_DEV_ACCOUNT_ID} \
+                                --build-arg UI_VERSION=$NEXT_VERSION \
+                                .
+
+                            docker push "${imageTag}"
+                            """
+                        }
+                    }
+                }
+
+                stage('vulnerability-report') {
+                   when { branch 'master' }
+                    steps {
+                        withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            script {
+                                String describeImageJson = sh(label: 'Retrieve Image Digest', script: "aws ecr describe-images --repository-name ${DOCKER_IMAGE_NAME} --image-id imageTag=${NEXT_VERSION} --region ${AWS_REGION} --output json", returnStdout: true)
+                                def imageInfo = readJSON text: describeImageJson
+                                def imageDigest = imageInfo.imageDetails[0].imageDigest
+                                println("Waiting for the image scan to kick start ...")
+                                sh 'sleep 60'
+
+                                boolean isComplete = false
+                                while (!isComplete) {
+                                    String scanJson = sh(
+                                        label: 'Check ECR Scan Status',
+                                        script: "aws ecr describe-image-scan-findings --repository-name ${DOCKER_IMAGE_NAME} --image-id imageDigest=${imageDigest} --region ${AWS_REGION} --output json",
+                                        returnStdout: true
+                                    )
+
+                                    def scanData = readJSON text: scanJson
+                                    def scanStatus = scanData.imageScanStatus.status
+
+                                    if (scanStatus == 'COMPLETE') {
+                                        isComplete = true
+                                        def findings = scanData.imageScanFindings.findingSeverityCounts
+                                        println("Scan Findings Summary: ${findings}")
+
+                                        env.VULNERABILITIES = findings.toString()
+                                        writeFile file: 'vulnerabilities.log', text: env.VULNERABILITIES
+                                        archiveArtifacts artifacts: 'vulnerabilities.log'
+                                    } else if (scanStatus == 'FAILED') {
+                                        error "ECR Image Scan failed for ${DOCKER_IMAGE_NAME}"
+                                    } else {
+                                        println("Current Status: ${scanStatus}. Waiting 30s...")
+                                        sleep 30
+                                    }
+                                }
+                            }
+                        }
+                    }
+               } //end of vulnerabilityReport
+            }
+        }
+    } // end of stages
+
+    post {
+        always {
+            script{
+
+                def build_status = env.BUILD_STATUS
+
+                sh """
+                echo $build_status
+                """
+
+                if (build_status == 'FAILURE') {
+                    slackSend color: 'danger', message: "Deployment failed: ${env.BUILD_URL}"
+                } else {
+                    slackSend color: 'good', message: "Deployment successful: ${env.BUILD_URL}"
+                }
+            }
+        }
+    }
+
+    // post {
+    //     always {
+    //         jiraSendBuildInfo site: 'mcauk.atlassian.net'
+    //         cleanWs(cleanWhenNotBuilt: true,
+    //             deleteDirs: true,
+    //             patterns: [
+    //                 [pattern: '~/.docker', type: 'INCLUDE'],
+    //                 [pattern: '~/.netrc', type: 'INCLUDE'],
+    //                 [pattern: '.npmrc', type: 'INCLUDE']])
+    //         junit allowEmptyResults: true, skipPublishingChecks: true, testResults: '**/reports/*-junit.xml'
+    //         junit allowEmptyResults: true, skipPublishingChecks: true, testResults: 'wdio-output/*.xml'
+    //     }
+    //     failure {
+    //         slackSend(color: '#FF0000', message: '', attachments: [
+    //             [
+    //                 text:   '<@' + env.SLACK_ID + '>\n' +
+    //                         ' A build you (' + env.BUILDER + ') started has failed\n' +
+    //                         '<' + env.BUILD_URL + '|' +
+    //                         env.JOB_NAME.replaceAll('/', ' » ') +
+    //                         ' #' + env.BUILD_NUMBER + '>\n',
+    //                 color: '#FF0000'
+    //             ]
+    //         ])
+    //         emailext(
+    //             subject: "[JENKINS MCAUK] FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+    //             body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+    //                     <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+    //             to: 'mcauk@catapult.cx',
+    //             mimeType: 'text/html',
+    //             recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider'], [$class: 'CulpritsRecipientProvider']]
+    //         )
+    //     }
+    // }
+} //end of pipeline

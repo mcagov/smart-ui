@@ -1,0 +1,166 @@
+{% set titleText = 'Update enrolment' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/smart-date/macro.njk" import smartDate %}
+
+{{ govukBackLink({
+    text: "Back to " + trainee.contactName,
+    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments'
+}) }}
+
+<div class='govuk-grid-row'>
+    <div class='govuk-grid-column-two-thirds'>
+        <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+        {% set href %}/training-items/{{enrolment.training.trainingItem.id}}{% endset %}
+        {% set tiLink %}
+        <a href="{{href}}" class="govuk-link">
+            {{enrolment.training.trainingItem.description}}
+        </a>
+        {% endset %}
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            <h2 class="govuk-heading-m">Enrolment summary</h2>
+            {{ govukSummaryList({
+                rows: [
+                    {
+                        key: {  text: 'Legacy' },
+                        value: { text: govukTag({
+                            text: 'This training item should not be used in the future',
+                            classes: "govuk-tag--red"
+                        }) }
+                    } if enrolment.training.trainingItem.isLegacy,
+                    {
+                        key: { text: 'Training item' },
+                        value: { html: tiLink }
+                    },
+                    {
+                        key: { text: 'Trainee' },
+                        value: { text: enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}
+                    },
+                    {
+                        key: { text: 'Weeks Claimed' },
+                        value: { text: enrolment.trainee.smart1WeeksClaimed }
+                    } if enrolment.trainee.smart1WeeksClaimed,
+                    {
+                        key: { text: 'Discipline' },
+                        value: {  text: enrolment.discipline.discipline  }
+                    } if not enrolment.training.trainingItem.isLegacy,
+                    {
+                        key: { text: 'Level' },
+                        value: {  text: enrolment.level.level  }
+                    } if not enrolment.training.trainingItem.isLegacy,
+                    {
+                        key: { text: 'Qualification' },
+                        value: {  text: enrolment.qualification.qualification  }
+                    } if not enrolment.training.trainingItem.isLegacy,
+                    {
+                        key: { text: 'Experienced?' },
+                        value: {  text: 'Yes' if enrolment.isExperiencedSeafarer | isTrue else 'No' }
+                    } if not enrolment.training.trainingItem.isLegacy,
+                    {
+                        key: { text: 'Graduate?' },
+                        value: {  text:  'Yes' if enrolment.isGraduateEngineer | isTrue else 'No' }
+                    } if not enrolment.training.trainingItem.isLegacy,
+                    {
+                        key: { text: 'Started' },
+                        value: {  text: enrolment.startDate | dateUKFormat }
+                    } if not enrolment.canEdit,
+                    {
+                        key: { text: 'Expected End Date' if enrolment.status == 'Active' else 'Ended'  },
+                        value: {  text: enrolment.expectedEndDate | dateUKFormat }
+                    },
+                    {
+                        key: { text: 'Calculated duration' },
+                        value: {  text: durationInWeeks | weeksFormat('weeks') }
+                    },
+                    {
+                        key: { text: "Status" },
+                        value: { text: govukTag({  text: enrolment.status, classes: enrolment.status | getStatusCssClass }) }
+                    }
+                ] | cleanList
+            }) }}
+            {% if enrolment.canEdit %}
+
+                {{ smartDate({
+                    id: 'start-date',
+                    value: enrolment.startDate,
+                    legend: 'When does the training start?',
+                    errors: errors
+                }) }}
+            {% endif %}
+
+            {% if not enrolment.status | isLeaveStatus %}
+            {{ govukRadios({
+                classes: "govuk-radios--small govuk-radios--inline",
+                idPrefix: 'job',
+                name: 'job',
+                fieldset: { legend: {  text: "Is a job being offered after their training?"  } },
+                hint: { text: "If you don't know yet this can be set later"  },
+                items: [
+                    { value: "true",  text: "Yes",  checked: true if enrolment.isJobBeingOffered | isTrue },
+                    { value: "false", text: "No",  checked: true if enrolment.isJobBeingOffered | isFalse }
+                ]
+            }) }}
+            {% endif %}
+
+            {% if enrolment.status == 'Completed' %}
+            {{ govukInput({
+                label: {  text: "CoC number" },
+                classes: "govuk-input--width-10",
+                id: "coc-number",
+                name: "coc-number",
+                value: enrolment.cocNumber,
+                errorMessage: 'cocNumber' | getError(errors)
+            }) }}
+
+
+            {{ smartDate({
+                id: 'coc-issued-date',
+                value: enrolment.cocIssuedDate,
+                legend: 'When was the CoC issued?',
+                errors: errors
+            }) }}
+            {% endif %}
+
+            {% if not enrolment.status | isLeaveStatus %}
+            {{ smartDate({
+                id: 'noe-issued-date',
+                value: enrolment.noeIssuedDate,
+                legend: 'When was the NoE issued?',
+                errors: errors
+            }) }}
+            {% endif %}
+            {% if enrolment.status == 'Active' or not enrolment.expectedEndDate or (user.isAdmin and enrolment.status | isReactivateStatus ) or user.isSuperAdmin%}
+                {{ smartDate({
+                    id: 'end-date',
+                    value: enrolment.expectedEndDate,
+                    legend: 'When did the trainee finish?',
+                    errors: errors
+                }) }}
+            {% endif %}
+
+            {% if enrolment.status == 'Active' or not enrolment.status or user.isSuperAdmin %}
+                {{ enrolmentStatusSelect({ value: enrolment.status }) }}
+            {% endif %}
+
+            {{ govukButton({
+                text: "Submit",
+                preventDoubleClick: true
+            }) }}
+            {{ govukButton({
+                text: "Delete",
+                classes: "govuk-button--warning",
+                href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/" + enrolment.id + "/delete"
+            }) if  user.isSuperAdmin or (user.isAdmin and enrolment.canEdit)}}
+            {{ govukButton({
+                text: "Cancel",
+                classes: "govuk-button--secondary",
+                href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments"
+            }) }}
+        </form>
+    </div>
+</div>
+{% endblock %}

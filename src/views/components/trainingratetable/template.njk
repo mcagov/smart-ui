@@ -1,0 +1,46 @@
+{% from "table/macro.njk" import govukTable %}
+
+{% set rows = [] %}
+{% for smartItem in params.training.trainingItem.smartItems %}
+    {% set paymentType = '' %}
+    {% set paymentAmount = '' %}
+
+    {% if smartItem.paymentType == 'weekly' %}
+      {% set paymentType = 'Weekly' %}
+    {% elseif smartItem.paymentType == 'instalments' %}
+      {% set prefix = 'First ' if  rate.trainingRateOrder == 1 else 'Second ' %}
+      {% set paymentType = prefix +  rate.numberOfInstalments + ' Instalments' %}
+    {% elseif smartItem.paymentType == 'on_completion' %}
+      {% set paymentType = 'On training completion' %}
+    {% else %}
+      {% set paymentType = 'One off payment' %}
+    {% endif %}
+
+    {% for rate in smartItem.rates %}
+      {% if rate.endDate == null %}
+        {% set paymentAmount = rate.paymentAmount | currencyUK %}
+      {% endif %}
+    {% endfor %}
+    {% set rows = (rows.push([
+    { text: smartItem.description },
+    { text: paymentType },
+    { text: paymentAmount }
+    ]), rows) %}
+{% endfor %}
+
+{{ govukTable({
+  caption: 'Table displaying smart item rates',
+  captionClasses: 'govuk-table__caption--m govuk-visually-hidden',
+  head: [
+    {
+      text: "Description"
+    },
+    {
+      text: "Payment type"
+    },
+    {
+      text: "Amount"
+    }
+  ],
+  rows: rows
+}) }}

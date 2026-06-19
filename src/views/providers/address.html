@@ -1,0 +1,32 @@
+{% if user.role == 'admin' %}
+    {% set titleText = 'Address for ' + trainingProvider.companyName%}
+{% else %}
+    {% set titleText = 'Address'%}
+{% endif %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+    <form class="form" action="" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      {% from 'components/address/macro.njk' import address %}
+      {{ address({
+          errors: errors,
+          title: "Enter the correspondence address",
+          data: {
+            address1: trainingProvider.addressLine1,
+            address2: trainingProvider.addressLine2,
+            townOrCity: trainingProvider.townArea,
+            postcode: trainingProvider.postcode
+        }
+      }) }}
+      {{ govukButton({
+        text: 'Save and continue'
+      }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}

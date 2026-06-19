@@ -1,0 +1,82 @@
+{% set titleText = 'Claims for ' + (trainee.contactName if trainee.contactName else trainee.matsuNumber) %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if user.role == 'admin' %}
+    {{ govukBackLink({
+        text: "Back to " + trainingProvider.companyName,
+        href: '/training-providers/' + trainingProvider.id + '/trainees'
+    }) }}
+{% endif %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% from 'components/trainee-nav/macro.njk' import traineeNav %}
+{{ traineeNav({
+    active: 'claims',
+    trainingProviderId: trainingProvider.id,
+    trainee: trainee,
+    titleText: titleText,
+    user: user }) }}
+
+{% from 'components/claimtag/macro.njk' import mcaClaimTag %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+        {% if claimItems.data.length > 0 %}
+        {% set rows = [] %}
+        {% for item in claimItems.data %}
+          {% set periodHref %}/training-providers/{{trainingProvider.id}}/claims/years/{{item.financialYear}}/periods/{{item.financialPeriod}}{% endset %}
+          {% set link %}
+            <a href="{{periodHref}}" class="govuk-link">
+              {{item.financialYear}} / {{item.financialPeriod | financialPeriodFormat}}
+            </a>
+          {% endset %}
+
+          {% if item.claimType == 'trainee_balancing_claim' %}
+          {% set claimHref %}/training-providers/{{trainingProvider.id}}/claims/years/{{item.financialYear}}/periods/{{item.financialPeriod}}/balancing-claim/trainee/{{item.traineeId}}/{{item.id}}{% endset %}
+          {% set claimLink %}
+            <a href="{{claimHref}}" class="govuk-link">
+             {{ item.claimType | claimType}}
+            </a>
+          {% endset %}
+          {% else %}
+            {% set claimLink %}
+             {{ item.claimType | claimType}}
+            {% endset %}
+          {% endif %}
+
+          {% set rows = (rows.push([
+            { html: link , attributes: { 'nowrap': ''} },
+            { html: claimLink },
+            { text: item.category },
+            { text: item.smartItemDescription  },
+            { text: item.weeksClaimed },
+            { text: item.paymentAmount | currencyUK},
+            { html: mcaClaimTag({ status: item.status }) }
+          ]), rows) %}
+        {% endfor %}
+
+      {{ sortableTable({
+          head: [
+            {  text: "Period", attributes: { "aria-sort": "none", "data-name": "period" } },
+            {  text: "Type" },
+            {  text: "Category" },
+            {  text: "Item"},
+            {  text: "Weeks claimed" },
+            {  text: "Amount" },
+            {  text: "Status" }
+          ],
+          rows: rows,
+          caption: 'Table showing claims for a trainee, column headers with buttons are sortable',
+          meta: claimItems.meta
+      }) }}
+      {% else %}
+            <p class="govuk-heading-s">There are no trainee claims </p>
+      {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block pageScript %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% set titleText = 'Trainees' %}
+{% set titleText = trainingProviderTraining.trainingItem.description + ' enrolled trainees'  %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{{ govukBackLink({
+    text: "Back to " + trainingProvider.companyName,
+    href: '/training-providers/' + trainingProvider.id + '/trainings'
+}) }}
+
+{% from "components/training-nav/macro.njk" import trainingNav %}
+
+{{ trainingNav({
+    active: 'trainees',
+    trainingProviderId: trainingProvider.id,
+    trainingProviderTraining: trainingProviderTraining,
+    titleText: titleText
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        {% from 'components/enrolledtraineetable/macro.njk' import mcaEnrolledTraineeTable %}
+        {{ mcaEnrolledTraineeTable({
+            enrolments: enrolments,
+            baseUrl: '/training-providers/' + trainingProvider.id
+        }) }}
+    </div>
+</div>
+
+{% endblock %}

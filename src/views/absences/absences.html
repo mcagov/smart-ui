@@ -1,0 +1,54 @@
+{% set titleText = 'Absences for ' + (trainee.contactName if trainee.contactName else trainee.matsuNumber) %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+{% if user.role == 'admin' %}
+    {{ govukBackLink({
+        text: "Back to " + trainingProvider.companyName,
+        href: '/training-providers/' + trainingProvider.id + '/trainees'
+    }) }}
+{% endif %}
+
+<h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+
+{% from 'components/trainee-nav/macro.njk' import traineeNav %}
+{{ traineeNav({
+    active: 'absences',
+    trainingProviderId: trainingProvider.id,
+    trainee: trainee,
+    titleText: titleText,
+    user: user }) }}
+
+{% set actionButton %}
+{{ govukButton({
+    text: 'Register an absence',
+    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/absences/create'
+}) if trainee.status  == 'Active'}}
+
+{% endset %}
+
+{% if absences.data | isArray and absences.data.length > 0 %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        {% from "components/absence-table/macro.njk" import mcaAbsenceTable %}
+        {{ mcaAbsenceTable({
+            trainingProviderId: trainingProviderId,
+            absences: absences
+        }) }}
+    </div>
+    <div class="govuk-grid-column-one-third">
+        <label class="govuk-label govuk-label--m">Actions</label>
+        {{ actionButton | safe }}
+    </div>
+</div>
+{% else %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <p class="govuk-heading-m">{{ trainee.contactName  if trainee.contactName else trainee.matsuNumber}} does not have any absences</p>
+        {{ actionButton | safe }}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

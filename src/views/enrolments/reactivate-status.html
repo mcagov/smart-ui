@@ -1,0 +1,91 @@
+{% set titleText = 'Reactivate enrolment' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/smart-date/macro.njk" import smartDate %}
+
+{{ govukBackLink({
+    text: "Back to " + trainee.contactName,
+    href: '/training-providers/' + trainingProvider.id + '/trainees/' + trainee.id + '/enrolments/' + enrolment.id + '/details'
+}) }}
+
+<div class='govuk-grid-row'>
+    <div class='govuk-grid-column-two-thirds'>
+        <h1 id='page-title' class='govuk-heading-l'>{{titleText}}</h1>
+        <p class="govuk-heading-s">Change the status of a enrolment back to Active.</p>
+        <form class="form" action="" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            {{ govukSummaryList({
+                rows: [
+                    {
+                        key: { text: 'Trainee' },
+                        value: { text: enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}
+                    },
+                    {
+                        key: { text: 'Weeks Claimed' },
+                        value: { text: enrolment.trainee.smart1WeeksClaimed }
+                    } if enrolment.trainee.smart1WeeksClaimed,
+                    {
+                        key: { text: 'Started' },
+                        value: {  text: enrolment.startDate | dateUKFormat }
+                    } if not enrolment.canEdit,
+                    {
+                        key: { text: 'Expected End Date' if enrolment.status == 'Active' else 'Ended'  },
+                        value: {  text: enrolment.expectedEndDate | dateUKFormat }
+                    },
+                    {
+                        key: { text: "Current Status" },
+                        value: { text: govukTag({  text: enrolment.status, classes: enrolment.status | getStatusCssClass }) }
+                    }
+                ] | cleanList
+            }) }}
+
+{{ govukSummaryList({
+    card: {
+    title: {
+      text: "Actions depending on an enrolment having being updated or a claim having being made since the enrolment status was changed from Active"}
+  },
+  rows: [
+    {
+      key: {
+        text: "Enrolment updated"
+      },
+      value: {
+        text: "if ANY update has been made to the enrolment then the trainee will be re-enrolled on the same trainee programme and the weekly instalments will continue to be claimed to the maximum amount allowed. The start date for the new enrolment will be the date the status was changed to Left."
+      }
+    },
+    {
+      key: {
+        text: "Claim not made"
+      },
+      value: {
+        text: "the status of the existing enrolment will be changed to Active and the weekly instalments will continue to be claimed to the maximum amount allowed."
+      }
+    },
+    {
+      key: {
+        text: "Claim made"
+      },
+      value: {
+        text: "the trainee will be re-enrolled on the same trainee programme and the weekly instalments will continue to be claimed to the maximum amount allowed. The start date for the new enrolment will be the date the status was changed to " + enrolment.status + "."
+      }
+    }
+    ]
+}) }}
+            {{ govukButton({
+                text: "Reactivate",
+                preventDoubleClick: true
+            }) }}
+
+            {{ govukButton({
+                text: "Cancel",
+                classes: "govuk-button--secondary",
+                href: "/training-providers/" + trainingProvider.id + "/trainees/" + trainee.id + "/enrolments/" + enrolment.id + "/details"
+            }) }}
+
+        </form>
+    </div>
+</div>
+{% endblock %}

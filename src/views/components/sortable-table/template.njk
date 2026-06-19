@@ -1,0 +1,26 @@
+{% if params.rows.length|int > 0 %}
+{% from "table/macro.njk" import govukTable %}
+{{ govukTable({
+  attributes: {
+    'data-module': 'mcga-sortable-table',
+    'data-mcga-sort': params.meta.sort,
+    'data-mcga-order': params.meta.order,
+    'data-mcga-meta': params.meta | tostring
+  },
+  caption: params.caption,
+  captionClasses: 'govuk-table__caption--m ' + ('govuk-visually-hidden' if hideCaption),
+  firstCellIsHeader: false,
+  head: params.head,
+  rows: params.rows
+}) }}
+{% else %}
+  {% if params.noDataMessage %}
+<p class='govuk-heading-m'>{{params.noDataMessage}}</p>
+  {% else %}
+<p class='govuk-heading-m'>There is no data available, try resetting your filters.</p>
+  {% endif %}
+{% endif %}
+{% if params.meta.totalPages|int > 1 %}
+  {% from "moj/components/pagination/macro.njk" import mojPagination %}
+  {{ mojPagination(params.meta | pageData) }}
+{% endif %}

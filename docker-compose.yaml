@@ -1,0 +1,380 @@
+services:
+  cert-gen:
+    image: public.ecr.aws/docker/library/alpine:latest
+    container_name: cert-gen
+    volumes:
+      - ./:/workspace:ro
+      - ./.certs:/certs
+    entrypoint: /bin/sh -c
+    command: >
+      "apk add --no-cache openssl &&
+      
+      openssl genrsa -out /certs/ca.key 4096 &&
+      openssl req -x509 -new -nodes -key /certs/ca.key -sha256 -days 365 -out /certs/ca.crt -subj '/CN=SMART-Local-CA' &&
+      
+      openssl genrsa -out /certs/redis.key 2048 &&
+      openssl req -new -key /certs/redis.key -out /certs/redis.csr -subj '/CN=redis' &&
+      echo 'subjectAltName=DNS:redis,DNS:service.local.smart.mcga.uk,DNS:localhost' > /certs/redis-extfile.cnf &&
+      openssl x509 -req -in /certs/redis.csr -CA /certs/ca.crt -CAkey /certs/ca.key -CAcreateserial -out /certs/redis.crt -days 365 -sha256 -extfile /certs/redis-extfile.cnf &&
+      
+      HOST_OWNER=$$(stat -c '%u:%g' /workspace) &&
+      chown -R $$HOST_OWNER /certs &&
+      
+      chmod 755 /certs &&          
+      chmod 600 /certs/*.key &&    
+      chmod 644 /certs/*.crt &&   
+      chmod 644 /certs/*.csr || true"
+    profiles:
+      - default
+      - full
+  smart-api-db:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api-test-db:1.0.179
+    ports:
+      - '${EXPOSED_POSTGRES_PORT-7432}:${POSTGRES_PORT-5432}'
+    environment:
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-smart}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    shm_size: ${SHM_SIZE-256m}
+    profiles:
+      - full
+      - api
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "2"
+    memswap_limit: 4g
+
+  smart-api:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.63
+    ports:
+      - '8080:8080'
+      - '8082:8082'
+    environment:
+      - AWS_XRAY_CONTEXT_MISSING=$AWS_XRAY_CONTEXT_MISSING
+      - AWS_XRAY_LOG_LEVEL=$AWS_XRAY_LOG_LEVEL
+      - AWS_REGION=${AWS_REGION:-eu-west-2}
+      - DB_CONTEXT=local
+      - DISABLE_XRAY=true
+      - JAVA_ENV=${JAVA_ENV:-local}
+      - LOGGING_LEVEL_UK_MCGA_SMART_API=DEBUG
+      - MANAGEMENT_SECURITY_ROLE=SUPERUSER
+      - OKTA_ACCESS_API_TOKEN=${OKTA_ACCESS_API_TOKEN}
+      - OKTA_AUD=${OKTA_AUD}
+      - OKTA_CLIENT_ID=${OKTA_CLIENT_ID}
+      - OKTA_CLIENT_SECRET=${OKTA_CLIENT_SECRET}
+      - OKTA_ISSUER_URL=${OKTA_ISSUER_URL}
+      - OKTA_JWT_SET_URI=https://id.mca.dev.catapult.cx/oauth2/aush2o6wpn3IG2U6o357/v1/keys
+      - OKTA_REDIRECT_URI=${OKTA_REDIRECT_URI}
+      - OKTA_SCOPE=${OKTA_SCOPE}
+      - POSTGRES_DB=smart
+      - POSTGRES_HOST=smart-api-db
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-smart}
+      - SERVER_FORWARD_HEADERS_STRATEGY=FRAMEWORK
+      - SERVER_PORT=8080
+      - SERVER_USE_FORWARD_HEADERS=true
+      - SPRING_PROFILES_ACTIVE=${API_SPRING_PROFILES:-default}
+      - SPRING_SECURITY_NAME=admin
+      - SPRING_SECURITY_PASSWORD=secret
+      - UK_MCGA_SMART_API_SECURITY_TEST_KEY=${LOCAL_AUTH_JWT_KEY}
+    depends_on:
+      smart-api-db:
+        condition: service_healthy
+    profiles:
+      - full
+      - api
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "2"
+    memswap_limit: 4g
+
+  smart-comments-db:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-test-db:1.0.8
+    ports:
+      - '8432:5432'
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_USER: ${POSTGRES_USER:-smart}
+      POSTGRES_DB: smart-comments
+    shm_size: ${SHM_SIZE-256m}
+    profiles:
+      - full
+      - api
+      - comments
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g
+
+  smart-comments-api:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-api:1.0.46
+    ports:
+      - '${COMMENTS_API_PORT-9080}:8080'
+      - '${COMMENTS_API_MANAGEMENT_PORT-9082}:8082'
+    environment:
+      - SPRING_PROFILES_ACTIVE=${API_SPRING_PROFILES:-default}
+      - POSTGRES_HOST=smart-comments-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-smart}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=smart-comments
+      - SERVER_PORT=8080
+      - DB_CONTEXT=local
+      - JAVA_ENV=${JAVA_ENV:-local}
+      - AWS_XRAY_CONTEXT_MISSING=$AWS_XRAY_CONTEXT_MISSING
+      - AWS_XRAY_LOG_LEVEL=$AWS_XRAY_LOG_LEVEL
+      - DISABLE_XRAY=true
+      - OKTA_JWT_SET_URI=https://id.mca.dev.catapult.cx/oauth2/aush2o6wpn3IG2U6o357/v1/keys
+      - OKTA_AUD=${OKTA_AUD}
+      - OKTA_SCOPE=${OKTA_SCOPE}
+      - OKTA_REDIRECT_URI=${OKTA_REDIRECT_URI}
+      - OKTA_ISSUER_URL=${OKTA_ISSUER_URL}
+      - OKTA_CLIENT_ID=${OKTA_CLIENT_ID}
+      - OKTA_CLIENT_SECRET=${OKTA_CLIENT_SECRET}
+      - OKTA_ACCESS_API_TOKEN=${OKTA_ACCESS_API_TOKEN}
+      - ORG_CLAIM=trainingProviderId
+      - UK_MCGA_SMART_API_SECURITY_TEST_KEY=${LOCAL_AUTH_JWT_KEY}
+      - MANAGEMENT_SECURITY_ROLE=SUPERUSER
+      - SERVER_USE_FORWARD_HEADERS=true
+      - SERVER_FORWARD_HEADERS_STRATEGY=FRAMEWORK
+    depends_on:
+      smart-comments-db:
+        condition: service_healthy
+    profiles:
+      - full
+      - api
+      - comments
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g
+
+  smart-attachments-db:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-test-db:1.0.8
+    ports:
+      - '9432:5432'
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_USER: ${POSTGRES_USER:-smart}
+      POSTGRES_DB: smart-attachments
+    shm_size: ${SHM_SIZE-256m}
+    profiles:
+      - full
+      - api
+      - attachments
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g
+
+  smart-attachments-api:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-api:1.0.5
+    ports:
+      - '7080:8080'
+      - '7082:8082'
+    environment:
+      - ATTACHMENTS_BUCKET=${ATTACHMENTS_BUCKET}
+      - STAGING_BUCKET=${STAGING_BUCKET}
+      - EVENTS_QUEUE_URL=${EVENTS_QUEUE_URL}
+      - SPRING_PROFILES_ACTIVE=${API_SPRING_PROFILES:-default}
+      - POSTGRES_HOST=smart-attachments-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-smart}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=smart-attachments
+      - SERVER_PORT=8080
+      - DB_CONTEXT=local
+      - JAVA_ENV=${JAVA_ENV:-local}
+      - AWS_XRAY_CONTEXT_MISSING=$AWS_XRAY_CONTEXT_MISSING
+      - AWS_XRAY_LOG_LEVEL=$AWS_XRAY_LOG_LEVEL
+      - DISABLE_XRAY=true
+      - OKTA_JWT_SET_URI=https://id.mca.dev.catapult.cx/oauth2/aush2o6wpn3IG2U6o357/v1/keys
+      - OKTA_AUD=${OKTA_AUD}
+      - OKTA_SCOPE=${OKTA_SCOPE}
+      - OKTA_REDIRECT_URI=${OKTA_REDIRECT_URI}
+      - OKTA_ISSUER_URL=${OKTA_ISSUER_URL}
+      - OKTA_CLIENT_ID=${OKTA_CLIENT_ID}
+      - OKTA_CLIENT_SECRET=${OKTA_CLIENT_SECRET}
+      - OKTA_ACCESS_API_TOKEN=${OKTA_ACCESS_API_TOKEN}
+      - ORG_CLAIM=trainingProviderId
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - AWS_REGION=${AWS_REGION:-eu-west-2}
+      - AWS_PRIVATE_BUCKET=${AWS_PRIVATE_BUCKET}
+      - AWS_ENDPOINT=http://service.local.smart.mcga.uk # Switched to HTTP
+      - UK_MCGA_SMART_API_SECURITY_TEST_KEY=${LOCAL_AUTH_JWT_KEY}
+      - MANAGEMENT_SECURITY_ROLE=SUPERUSER
+      - SERVER_USE_FORWARD_HEADERS=true
+      - SERVER_FORWARD_HEADERS_STRATEGY=FRAMEWORK
+    depends_on:
+      smart-attachments-db:
+        condition: service_healthy
+    profiles:
+      - full
+      - api
+      - attachments
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g
+
+  nginx:
+    image: public.ecr.aws/nginx/nginx:1.25
+    ports:
+      - 80:80
+      # Port 443 mapping can optionally be removed here if you strictly want HTTP only
+      - 443:443
+    environment:
+      UI_PORT: ${UI_PORT-2997}
+    volumes:
+      - ${PWD}/test/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${PWD}/test/nginx/common:/etc/nginx/common
+      - ${PWD}/test/nginx/html:/etc/nginx/error_pages
+      - ${PWD}/test/nginx/smart.conf:/etc/nginx/templates/default.conf.template
+      # Removed the SSL volume mount
+    depends_on:
+      cert-gen:
+        condition: service_completed_successfully
+    profiles:
+      - default
+      - full
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1"
+    memswap_limit: 1g
+
+  redis:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/redis:latest
+    ports:
+      - '6379:6379'
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - ./.certs:/tls:ro
+    command: >
+      sh -c 'exec redis-server /usr/local/etc/redis/redis.conf 
+      --requirepass "$$REDIS_PASSWORD" 
+      --tls-cert-file /tls/redis.crt 
+      --tls-key-file /tls/redis.key 
+      --tls-ca-cert-file /tls/ca.crt'
+    depends_on:
+      cert-gen:
+        condition: service_completed_successfully
+    profiles:
+      - default
+      - full
+
+  external:
+    image: public.ecr.aws/nginx/nginx:1.25.1
+    hostname: smart-ui
+    environment:
+      UI_PORT: ${UI_PORT-2997}
+    volumes:
+      - ${PWD}/test/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${PWD}/test/nginx/smart-ui-external.conf:/etc/nginx/templates/default.conf.template
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g
+
+  smart-ui:
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.138
+    hostname: smart-ui
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+      args:
+        - AWS_DEV_ACCOUNT_ID=${AWS_DEV_ACCOUNT_ID}
+    volumes:
+      - ${PWD}/:/workspace
+      - ./.certs:/certs:ro
+    extra_hosts:
+      - "service.local.smart.mcga.uk:host-gateway"
+    environment:
+      - SMART_API=${SMART_API}
+      - COMMENTS_API=${COMMENTS_API}
+      - ATTACHMENTS_API=${ATTACHMENTS_API}
+      - APP_BASE_URL=${APP_BASE_URL}
+      - HOST=${HOST}
+      - LOCAL_AUTH=${LOCAL_AUTH:-true}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - OKTA_ORG_URL=${OKTA_ORG_URL}
+      - OKTA_AUD=${OKTA_AUD}
+      - OKTA_SCOPE=${OKTA_SCOPE}
+      - OKTA_SCOPE_AB=${OKTA_SCOPE_AB}
+      - OKTA_SCOPE_TP=${OKTA_SCOPE_TP}
+      - OKTA_REDIRECT_URI=${OKTA_REDIRECT_URI}
+      - OKTA_ISSUER_URL=${OKTA_ISSUER_URL}
+      - OKTA_CLIENT_ID=${OKTA_CLIENT_ID}
+      - OKTA_CLIENT_SECRET=${OKTA_CLIENT_SECRET}
+      - OKTA_ACCESS_API_TOKEN=${OKTA_ACCESS_API_TOKEN}
+      - LOCAL_AUTH_JWT_KEY=${LOCAL_AUTH_JWT_KEY}
+      - ENABLE_XRAY=${ENABLE_XRAY}
+      - AWS_XRAY_CONTEXT_MISSING=${AWS_XRAY_CONTEXT_MISSING}
+      - AWS_XRAY_LOG_LEVEL=${AWS_XRAY_LOG_LEVEL}
+      - AWS_REGION=${AWS_REGION}
+      - ENABLE_REDIS=${ENABLE_REDIS}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_TLS=${REDIS_TLS}
+      - REDIS_PORT=${REDIS_PORT}
+      - NODE_OPTIONS=${NODE_OPTIONS}
+      - NODE_EXTRA_CA_CERTS=/certs/ca.crt
+    ports:
+      - '2997:2997'
+    depends_on:
+      cert-gen:
+        condition: service_completed_successfully
+      smart-api:
+        condition: service_healthy
+    profiles:
+      - full
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g
+
+  identity-and-access-management:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_DB=dev-file
+      - KC_HTTP_ENABLED=true
+    ports:
+      - "8484:8080"
+    profiles:
+      - default
+    volumes:
+      - ./test/keycloak/:/opt/keycloak/data/
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "0.5"
+    memswap_limit: 1g

@@ -1,0 +1,35 @@
+{% set titleText = trainingProviderTraining.trainingItem.description + ' Details'  %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{{ govukBackLink({
+    text: "Back to " + trainingProvider.companyName,
+    href: '/training-providers/' + trainingProvider.id + '/trainings'
+}) }}
+
+{% from "components/training-nav/macro.njk" import trainingNav %}
+
+{{ trainingNav({
+    active: 'details',
+    trainingProviderId: trainingProvider.id,
+    trainingProviderTraining: trainingProviderTraining,
+    titleText: titleText
+}) }}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        {% from "components/trainingsummary/macro.njk" import trainingSummary %}
+        {{ trainingSummary({
+            training: trainingProviderTraining,
+            trainingProviderId: trainingProvider.id,
+            return: '/training-providers/' + trainingProvider.id + '/trainings/' + trainingProviderTraining.id
+        }) }}
+        <h2 class="govuk-heading-m">SMarT Funding</h2>
+        {% from "components/trainingratetable/macro.njk" import trainingRateTable %}
+        {{ trainingRateTable({ training: trainingProviderTraining }) }}
+    </div>
+</div>
+
+{% endblock %}

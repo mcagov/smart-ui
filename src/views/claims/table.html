@@ -1,0 +1,41 @@
+<div>
+    {% set rows = [] %}
+    {% for year in range(currentPaymentSchedule.financialYear, currentPaymentSchedule.financialYear -10, -1) %}
+      {% set yearHref %}/training-providers/{{trainingProvider.id}}/claims/years/{{year}}{% endset %}
+      {% set yearLink %}<a href="{{yearHref}}" class="govuk-link">{{year}}</a>{% endset %}
+      {% set row = [{ html: yearLink }] %}
+
+      {% if year == currentPaymentSchedule.financialYear %}
+        {% set periods = range(1, currentPaymentSchedule.financialPeriod + 1, 1) %}
+      {% else %}
+        {% set periods = range(1, 13 , 1) %}
+      {% endif%}
+      {% for period in periods %}
+        {% set href %}/training-providers/{{trainingProvider.id}}/claims/years/{{year}}/periods/{{period}}{% endset %}
+        {% set link %}<a href="{{href}}" class="govuk-link">{{year}}/{{period}}</a>{% endset %}
+        {% set row = (row.push({ html: link }), row) %}
+      {% endfor %}
+      {% set rows = (rows.push(row), rows) %}
+    {% endfor %}
+    {{ govukTable({
+      caption: 'Table displaying previous claims',
+      captionClasses: 'govuk-table__caption--m govuk-visually-hidden',
+      firstCellIsHeader: true,
+      rows: rows,
+        head: [
+            { text: "Year" },
+            { text: "Apr/P1" },
+            { text: "May/P2" },
+            { text: "Jun/P3" },
+            { text: "Jul/P4" },
+            { text: "Aug/P5" },
+            { text: "Sep/P6" },
+            { text: "Oct/P7" },
+            { text: "Nov/P8" },
+            { text: "Dec/P9" },
+            { text: "Jan/P10" },
+            { text: "Feb/P11" },
+            { text: "Mar/P12" }
+        ]
+    }) }}
+</div>

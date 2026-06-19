@@ -1,0 +1,61 @@
+{% if user %}
+    {% set titleText = 'Welcome ' + user.name + ' to MCA SMarT '%}
+{% else %}
+    {% set titleText = 'Sign in to MCA SMarT'%}
+{% endif %}
+
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="govuk-width-container app-site-width-container">
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+            <div class="govuk-body">
+                {% if user %}
+                    {% if user.role == 'admin' %}
+                    <p>You are logged in as an admin, you'll be able to see and manage data for all training providers.</p>
+                    <p>Use the menu to navigate the service, common actions are:</p>
+                    <ul class="govuk-list">
+                        <li>Manage <a href="/claims">claims</a></li>
+                        <li>Find a <a href="/trainees">trainee</a> to manage</li>
+                        <li>View and reply to <a href="/comments">comments</a></li>
+                    </ul>
+                    {% else %}
+                    <p>You are logged in on behalf of the training provider <span class="govuk-!-font-weight-bold">{{ trainingProvider.companyName }}</span>, you can see their data and act on their behalf.</p>
+                    <p>You can only submit a claim for trainees who are enrolled on training. Claims are submitted on a monthly (period) basis.</p>
+                    <p>Claims are generated based on trainee enrolment data:</p>
+                    <ul>
+                    <li>The course the trainee is enrolled on denotes the rate payable, frequency and number of payments</li>
+                    <li>The claim amount is reduced through either absence, transfer to another TP or a cease in training.</li>
+                    <li>The claim will include final/first payments based on issue of CoC.</li>
+                    </ul>
+                    <p>Claims will be generated based on the maximum amount of funding that could be claimed in any one period.</p>
+                    <p>Claims are reduced by recording an individual trainee's un-authorised absences, transfers or leavers, and absence of Certificate of Competency data.</p>
+                    <p>Use the menu to navigate the service, common actions are:</p>
+                    <ul class="govuk-list">
+                        <li>Find a <a href="/training-providers/{{ user.trainingProviderId }}/trainees">trainee</a> to enrol them training or mark them as absent</li>
+                        <li>Make a <a href="/training-providers/{{ user.trainingProviderId }}/claims">claim</a></li>
+                    </ul>
+                    {% endif %}
+
+                    {% else %}
+                    <p>When logged in you can:</p>
+                    <ul class="govuk-list">
+                        <li>Make a claim</li>
+                        <li>Enrol a trainee on training</li>
+                        <li>Mark a trainee as absent</li>
+                        <li>Upload audit evidence</li>
+                    </ul>
+                    {{ govukButton({
+                        href: '/signin',
+                        text: 'Sign in',
+                        attributes: { id: 'signin-button'}
+                    }) }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
