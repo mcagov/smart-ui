@@ -160,6 +160,24 @@ Note that these test seem to have a reliance on the API being running, which is 
 npm run test
 ```
 
+#### WebDriverIO tests
+
+**Todo: Get clear working instructions for running these locally.**
+
+Ensure that you do not have the SMarT API or UI running in any form.
+
+Run the whole service using Docker Compose...
+
+```shell
+COMPOSE_PROFILES=full docker compose up
+```
+
+Run the WebDriverIO tests...
+
+```shell
+npm run test:wdio-headless
+```
+
 ### BDD (Cucumber) tests
 
 **Note: These do not work at the time of writing, but we have created [a ticket to address this](https://madetech-team-b91dpvs1.atlassian.net/browse/MCA-235).**
