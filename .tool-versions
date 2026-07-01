@@ -1,4 +1,4 @@
 aws-vault 7.2.0
 direnv 2.37.0
-nodejs 24.14.1
+nodejs 24.14.1 22.22.2
 terraform 1.6.6

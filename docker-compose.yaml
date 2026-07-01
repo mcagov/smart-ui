@@ -47,7 +47,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.63
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.67
     ports:
       - '8080:8080'
       - '8082:8082'
@@ -300,7 +300,7 @@ services:
     memswap_limit: 1g
 
   smart-ui:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.138
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.145
     hostname: smart-ui
     build:
       context: .
