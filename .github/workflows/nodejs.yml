@@ -23,7 +23,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install grunt -g
-    - run: npm ca:setup
+    - run: npm run ca:setup
     - run: npm install
     - run: npm test
       env:
