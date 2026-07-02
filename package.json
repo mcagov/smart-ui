@@ -101,7 +101,7 @@
         "jest-junit": "^16.0.0",
         "jest-sonar": "^0.2.16",
         "nodemon": "^3.1.10",
-        "npm-check-updates": "^16.14.20",
+        "npm-check-updates": "^22.2.9",
         "pg": "^8.16.3",
         "sass": "^1.89.2",
         "sinon": "^21.0.1",
