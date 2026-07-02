@@ -1,29 +1,38 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: Node.js CI
 
 on:
   push:
   pull_request:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [24.x]
-
     steps:
     - uses: actions/checkout@v7.0.0
-    - name: Use Node.js ${{ matrix.node-version }}
+
+    - name: Use Node.js 24
       uses: actions/setup-node@v6.4.0
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '24'
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/smart-ui-github-actions-role
+        aws-region: eu-west-2
+
     - run: npm install grunt -g
+
     - run: npm run ca:setup
+      env:
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
     - run: npm install
     - run: npm test
       env:

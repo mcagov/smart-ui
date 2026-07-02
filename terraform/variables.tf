@@ -92,3 +92,15 @@ variable "ECR_ACCOUNT_ID" {
   type        = string
   description = "The AWS Account ID where the centralized ECR images reside (Dev Account)"
 }
+
+variable "github_org" {
+  type        = string
+  description = "The owner of the smart repository."
+  default     = "mcagov"
+}
+
+variable "github_repo" {
+  type        = string
+  description = "The name of the public GitHub repository."
+  default     = "smart-ui"
+}
