@@ -24,7 +24,7 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/smart-ui-github-actions-role
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_DEV_ACCOUNT_NUMBER }}:role/smart-ui-github-actions-role
         aws-region: eu-west-2
 
     - run: npm install grunt -g
