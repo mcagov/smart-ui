@@ -50,6 +50,11 @@ The rest of this documentation will assume you are using:
 
 ### Configuration
 
+Install required asdf dependencies.
+```shell
+asdf install 
+```
+
 Copy `.env.example` as `.env` and replace the placeholders with variables found within the contents of the "SMarT-UI .env contents", inside the SMarT 1Password Vault. Ensure you click 'EDIT' before you copy or else the hashtags won't copy as required. 
 
 Copy `.envrc.example` as `.envrc` and replace the placeholders.
