@@ -84,6 +84,15 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
       values   = ["codeartifact.amazonaws.com"]
     }
   }
+
+  statement {
+    sid     = "ECRAuthTokenPermission"
+    effect  = "Allow"
+    actions = [
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "codeartifact_policy" {
