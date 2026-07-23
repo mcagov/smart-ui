@@ -93,6 +93,15 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
     ]
     resources = ["*"]
   }
+
+  statement {
+    sid    = "SSMGetParametersPermission"
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameters"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "codeartifact_policy" {
