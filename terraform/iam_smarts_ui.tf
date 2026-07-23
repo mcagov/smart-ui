@@ -9,6 +9,9 @@ data "aws_iam_policy_document" "smart_ui_policy_doc" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 locals{
   is_dev = terraform.workspace == "dev" ? 1 : 0
 }
@@ -60,34 +63,8 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
   count = local.is_dev
 
   statement {
-    sid    = "CodeArtifactTokenPermission"
+    sid    = "ECRAuthToken"
     effect = "Allow"
-    actions = [
-      "codeartifact:GetAuthorizationToken",
-      "codeartifact:GetRepositoryEndpoint",
-      "codeartifact:ReadFromRepository"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    sid    = "BearerTokenPermission"
-    effect = "Allow"
-    actions = [
-      "sts:GetServiceBearerToken"
-    ]
-    resources = ["*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "sts:AWSServiceName"
-      values   = ["codeartifact.amazonaws.com"]
-    }
-  }
-
-  statement {
-    sid     = "ECRAuthTokenPermission"
-    effect  = "Allow"
     actions = [
       "ecr:GetAuthorizationToken"
     ]
@@ -95,12 +72,48 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
   }
 
   statement {
-    sid    = "SSMGetParametersPermission"
+    sid    = "ECRRepositoryWriteAndScan"
     effect = "Allow"
     actions = [
-      "ssm:GetParameters"
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload",
+      "ecr:PutImage",
+      "ecr:DescribeImages",
+      "ecr:DescribeImageScanFindings"
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:ecr:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:repository/*"
+    ]
+  }
+
+  statement {
+    sid    = "CodeArtifactAccess"
+    effect = "Allow"
+    actions = [
+      "codeartifact:GetAuthorizationToken",
+      "codeartifact:GetRepositoryEndpoint",
+      "codeartifact:ReadFromRepository",
+      "sts:GetServiceBearerToken"
+    ]
+    resources = [
+      "arn:aws:codeartifact:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/mcga",
+      "arn:aws:codeartifact:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:repository/mcga/*"
+    ]
+  }
+
+  statement {
+    sid    = "SSMGetScopes"
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameters",
+      "ssm:GetParameter"
+    ]
+    resources = [
+      "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/dev/scopes/*"
+    ]
   }
 }
 
