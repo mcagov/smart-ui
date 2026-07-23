@@ -9,8 +9,6 @@ data "aws_iam_policy_document" "smart_ui_policy_doc" {
   }
 }
 
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
 
 locals{
   is_dev = terraform.workspace == "dev" ? 1 : 0
