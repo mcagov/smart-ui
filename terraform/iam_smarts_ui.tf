@@ -65,11 +65,16 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
   count = local.is_dev
 
   statement {
-    sid    = "ECRAuthToken"
-    effect = "Allow"
-    actions = [
-      "ecr:GetAuthorizationToken"
-    ]
+    sid       = "ECRAuthToken"
+    effect    = "Allow"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "STSGetServiceBearerToken"
+    effect    = "Allow"
+    actions   = ["sts:GetServiceBearerToken"]
     resources = ["*"]
   }
 
@@ -97,8 +102,7 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
     actions = [
       "codeartifact:GetAuthorizationToken",
       "codeartifact:GetRepositoryEndpoint",
-      "codeartifact:ReadFromRepository",
-      "sts:GetServiceBearerToken"
+      "codeartifact:ReadFromRepository"
     ]
     resources = [
       "arn:aws:codeartifact:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/mcga",
