@@ -59,12 +59,12 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-    AWS_DEV_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
-    OKTA_CLIENT_SECRET: ${{ secrets:OKTA_CLIENT_SECRET }}
-    OKTA_ACCESS_API_TOKEN: ${{ secrets:OKTA_ACCESS_API_TOKEN }}
-    LOCAL_AUTH_JWT_KEY: ${{ secrets:LOCAL_AUTH_JWT_KEY }}
-    SESSION_SECRET: £{{ secrets:SESSION_SECRET }}
-    REDIS_PASSWORD: ${{ secrets:REDIS_PASSWORD }}
+      AWS_DEV_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+      OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
+      OKTA_ACCESS_API_TOKEN: ${{ secrets.OKTA_ACCESS_API_TOKEN }}
+      LOCAL_AUTH_JWT_KEY: ${{ secrets.LOCAL_AUTH_JWT_KEY }}
+      SESSION_SECRET: £{{ secrets.SESSION_SECRET }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
     steps:
       - name: Checkout Repository
