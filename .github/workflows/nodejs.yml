@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: SMarT-UI CI/CD Pipeline
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
         default: false
 
 permissions:
-  id-token: write  # Required for AWS OIDC authentication
+  id-token: write  
   contents: read
 
 env:
@@ -58,6 +58,14 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
 
+    env:
+    AWS_DEV_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+    OKTA_CLIENT_SECRET: ${{ secrets:OKTA_CLIENT_SECRET }}
+    OKTA_ACCESS_API_TOKEN: ${{ secrets:OKTA_ACCESS_API_TOKEN }}
+    LOCAL_AUTH_JWT_KEY: ${{ secrets:LOCAL_AUTH_JWT_KEY }}
+    SESSION_SECRET: £{{ secrets:SESSION_SECRET }}
+    REDIS_PASSWORD: ${{ secrets:REDIS_PASSWORD }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -70,8 +78,7 @@ jobs:
 
       - name: Install Global Tooling
         run: npm install -g grunt semver
-
-      # --- Security: OIDC IAM Role Assumption ---
+      
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -82,7 +89,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # --- CodeArtifact & Parameter Store Setup ---
       - name: AWS CodeArtifact Setup & SSM Secrets Fetch
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
@@ -90,26 +96,19 @@ jobs:
           aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner $AWS_ACCOUNT_ID --region ${{ env.AWS_REGION }}
           npm run ca:setup
           
-          # Retrieve dynamic scope configuration from SSM Parameter Store
           OKTA_SCOPE_AB=$(aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text)
           OKTA_SCOPE_TP=$(aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text)
           
           echo "OKTA_SCOPE_AB=$OKTA_SCOPE_AB" >> $GITHUB_ENV
           echo "OKTA_SCOPE_TP=$OKTA_SCOPE_TP" >> $GITHUB_ENV
 
-      - name: Install Dependencies
-        env:
-          OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-          OKTA_ACCESS_API_TOKEN: ${{ secrets.OKTA_ACCESS_API_TOKEN }}
-          LOCAL_AUTH_JWT_KEY: ${{ secrets.LOCAL_AUTH_JWT_KEY }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      - name: Install Dependencies 
         run: |
           npm cache clean --force
           rm -rf node_modules package-lock.json
           npm install
 
-      - name: Compute Next Semantic Version
+      - name: Configure Next Semantic Version
         id: versioning
         run: |
           PACKAGE_NAME=$(node -p "require('./package.json').name")
@@ -126,7 +125,7 @@ jobs:
           
           echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
           echo "DOCKER_IMAGE_NAME=$DOCKER_IMAGE_NAME" >> $GITHUB_ENV
-          echo "Computed next release version: $NEXT_VERSION"
+          echo "Configured next release version: $NEXT_VERSION"
 
       # --- Integration Tests ---
       - name: Integration Tests
