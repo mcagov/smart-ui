@@ -314,8 +314,8 @@ services:
       - "service.local.smart.mcga.uk:host-gateway"
     environment:
       - SMART_API=${SMART_API:-http://smart-api:8080}
-      - COMMENTS_API=${COMMENTS_API:-http://smart-comments-api}
-      - ATTACHMENTS_API=${ATTACHMENTS_API:-http://smart-attachments-api}
+      - COMMENTS_API=${COMMENTS_API:-http://smart-comments-api:9080}
+      - ATTACHMENTS_API=${ATTACHMENTS_API:-http://smart-attachments-api:7080}
       - APP_BASE_URL=${APP_BASE_URL}
       - HOST=${HOST}
       - LOCAL_AUTH=${LOCAL_AUTH:-true}
