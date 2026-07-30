@@ -208,9 +208,7 @@ jobs:
         run: |
           docker compose exec -T smart-ui env | grep -E "SMART_API|COMMENTS_API|ATTACHMENTS_API"
 
-      - name: UI Tests - Health Probe
-        run: |
-         - name: UI & API Services Health Probe
+      - name: UI and API Health Probe
         run: |
           ENDPOINTS=(
             "UI:http://localhost:2997/"
