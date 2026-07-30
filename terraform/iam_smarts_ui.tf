@@ -67,7 +67,10 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
   statement {
     sid       = "ECRAuthToken"
     effect    = "Allow"
-    actions   = ["ecr:GetAuthorizationToken"]
+    actions   = [
+      "ecr:GetAuthorizationToken",
+      "ecr-public: GetAuthorizationToken"
+    ]
     resources = ["*"]
   }
 
