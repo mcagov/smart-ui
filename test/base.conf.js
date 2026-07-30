@@ -56,7 +56,7 @@ export const baseConfig = {
   bail: 5,
   baseUrl: process.env.UI_URL,
   waitforTimeout: 5000,
-  connectionRetryTimeout: 5000,
+  connectionRetryTimeout: 120000,
   connectionRetryCount: 3,
   services: [],
   framework: 'mocha',
