@@ -21,9 +21,9 @@ env:
   AWS_REGION: eu-west-2
   NODE_ENV: local
   POSTGRES_DB: smart
-  SMART_API: http://smart-api:8080
-  COMMENTS_API: http://smart-comments-api:9080
-  ATTACHMENTS_API: http://smart-attachments-api:7080
+  SMART_API: http://localhost:8080
+  COMMENTS_API: http://localhost:9080
+  ATTACHMENTS_API: http://localhost:7080
   UI_URL: http://localhost:2997
   APP_BASE_URL: http://localhost:2997
   HOST: 0.0.0.0
