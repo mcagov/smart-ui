@@ -68,10 +68,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: 'npm'
@@ -80,7 +80,7 @@ jobs:
         run: npm install -g grunt semver
       
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_DEV_ACCOUNT_ID }}:role/smart-ui-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
@@ -186,7 +186,7 @@ jobs:
 
       - name: Upload Integration Logs Artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docker-test-logs
           path: docker-test-logs.txt
@@ -244,7 +244,7 @@ jobs:
 
       - name: Upload UI Test Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ui-test-logs
           path: |
@@ -314,7 +314,7 @@ jobs:
 
       - name: Upload Vulnerability Report
         if: github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vulnerability-report
           path: vulnerabilities.log
