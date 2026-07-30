@@ -21,9 +21,9 @@ env:
   AWS_REGION: eu-west-2
   NODE_ENV: local
   POSTGRES_DB: smart
-  SMART_API: http://localhost:8080
-  COMMENTS_API: http://localhost:9080
-  ATTACHMENTS_API: http://localhost:7080
+  SMART_API: http://smart-api:8080
+  COMMENTS_API: http://smart-comments-api:9080
+  ATTACHMENTS_API: http://smart-attachments-api:7080
   UI_URL: http://localhost:2997
   APP_BASE_URL: http://localhost:2997
   HOST: 0.0.0.0
@@ -55,7 +55,7 @@ env:
   NODE_OPTIONS: '--experimental-vm-modules --experimental-specifier-resolution=node'
 
 jobs:
-  pipeline:
+  smart-ui-test-and-publish:
     runs-on: ubuntu-latest
 
     env:
@@ -196,10 +196,17 @@ jobs:
         env:
           COMPOSE_PROFILES: full
           HOST: 0.0.0.0
+          SMART_API: http://smart-api:8080
+          COMMENTS_API: http://smart-comments-api
+          ATTACHMENTS_API: http://smart-attachments-api
         run: |
           npx gulp || true
           docker compose build
           docker compose up -d
+
+      - name: Inspect UI Container Environment
+        run: |
+          docker compose exec -T smart-ui env | grep -E "SMART_API|COMMENTS_API|ATTACHMENTS_API"
 
       - name: UI Tests - Health Probe
         run: |
