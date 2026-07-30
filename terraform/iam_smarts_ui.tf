@@ -85,12 +85,18 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
     sid    = "ECRRepositoryWriteAndScan"
     effect = "Allow"
     actions = [
+      # Read permissions
       "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
       "ecr:GetDownloadUrlForLayer",
+
+      # Write Permissions
       "ecr:InitiateLayerUpload",
       "ecr:UploadLayerPart",
       "ecr:CompleteLayerUpload",
       "ecr:PutImage",
+
+      # Metadata and security
       "ecr:DescribeImages",
       "ecr:DescribeImageScanFindings"
     ]
