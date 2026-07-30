@@ -85,9 +85,17 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_DEV_ACCOUNT_ID }}:role/smart-ui-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Log in to Amazon ECR
-        id: login-ecr
+      - name: Log in to Amazon ECR Private
+        id: login-ecr-private
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: private
+
+      - name: Log into Amazon ECR public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
 
       - name: AWS CodeArtifact Setup & SSM Secrets Fetch
         env:
