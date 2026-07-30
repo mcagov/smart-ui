@@ -349,6 +349,10 @@ services:
         condition: service_completed_successfully
       smart-api:
         condition: service_healthy
+      smart-comments-api:
+        condition: service_started
+      smart-attachments-api:
+        condition: service_started
     profiles:
       - full
     deploy:

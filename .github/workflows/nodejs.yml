@@ -197,8 +197,8 @@ jobs:
           COMPOSE_PROFILES: full
           HOST: 0.0.0.0
           SMART_API: http://smart-api:8080
-          COMMENTS_API: http://smart-comments-api:9080
-          ATTACHMENTS_API: http://smart-attachments-api:7080
+          COMMENTS_API: http://smart-comments-api:8080
+          ATTACHMENTS_API: http://smart-attachments-api:8080
         run: |
           npx gulp || true
           docker compose build
@@ -210,31 +210,41 @@ jobs:
 
       - name: UI Tests - Health Probe
         run: |
-          TARGET_URL="http://localhost:2997"
-          echo "Probing UI at ${TARGET_URL}..."
+         - name: UI & API Services Health Probe
+        run: |
+          ENDPOINTS=(
+            "UI:http://localhost:2997/"
+            "Main API:http://localhost:8080/"
+            "Comments API:http://localhost:9080/"
+            "Attachments API:http://localhost:7080/"
+          )
           
           MAX_RETRIES=30
-          ATTEMPT=0
-          SUCCESS=0
           
-          while [ $ATTEMPT -lt $MAX_RETRIES ]; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${TARGET_URL}/ 2>/dev/null || echo "000")
-            echo "UI Status: $STATUS"
-          
-            if [[ "$STATUS" =~ ^(200|302|304)$ ]]; then
-              SUCCESS=1
-              break
+          for ITEM in "${ENDPOINTS[@]}"; do
+            NAME="${ITEM%%:*}"
+            URL="${ITEM#*:}"
+            echo "Probing ${NAME} at ${URL}..."
+            
+            ATTEMPT=0
+            SUCCESS=0
+            while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${URL} 2>/dev/null || echo "000")
+              if [[ "$STATUS" =~ ^(200|302|401|404)$ ]]; then
+                echo "✔ ${NAME} is up! (HTTP ${STATUS})"
+                SUCCESS=1
+                break
+              fi
+              sleep 2
+              ATTEMPT=$((ATTEMPT + 1))
+            done
+            
+            if [ $SUCCESS -eq 0 ]; then
+              echo "✖ Error: ${NAME} failed to respond in time."
+              exit 1
             fi
-          
-            sleep 2
-            ATTEMPT=$((ATTEMPT + 1))
-          done
-          
-          if [ $SUCCESS -eq 0 ]; then
-            echo "Error: UI service failed to initialize."
-            exit 1
-          fi
-
+          done     
+         
       - name: Run WebdriverIO Headless Tests
         env:
           DB_HOST: localhost
