@@ -69,7 +69,7 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
     effect    = "Allow"
     actions   = [
       "ecr:GetAuthorizationToken",
-      "ecr-public: GetAuthorizationToken"
+      "ecr-public:GetAuthorizationToken"
     ]
     resources = ["*"]
   }
