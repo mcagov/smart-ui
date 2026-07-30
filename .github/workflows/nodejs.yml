@@ -197,8 +197,8 @@ jobs:
           COMPOSE_PROFILES: full
           HOST: 0.0.0.0
           SMART_API: http://smart-api:8080
-          COMMENTS_API: http://smart-comments-api
-          ATTACHMENTS_API: http://smart-attachments-api
+          COMMENTS_API: http://smart-comments-api:9080
+          ATTACHMENTS_API: http://smart-attachments-api:7080
         run: |
           npx gulp || true
           docker compose build
