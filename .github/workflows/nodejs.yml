@@ -229,7 +229,7 @@ jobs:
             while [ $ATTEMPT -lt $MAX_RETRIES ]; do
               STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${URL} 2>/dev/null || echo "000")
               if [[ "$STATUS" =~ ^(200|302|401|404)$ ]]; then
-                echo "✔ ${NAME} is up! (HTTP ${STATUS})"
+                echo "${NAME} is ready (HTTP ${STATUS})"
                 SUCCESS=1
                 break
               fi
@@ -245,8 +245,11 @@ jobs:
          
       - name: Run WebdriverIO Headless Tests
         env:
-          DB_HOST: localhost
-        run: npm run test:wdio-headless
+          DB_HOST: localhost   
+        run: |
+          echo "Allowing system CPU and memory usage to stabilize after fleet startup..."
+          sleep 5
+          npm run test:wdio-headless
 
       - name: Collect UI Test Logs
         if: always()
