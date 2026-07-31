@@ -12,6 +12,7 @@ export const config = merge(baseConfig, {
     browserName: 'chrome',
     'goog:chromeOptions': {
       args: [
+        '--headless=new',
         '--disable-gpu',
         '--disable-impl-side-painting',
         '--disable-dev-shm-usage',

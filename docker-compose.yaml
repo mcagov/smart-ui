@@ -47,7 +47,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.63
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.67
     ports:
       - '8080:8080'
       - '8082:8082'
@@ -300,7 +300,7 @@ services:
     memswap_limit: 1g
 
   smart-ui:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.138
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.145
     hostname: smart-ui
     build:
       context: .
@@ -313,9 +313,9 @@ services:
     extra_hosts:
       - "service.local.smart.mcga.uk:host-gateway"
     environment:
-      - SMART_API=${SMART_API}
-      - COMMENTS_API=${COMMENTS_API}
-      - ATTACHMENTS_API=${ATTACHMENTS_API}
+      - SMART_API=${SMART_API:-http://smart-api:8080}
+      - COMMENTS_API=${COMMENTS_API:-http://smart-comments-api:8080}
+      - ATTACHMENTS_API=${ATTACHMENTS_API:-http://smart-attachments-api:8080}
       - APP_BASE_URL=${APP_BASE_URL}
       - HOST=${HOST}
       - LOCAL_AUTH=${LOCAL_AUTH:-true}
@@ -349,6 +349,10 @@ services:
         condition: service_completed_successfully
       smart-api:
         condition: service_healthy
+      smart-comments-api:
+        condition: service_started
+      smart-attachments-api:
+        condition: service_started
     profiles:
       - full
     deploy:
@@ -358,23 +362,23 @@ services:
           cpus: "0.5"
     memswap_limit: 1g
 
-  identity-and-access-management:
-    image: quay.io/keycloak/keycloak:latest
-    command: start-dev
-    environment:
-      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-      - KC_DB=dev-file
-      - KC_HTTP_ENABLED=true
-    ports:
-      - "8484:8080"
-    profiles:
-      - default
-    volumes:
-      - ./test/keycloak/:/opt/keycloak/data/
-    deploy:
-      resources:
-        limits:
-          memory: 1g
-          cpus: "0.5"
-    memswap_limit: 1g
+#  identity-and-access-management:
+ #   image: quay.io/keycloak/keycloak:latest
+  #  command: start-dev
+   # environment:
+    #  - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+     # - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      #- KC_DB=dev-file
+      #- KC_HTTP_ENABLED=true
+    #ports:
+     # - "8484:8080"
+    #profiles:
+     # - default
+    #volumes:
+     # - ./test/keycloak/:/opt/keycloak/data/
+    #deploy:
+     # resources:
+      #  limits:
+       #   memory: 1g
+        #  cpus: "0.5"
+   # memswap_limit: 1g

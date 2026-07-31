@@ -1,31 +1,350 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: Node.js CI
+name: SMarT-UI CI/CD Pipeline
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, main ]
+  workflow_dispatch:
+    inputs:
+      push_test_container:
+        description: 'Build and push test container to ECR'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  id-token: write  
+  contents: read
+
+env:
+  AWS_REGION: eu-west-2
+  NODE_ENV: local
+  POSTGRES_DB: smart
+  SMART_API: http://localhost:8080
+  COMMENTS_API: http://localhost:9080
+  ATTACHMENTS_API: http://localhost:7080
+  UI_URL: http://localhost:2997
+  APP_BASE_URL: http://localhost:2997
+  HOST: 0.0.0.0
+  EXPOSED_POSTGRES_PORT: '7234'
+  LOGGER_TYPE: file
+  LOGGER_LEVEL: info
+  LOGGER_COLOURIZE: 'false'
+  ENABLE_XRAY: 'false'
+  AWS_XRAY_CONTEXT_MISSING: LOG_ERROR
+  AWS_XRAY_LOG_LEVEL: silent
+  AWS_PRIVATE_BUCKET: mcauk-smart-dev-attachments
+  ATTACHMENTS_BUCKET: mcauk-smart-dev-attachments
+  STAGING_BUCKET: mcauk-smart-dev-staging-attachments
+  EVENTS_QUEUE_URL: http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events
+  LOCAL_AUTH: 'true'
+  OKTA_ORG_URL: https://id.preprod.mcga.uk/
+  OKTA_AUD: api://local-smart
+  OKTA_SCOPE: openid profile offline_access
+  OKTA_REDIRECT_URI: http://localhost:2997/authorization-code/callback
+  OKTA_ISSUER_URL: https://id.preprod.mcga.uk/oauth2/ausbuj5bluwtaUnO40x7
+  OKTA_CLIENT_ID: 0oabsafq0qdYfzmu70x7
+  ENABLE_REDIS: 'true'
+  REDIS_HOST: localhost
+  REDIS_TLS: 'true'
+  REDIS_PORT: '6379'
+  CUCUMBER_PUBLISH_ENABLED: 'false'
+  API_SPRING_PROFILES: 'default, dev, test,local-auth'
+  JAVA_ENV: local
+  NODE_OPTIONS: '--experimental-vm-modules --experimental-specifier-resolution=node'
 
 jobs:
-  build:
-
+  smart-ui-test-and-publish:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x, 12.x]
+    env:
+      AWS_DEV_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+      OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
+      OKTA_ACCESS_API_TOKEN: ${{ secrets.OKTA_ACCESS_API_TOKEN }}
+      LOCAL_AUTH_JWT_KEY: ${{ secrets.LOCAL_AUTH_JWT_KEY }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm install grunt -g
-    - run: npm install
-    - run: npm test
-      env:
-        CI: true
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install Global Tooling
+        run: npm install -g grunt semver
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_DEV_ACCOUNT_ID }}:role/smart-ui-github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR Private
+        id: login-ecr-private
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: private
+
+      - name: Log into Amazon ECR public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+
+      - name: AWS CodeArtifact Setup & SSM Secrets Fetch
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+        run: |
+          aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner $AWS_ACCOUNT_ID --region ${{ env.AWS_REGION }}
+          npm run ca:setup
+          
+          OKTA_SCOPE_AB=$(aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text)
+          OKTA_SCOPE_TP=$(aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text)
+          
+          echo "OKTA_SCOPE_AB=$OKTA_SCOPE_AB" >> $GITHUB_ENV
+          echo "OKTA_SCOPE_TP=$OKTA_SCOPE_TP" >> $GITHUB_ENV
+
+      - name: Install Dependencies 
+        run: |
+          npm cache clean --force
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: Configure Next Semantic Version
+        id: versioning
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          BASE_VERSION=$(node -p "require('./package.json').version" | grep -o '^[0-9]*\.[0-9]*')
+          LATEST_VERSION=$(npm view "${PACKAGE_NAME}@~${BASE_VERSION}" version --json 2>/dev/null | grep '"' | cut -d '"' -f 2 | sort --version-sort --reverse | head -n 1 || echo "")
+          
+          if [ -z "$LATEST_VERSION" ]; then
+            NEXT_VERSION="${BASE_VERSION}.0"
+          else
+            NEXT_VERSION=$(npx semver -i patch "$LATEST_VERSION")
+          fi
+          
+          DOCKER_IMAGE_NAME=$(node -p "require('./package.json').name" | cut -d "/" -f 2)
+          
+          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+          echo "DOCKER_IMAGE_NAME=$DOCKER_IMAGE_NAME" >> $GITHUB_ENV
+          echo "Configured next release version: $NEXT_VERSION"
+
+      # --- Integration Tests ---
+      - name: Integration Tests
+        env:
+          COMPOSE_PROFILES: 'default,api'
+        run: |
+          npx gulp || true
+          docker compose pull
+          docker compose up -d
+
+      - name: Integration Tests - Health Probe
+        run: |
+          TARGET_API="http://localhost:8080"
+          echo "Probing SMarT API at ${TARGET_API}..."
+          
+          MAX_RETRIES=30
+          ATTEMPT=0
+          SUCCESS=0
+          
+          while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${TARGET_API}/ 2>/dev/null || echo "000")
+            echo "API Status: $STATUS"
+          
+            if [[ "$STATUS" =~ ^(200|302|401|404)$ ]]; then
+              echo "SMarT API initialized!"
+              SUCCESS=1
+              break
+            fi
+          
+            sleep 3
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+          
+          if [ $SUCCESS -eq 0 ]; then
+            echo "Error: SMarT API health check timed out."
+            exit 1
+          fi
+
+      - name: Run Unit & Integration Tests
+        env:
+          DB_HOST: localhost
+          REDIS_HOST: localhost
+        run: npm test -- --detectOpenHandles --verbose
+
+      - name: Collect Integration Logs
+        if: always()
+        run: |
+          docker compose logs --no-color > docker-test-logs.txt || true
+          docker compose down || true
+
+      - name: Upload Integration Logs Artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: docker-test-logs
+          path: docker-test-logs.txt
+          if-no-files-found: ignore
+
+      - name: UI Tests
+        env:
+          COMPOSE_PROFILES: full
+          HOST: 0.0.0.0
+          SMART_API: http://smart-api:8080
+          COMMENTS_API: http://smart-comments-api:8080
+          ATTACHMENTS_API: http://smart-attachments-api:8080
+        run: |
+          npx gulp || true
+          docker compose build
+          docker compose up -d
+
+      - name: Inspect UI Container Environment
+        run: |
+          docker compose exec -T smart-ui env | grep -E "SMART_API|COMMENTS_API|ATTACHMENTS_API"
+
+      - name: UI and API Health Probe
+        run: |
+          ENDPOINTS=(
+            "UI:http://localhost:2997/"
+            "Main API:http://localhost:8080/"
+            "Comments API:http://localhost:9080/"
+            "Attachments API:http://localhost:7080/"
+          )
+          
+          MAX_RETRIES=30
+          
+          for ITEM in "${ENDPOINTS[@]}"; do
+            NAME="${ITEM%%:*}"
+            URL="${ITEM#*:}"
+            echo "Probing ${NAME} at ${URL}..."
+            
+            ATTEMPT=0
+            SUCCESS=0
+            while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${URL} 2>/dev/null || echo "000")
+              if [[ "$STATUS" =~ ^(200|302|401|404)$ ]]; then
+                echo "${NAME} is ready (HTTP ${STATUS})"
+                SUCCESS=1
+                break
+              fi
+              sleep 2
+              ATTEMPT=$((ATTEMPT + 1))
+            done
+            
+            if [ $SUCCESS -eq 0 ]; then
+              echo "✖ Error: ${NAME} failed to respond in time."
+              exit 1
+            fi
+          done     
+         
+      - name: Run WebdriverIO Headless Tests
+        env:
+          DB_HOST: localhost   
+        run: |
+          echo "Allowing system CPU and memory usage to stabilize after fleet startup..."
+          sleep 5
+          npm run test:wdio-headless
+
+      - name: Collect UI Test Logs
+        if: always()
+        run: |
+          docker compose logs smart-ui --no-color > docker-ui-test-ui-logs.txt || true
+          docker compose logs smart-api --no-color > docker-ui-test-api-logs.txt || true
+          docker compose logs smart-comments-api --no-color > docker-ui-test-comments-logs.txt || true
+          docker compose logs nginx --no-color > docker-ui-test-nginx-logs.txt || true
+          docker compose down -v || true
+
+      - name: Upload UI Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-test-logs
+          path: |
+            docker-ui-test-ui-logs.txt
+            docker-ui-test-api-logs.txt
+            docker-ui-test-comments-logs.txt
+            docker-ui-test-nginx-logs.txt
+          if-no-files-found: ignore
+
+      - name: Publish NPM Package
+        if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
+        run: |
+          npm --no-git-tag-version --allow-same-version version ${{ env.NEXT_VERSION }}
+          npm publish
+
+      - name: Build & Push Docker Image to ECR
+        if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          AWS_DEV_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+        run: |
+          if [ "${{ github.ref_name }}" = "master" ]; then
+            IMAGE_TAG="${{ env.NEXT_VERSION }}"
+          else
+            SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '-')
+            IMAGE_TAG="${SAFE_BRANCH}-TEST"
+          fi
+          
+          FULL_IMAGE_NAME="${ECR_REGISTRY}/${DOCKER_IMAGE_NAME}:${IMAGE_TAG}"
+          echo "Building Docker Image: ${FULL_IMAGE_NAME}"
+          
+          DOCKER_BUILDKIT=1 docker build \
+            --pull --compress --no-cache --force-rm --progress=plain \
+            -t "${FULL_IMAGE_NAME}" \
+            --secret id=npmrc,src=.npmrc \
+            --build-arg AWS_DEV_ACCOUNT_ID=${AWS_DEV_ACCOUNT_ID} \
+            --build-arg UI_VERSION=${{ env.NEXT_VERSION }} \
+            .
+          
+          docker push "${FULL_IMAGE_NAME}"
+
+      - name: Poll ECR Image Vulnerability Scan
+        if: github.ref == 'refs/heads/master'
+        run: |
+          DIGEST=$(aws ecr describe-images --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageTag=${{ env.NEXT_VERSION }} --region ${{ env.AWS_REGION }} --query 'imageDetails[0].imageDigest' --output text)
+          
+          echo "Waiting 30 seconds for ECR scan initialization on digest $DIGEST..."
+          sleep 30
+          
+          IS_COMPLETE=false
+          while [ "$IS_COMPLETE" = "false" ]; do
+            SCAN_STATUS=$(aws ecr describe-image-scan-findings --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageDigest=${DIGEST} --region ${{ env.AWS_REGION }} --query 'imageScanStatus.status' --output text 2>/dev/null || echo "IN_PROGRESS")
+          
+            if [ "$SCAN_STATUS" = "COMPLETE" ]; then
+              IS_COMPLETE=true
+              FINDINGS=$(aws ecr describe-image-scan-findings --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageDigest=${DIGEST} --region ${{ env.AWS_REGION }} --query 'imageScanFindings.findingSeverityCounts')
+              echo "Scan Findings Summary: $FINDINGS"
+              echo "$FINDINGS" > vulnerabilities.log
+            elif [ "$SCAN_STATUS" = "FAILED" ]; then
+              echo "ECR Image Scan failed."
+              exit 1
+            else
+              echo "Current Scan Status: $SCAN_STATUS. Waiting 20s..."
+              sleep 20
+            fi
+          done
+
+      - name: Upload Vulnerability Report
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v7
+        with:
+          name: vulnerability-report
+          path: vulnerabilities.log
+          if-no-files-found: ignore
+
+#      - name: Send Slack Notification
+#        if: always()
+#        uses: slackapi/slack-github-action@v1.26.0
+#        with:
+#          payload: |
+#            {
+#              "text": "Build status for ${{ github.repository }} (${{ github.ref_name }}): *${{ job.status }}*\nDetails: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+#            }
+#        env:
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
