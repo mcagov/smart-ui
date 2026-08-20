@@ -127,8 +127,8 @@ data "aws_iam_policy_document" "codeartifact_permissions" {
       "codeartifact:PutPackageMetadata",
     ]
     resources = [
-      "arn:aws:codeartifact:eu-west-2:${data.aws_caller_identity.current.account_id}:package/mcga/mcga-npm/npm/@mca/smart-ui",
-      "arn:aws:codeartifact:eu-west-2:${data.aws_caller_identity.current.account_id}:package/mcga/mcga-npm/npm/@mca/smart-ui/*",
+      "arn:aws:codeartifact:eu-west-2:${data.aws_caller_identity.current.account_id}:package/mcga/mcga-npm/npm/mca/smart-ui",
+      "arn:aws:codeartifact:eu-west-2:${data.aws_caller_identity.current.account_id}:package/mcga/mcga-npm/npm/mca/smart-ui/*",
     ]
   }
   
