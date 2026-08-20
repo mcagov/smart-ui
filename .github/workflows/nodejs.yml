@@ -65,6 +65,7 @@ jobs:
       LOCAL_AUTH_JWT_KEY: ${{ secrets.LOCAL_AUTH_JWT_KEY }}
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      ECR_REGISTRY: ${{ secrets.AWS_DEV_ACCOUNT_ID }}.dkr.ecr.eu-west-2.amazonaws.com
 
     steps:
       - name: Checkout Repository
@@ -280,9 +281,6 @@ jobs:
 
       - name: Build & Push Docker Image to ECR
         if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          AWS_DEV_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
         run: |
           if [ "${{ github.ref_name }}" = "master" ]; then
             IMAGE_TAG="${{ env.NEXT_VERSION }}"
