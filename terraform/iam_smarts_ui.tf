@@ -61,7 +61,7 @@ resource "aws_iam_role" "github_actions_codeartifact" {
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role[0].json
 }
 
-data "aws_iam_policy_document" "codeartifact_read_only" {
+data "aws_iam_policy_document" "codeartifact_permissions" {
   count = local.is_dev
 
   statement {
@@ -149,9 +149,9 @@ data "aws_iam_policy_document" "codeartifact_read_only" {
 resource "aws_iam_policy" "codeartifact_policy" {
   count = local.is_dev
 
-  name        = "${var.github_repo}-codeartifact-read-policy"
-  description = "Provides read access to CodeArtifact for GitHub Actions"
-  policy      = data.aws_iam_policy_document.codeartifact_read_only[0].json
+  name        = "${var.github_repo}-codeartifact-policy"
+  description = "Provides read/write access to CodeArtifact for GitHub Actions"
+  policy      = data.aws_iam_policy_document.codeartifact_permissions[0].json
 }
 
 resource "aws_iam_role_policy_attachment" "attach_codeartifact" {
