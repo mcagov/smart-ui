@@ -178,6 +178,14 @@ You will need this role when using terraform, as well as when you access Kuberne
 
 When running the script, simply follow the instructions provided. If you are using the IAM role for terraform only, you don't need to use the kubernetes login command. 
 
+
+### Github Actions Development
+
+When you push a PR, commit to a PR, or merge to master, a pipeline will run the tests... currently the Unit tests and the WDIO tests.
+You can create a test container for use in dev/staging by going to Actions/SMarT-UI CI/CD Pipeline in the repo, clicking on Run workflow, selecting the correct branch you wish to use, and then checking the  `Build and push test container to ECR` checkbox. This will build a new container to the ECR repository, which you can then use the smart-deploy pipeline in Jenkins to deploy to the EKS cluster. 
+
+TODO: deploy from within the github workflow. 
+
 ### SMarT UI: Overview
 
 SMarT UI is a Node.js and Express website that shows GOV.UK‑style pages and talks to the SMarT API to get and update data. It uses Nunjucks templates, Superagent for API calls, and OIDC (Okta in production, a simple mock in development) for sign‑in and sessions.
