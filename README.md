@@ -45,7 +45,7 @@ You will need to have [Docker](https://docs.docker.com/get-started/get-docker/) 
 
 The rest of this documentation will assume you are using:
 
-- [asdf](https://asdf-vm.com) to manage the required software (see the `.tool-versions` if you want to manage them some other way).
+- [mise-en-place](https://mise.jdx.dev/) to manage the required software (see the `.tool-versions` if you want to manage them some other way).
 - [direnv](https://direnv.net/) to manage your shell environment.
 
 ### Configuration
