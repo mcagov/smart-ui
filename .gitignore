@@ -43,3 +43,7 @@ test/keycloak/h2/keycloakdb.mv.db
 test/keycloak/h2/keycloakdb.trace.db
 
 PLAN.md
+
+#claude
+.claude
+CLAUDE.md
