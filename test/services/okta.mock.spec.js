@@ -10,6 +10,11 @@ function mockAsyncCollection(items) {
       for (const item of items) {
         yield item;
       }
+    },
+    each: async function (callback) {
+      for (const item of items) {
+        await callback(item);
+      }
     }
   };
 }
@@ -47,17 +52,15 @@ describe('OktaUsers Service (Unit)', () => {
 
     const mockClient = {
       // request: sinon.stub().resolves(...) // Only if you use client.request
+      customizationApi: {
+        listBrands: sinon.stub().returns(mockAsyncCollection([{ id: 'b1', name: 'Brand A', isDefault: true }]))
+      }
     };
     oktaService = new OktaUsers('Training Provider A', 'Admin Body', mockClient);
-    global.fetch = sinon.stub().resolves({
-      ok: true,
-      json: async () => [{ id: 'b1', name: 'Brand A' }]
-    });
   });
 
   afterEach(() => {
     sinon.restore();
-    if (global.fetch.restore) global.fetch.restore();
   });
 
   describe('Constructor', () => {
@@ -100,18 +103,18 @@ describe('OktaUsers Service (Unit)', () => {
     });
   });
 
-  describe.skip('all()', () => {
+  describe('all()', () => {
     it('should list users and map fields correctly', async () => {
       const result = await oktaService.all();
 
-      expect(okta.UserApi.prototype.listUsers).toBeTruthy();
-      // expect(typeof(result)).toEqual('object');
-      // expect(result[0].id).toEqual('u123');
-      // expect(result[0].profile.email).toEqual('test@example.com');
+      expect(okta.UserApi.prototype.listUsers.called).toBeTruthy();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result[0].id).toEqual('u123');
+      expect(result[0].profile.email).toEqual('test@example.com');
     });
   });
 
-  describe.skip('create()', () => {
+  describe('create()', () => {
     it('should structure the request with { body } wrapper', async () => {
       const input = { profile: { email: 'new@test.com' } };
 
@@ -120,11 +123,21 @@ describe('OktaUsers Service (Unit)', () => {
       const callArgs = okta.UserApi.prototype.createUser.getCall(0).args[0];
       expect(callArgs).toBeDefined();
       expect(callArgs.body.profile.email).toEqual('new@test.com');
+      // create() defaults to auto-activating when no second argument is passed
+      expect(callArgs.activate).toEqual(true);
+    });
+
+    it('should not auto-activate when explicitly requested', async () => {
+      const input = { profile: { email: 'new@test.com' } };
+
+      await oktaService.create(input, false);
+
+      const callArgs = okta.UserApi.prototype.createUser.getCall(0).args[0];
       expect(callArgs.activate).toEqual(false);
     });
   });
 
-  describe.skip('update()', () => {
+  describe('update()', () => {
     it('should fetch user, update local object, and push update', async () => {
       const updates = {
         firstName: 'UpdatedName',
@@ -136,11 +149,11 @@ describe('OktaUsers Service (Unit)', () => {
       okta.UserApi.prototype.getUser.resolves(userObj);
 
       await oktaService.update('u123', updates);
-      expect(okta.UserApi.prototype.getUser.calledWith('u123')).toBeTruthy();
+      expect(okta.UserApi.prototype.getUser.calledWith({ userId: 'u123' })).toBeTruthy();
 
-      const updateArgs =okta.UserApi.prototype.updateUser.getCall(0).args;
-      expect(updateArgs[0]).toEqual('u123'); // Id
-      expect(updateArgs[1].body.profile.firstName).toEqual('UpdatedName');
+      const updateArgs = okta.UserApi.prototype.updateUser.getCall(0).args;
+      expect(updateArgs[0].userId).toEqual('u123');
+      expect(updateArgs[0].user.profile.firstName).toEqual('UpdatedName');
     });
   });
 
@@ -191,39 +204,18 @@ describe('OktaUsers Service (Unit)', () => {
   });
 
 
-  describe.skip('getBrands()', () => {
-    it('should use fetch to get brands', async () => {
-      await oktaService.getBrands();
-
-      expect(global.fetch.calledOnce).toBeTruthy();
-      const args = global.fetch.getCall(0).args[0];
-      expect(args).toContain('/api/v1/brands');
-    });
-
-    it('should throw an error if the Okta API fails', async () => {
-      global.fetch.resolves({ ok: false, status: 500, statusText: 'Server Error' });
-      try {
-        await oktaService.getBrands();
-        expect(true).toBe(false);
-      } catch (err) {
-        expect(err).toBeTruthy();
-        expect(err.message).toContain('response.json is not a function');
-      }
-    });
-    it('should return an empty array if no brands are found', async () => {
-      global.fetch.resolves({ ok: true, json: async () => [] });
-
+  describe('getBrands()', () => {
+    it('should use the Okta SDK customization API to list brands', async () => {
       const brands = await oktaService.getBrands();
 
-      expect(Array.isArray(brands)).toBe(true);
-      expect(brands.length).toBe(0);
+      expect(oktaService.customizationApi.listBrands.calledOnce).toBeTruthy();
+      expect(brands).toBeDefined();
     });
 
-    it('should include the Authorization header in the request', async () => {
-      await oktaService.getBrands();
-      const fetchArgs = global.fetch.getCall(0).args[1];
-      expect(fetchArgs.headers['Authorization']).toContain('SSWS');
-      expect(fetchArgs.headers['Content-Type']).toBe('application/json');
+    it('should propagate an error if the Okta API fails', async () => {
+      oktaService.customizationApi.listBrands.throws(new Error('Server Error'));
+
+      await expect(oktaService.getBrands()).rejects.toThrow('Server Error');
     });
   });
 
