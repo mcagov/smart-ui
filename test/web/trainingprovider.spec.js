@@ -7,9 +7,11 @@ function randomCompanyNumber () {
   return (Math.round(Math.random() * (max - min) + min)).toString()
 }
 
+// Create/update flows for company, representative, address, banking and status
+// are covered by trainingprovider-controller.spec.js as controller-level unit
+// tests instead of here (see that file for why).
 describe('/training-providers', function () {
   const trainingProviderId = 'f1198f11-8122-4182-bfaa-8c4ef5512d34'
-  let newTrainingProviderId = ''
 
   // Admin only
   it('should load list of training provider', function () {
@@ -82,147 +84,17 @@ describe('/training-providers', function () {
       })
   })
 
-  it.skip('should create a blank training provider', function () {
-    return request(app)
-      .get('/training-providers/create')
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .expect(302)
-      .then(data => {
-        newTrainingProviderId = data.text.split('/')[2]
-      })
-  })
-
-  it.skip('should not allow non-unique company numbers', function () {
-    const data = {
-      'company-name': 'test 232',
-      'company-number': '55095990',
-      'phone-number': '12345678901',
-      'provider-type': 'Company'
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/details`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(400)
-  })
-
-  it.skip('should add company details to training provider', function () {
-    const data = {
-      'company-name': 'test 232',
-      'company-number': randomCompanyNumber(),
-      'phone-number': '12345678901',
-      'provider-type': 'Company'
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/details`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(302)
-  })
-
-  it.skip('should not add blank company details to training provider', function () {
-    const data = {
-      'company-name': '',
-      'company-number': '',
-      'phone-number': '',
-      'fax-number': '',
-      'company-type': ''
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/details`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(400)
-  })
-
-  it.skip('should add representative details to the training provider', function () {
-    const data = {
-      representative: 'Company owner',
-      'liaison-officer': 'Officer name 1',
-      'training-officer': 'Officer name 2'
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/representative`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(302)
-  })
-
-  it.skip('should not add blank representative details to the training provider', function () {
-    const data = {}
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/representative`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(400)
-  })
-
-  it.skip('should add address details to the training provider', function () {
-    const data = {
-      'address-line-1': 'address 1',
-      'address-line-2': 'address 2',
-      'address-town': 'town',
-      'address-postcode': 'postocde'
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/address`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(302)
-  })
-
-  it.skip('should not add blank address details to the training provider', function () {
-    const data = {
-      'address-line-1': '',
-      'address-line-2': '',
-      'address-town': '',
-      'address-postcode': ''
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/address`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(400)
-  })
-
-  it.skip('should add banking details to the training provider', function () {
-    const data = {
-      'sort-code': '123456',
-      'account-number': '12345678'
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/banking`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(302)
-  })
-
-  it.skip('should not add blank banking details to the training provider', function () {
-    const data = {
-      'sort-code': '',
-      'account-number': ''
-    }
-    return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/banking`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .send(data)
-      .expect(400)
-  })
-
-  it.skip('should update training provider state', function () {
-    return request(app)
-      .get(`/training-providers/${newTrainingProviderId}/status/Active`)
-      .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
-      .expect(302)
-  })
-
+  // controllers/providers.js exports updateClientCompanies/removeClientCompanies,
+  // but no router mounts new-client-company, client-companies or
+  // client-company/:ccid/remove anywhere - these 404 against current code and
+  // stay skipped until those routes are actually wired up.
   it.skip('should not add an client company', function () {
     const data = {
       'client-company-name': '',
       'client-company-number': ''
     }
     return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/new-client-company`)
+      .post(`/training-providers/${trainingProviderId}/new-client-company`)
       .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(400)
@@ -234,7 +106,7 @@ describe('/training-providers', function () {
       'client-company-number': randomCompanyNumber()
     }
     return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/new-client-company`)
+      .post(`/training-providers/${trainingProviderId}/new-client-company`)
       .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
@@ -245,7 +117,7 @@ describe('/training-providers', function () {
       'client-company': '43087fc8-a373-4203-bc5f-95d4bfd139f7'
     }
     return request(app)
-      .post(`/training-providers/${newTrainingProviderId}/client-companies`)
+      .post(`/training-providers/${trainingProviderId}/client-companies`)
       .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .send(data)
       .expect(302)
@@ -253,7 +125,7 @@ describe('/training-providers', function () {
 
   it.skip('should remove a client company', function () {
     return request(app)
-      .get(`/training-providers/${newTrainingProviderId}/client-company/43087fc8-a373-4203-bc5f-95d4bfd139f7/remove`)
+      .get(`/training-providers/${trainingProviderId}/client-company/43087fc8-a373-4203-bc5f-95d4bfd139f7/remove`)
       .set('SMART-USER', 'mca.ab@service.dev.smart.mcga.uk')
       .expect(302)
   })

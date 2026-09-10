@@ -1,10 +1,11 @@
 import request from 'supertest'
 import { app } from '../../src/app.js'
 
+// Training creation is covered by tptraining-controller.spec.js as a
+// controller-level unit test instead of here (see that file for why).
 describe('/training-providers/:id/trainings', () => {
   const trainingProviderId = 'f1198f11-8122-4182-bfaa-8c4ef5512d34'
   const trainingId = '6f3579fc-79ce-4323-acea-66b48720281d'
-  let newTrainingId = ''
 
   it('should load a single training provider training', async () => {
     await request(app)
@@ -25,18 +26,9 @@ describe('/training-providers/:id/trainings', () => {
 
   })
 
-  it.skip('should training provider creates a trainings', async () => {
-    const data = {
-      'training-scheme': '8b8b184f-8bfc-4d1f-a057-78c281bb9b7b'
-    }
-    const response = await request(app)
-      .post(`/training-providers/${trainingProviderId}/trainings/create`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
-      .send(data)
-      .expect(302)
-    newTrainingId = response.text.split('/')[4]
-  })
-
+  // POST /:trainingId/details does not exist anywhere in routes/training.js or
+  // controllers/tptrainings.js (only create and change-status are implemented) -
+  // these stay skipped until that route is actually built.
   it.skip('should update training provider trainings details', async () => {
     const data = {
       discipline: 'Deck',
@@ -49,7 +41,7 @@ describe('/training-providers/:id/trainings', () => {
       'end-date-day': '4'
     }
     await request(app)
-      .post(`/training-providers/${trainingProviderId}/trainings/${newTrainingId}/details`)
+      .post(`/training-providers/${trainingProviderId}/trainings/${trainingId}/details`)
       .set('SMART-USER', 'jim@enterprise.ufp')
       .send(data)
       .expect(302)
@@ -58,7 +50,7 @@ describe('/training-providers/:id/trainings', () => {
   it.skip('should not update training provider trainings details', function () {
     const data = {}
     return request(app)
-      .post(`/training-providers/${trainingProviderId}/trainings/${newTrainingId}/details`)
+      .post(`/training-providers/${trainingProviderId}/trainings/${trainingId}/details`)
       .set('SMART-USER', 'jim@enterprise.ufp')
       .send(data)
       .expect(400)
