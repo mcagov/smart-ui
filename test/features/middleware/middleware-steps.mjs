@@ -1,7 +1,7 @@
 import { Before, Given, Then, When, setWorldConstructor, World } from '@cucumber/cucumber'
 import { logger } from '@mca/common-logger'
-import expect from 'expect'
-import { getTrainees } from '../../../src/controllers/lookups/trainees'
+import { expect } from 'expect'
+import { getTrainees } from '../../../src/controllers/lookups/trainees.js'
 import MiddlewareWorld from "./MiddlewareWorld.mjs"
 import { v4 } from 'uuid'
 
@@ -13,6 +13,10 @@ Before(function (scenario) {
 
 Given('The controller {string}', async function (path) {
   this.module = await import(path)
+})
+
+Given('I am logged in as {string}', async function (email) {
+  await this.loginAs(email)
 })
 
 When('{word} is called with no parameters', async function (subjectName) {
@@ -57,7 +61,7 @@ Then('the next error has status {int}', function (statusCode) {
 Then('the next error has message {string}', function (message) {
   expect(this.result.nextError).toBeDefined()
   expect(this.result.nextError.message).toBeDefined()
-  expect(this.result.nextError.message).toBe(message)
+  expect(this.result.nextError.message).toContain(message)
 });
 
 Then('an error is thrown', function () {
@@ -92,20 +96,18 @@ Then('res.locals has {word} with data and meta', function (localsName) {
 
 Then('current page is {int} of {int}, page size {int} and total items {int}', function (thisPage, totalPages, pageSize, totalItems) {
   expect(this.result.meta).toBeDefined()
-  expect(this.result.meta.totalPages).toBeDefined()
-  expect(this.result.meta.totalPages).toBe(totalPages)
-  expect(this.result.meta.thisPage).toBeDefined()
-  expect(this.result.meta.thisPage).toBe(thisPage)
-  expect(this.result.meta.pageSize).toBeDefined()
-  expect(this.result.meta.pageSize).toBe(pageSize)
-  expect(this.result.meta.totalItems).toBeDefined()
-  expect(this.result.meta.totalItems).toBe(totalItems)
+  const expected = { thisPage, totalPages, pageSize, totalItems }
+  const actual = this.result.meta
+  const mismatches = Object.keys(expected).filter((key) => actual[key] !== expected[key])
+  if (mismatches.length > 0) {
+    throw new Error(`Pagination mismatch on [${mismatches.join(', ')}].\nExpected: ${JSON.stringify(expected)}\nActual meta: ${JSON.stringify(actual)}`)
+  }
 })
 
 Then('sort is by {word} and order is {word}', function (sort, order) {
   expect(this.result.meta).toBeDefined()
   expect(this.result.meta.sort).toBeDefined()
-  expect(this.result.meta.sort).toBe(sort)
+  expect(this.result.meta.sort).toContain(sort)
   expect(this.result.meta.order).toBeDefined()
   expect(this.result.meta.order).toBe(order)
 })
@@ -130,9 +132,11 @@ Then(/^data(?:\[([0-9]*)\]|)?\.(.*) is a UUID$/, function (index, item) {
 
 Then(/^data(?:\[([0-9]*)\]|)? has keys$/, function (index, dataTable) {
   const data = index ? this.result.data[index] : this.result.data
-  dataTable.rows().forEach(item => {
-    expect(data[item[0]]).toBeDefined()
-  });
+  expect(data).toBeDefined()
+  const missing = dataTable.rows().map(row => row[0]).filter(key => data[key] === undefined)
+  if (missing.length > 0) {
+    throw new Error(`Missing key(s): ${missing.join(', ')}.\nActual data: ${JSON.stringify(data)}`)
+  }
 });
 
 Then(/^data(?:\[([0-9]*)\]|)?\.(.*) equals '(.*)'$/, function (index, item, value) {

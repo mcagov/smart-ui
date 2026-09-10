@@ -25,34 +25,4 @@ describe('/training-providers/:id/trainings', () => {
     expect(response.text).toContain('1-50 IF Instalments (Foundation Degree)')
 
   })
-
-  // POST /:trainingId/details does not exist anywhere in routes/training.js or
-  // controllers/tptrainings.js (only create and change-status are implemented) -
-  // these stay skipped until that route is actually built.
-  it.skip('should update training provider trainings details', async () => {
-    const data = {
-      discipline: 'Deck',
-      qualification: 'HND',
-      'start-date-year': '2022',
-      'start-date-month': '4',
-      'start-date-day': '20',
-      'end-date-year': '2025',
-      'end-date-month': '7',
-      'end-date-day': '4'
-    }
-    await request(app)
-      .post(`/training-providers/${trainingProviderId}/trainings/${trainingId}/details`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
-      .send(data)
-      .expect(302)
-  })
-
-  it.skip('should not update training provider trainings details', function () {
-    const data = {}
-    return request(app)
-      .post(`/training-providers/${trainingProviderId}/trainings/${trainingId}/details`)
-      .set('SMART-USER', 'jim@enterprise.ufp')
-      .send(data)
-      .expect(400)
-  })
 })
