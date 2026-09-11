@@ -121,7 +121,10 @@ describe('Unit tests for the training-provider trainee controller', () => {
         townArea: 'Tavistock',
         postcode: 'TD11 4FF'
       }))
-      // nextPage is '' for address updates, so the redirect keeps the trailing slash
+      // updateTrainee() (tptrainees.js) always puts a "/" before nextPage in its
+      // redirect template; address is the last step in the create-trainee flow,
+      // so it passes nextPage: '' rather than a real page, leaving that trailing
+      // slash instead of the usual "/address" or "/details" segment    
       expect(res.redirect).toHaveBeenCalledWith('/training-providers/tp-1/trainees/trainee-1/')
     })
 
