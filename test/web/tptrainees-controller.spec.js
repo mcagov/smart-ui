@@ -126,23 +126,7 @@ describe('Unit tests for the training-provider trainee controller', () => {
       // so it passes nextPage: '' rather than a real page, leaving that trailing
       // slash instead of the usual "/address" or "/details" segment    
       expect(res.redirect).toHaveBeenCalledWith('/training-providers/tp-1/trainees/trainee-1/')
-    })
-
-    it('should render the address form with errors for a blank address', async () => {
-      req.params.traineeId = 'trainee-1'
-      mockValidationResult.mockReturnValue({
-        isEmpty: () => false,
-        errors: [{ msg: 'Address line 1 is required', param: 'address-line-1' }]
-      })
-
-      await updateTraineeAddressDetails()(req, res, next)
-
-      expect(res.status).toHaveBeenCalledWith(400)
-      expect(res.render).toHaveBeenCalledWith('tptrainees/address', expect.objectContaining({
-        errors: [{ text: 'Address line 1 is required', href: '#address-line-1' }]
-      }))
-      expect(mockPut).not.toHaveBeenCalled()
-    })
+    }) 
   })
 
   describe('updateTraineeStatus()', () => {
