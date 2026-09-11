@@ -16,6 +16,7 @@
 .vscode
 TESTS-sonar.xml
 coverage
+cucumber-report.html
 kubeconfig_*
 leaks_report.json
 node_modules

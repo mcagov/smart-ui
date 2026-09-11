@@ -96,12 +96,7 @@ Then('res.locals has {word} with data and meta', function (localsName) {
 
 Then('current page is {int} of {int}, page size {int} and total items {int}', function (thisPage, totalPages, pageSize, totalItems) {
   expect(this.result.meta).toBeDefined()
-  const expected = { thisPage, totalPages, pageSize, totalItems }
-  const actual = this.result.meta
-  const mismatches = Object.keys(expected).filter((key) => actual[key] !== expected[key])
-  if (mismatches.length > 0) {
-    throw new Error(`Pagination mismatch on [${mismatches.join(', ')}].\nExpected: ${JSON.stringify(expected)}\nActual meta: ${JSON.stringify(actual)}`)
-  }
+  expect(this.result.meta).toMatchObject({ thisPage, totalPages, pageSize, totalItems })
 })
 
 Then('sort is by {word} and order is {word}', function (sort, order) {
