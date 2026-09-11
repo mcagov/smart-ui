@@ -51,8 +51,7 @@ describe('OktaUsers Service (Unit)', () => {
     sinon.stub(okta.GroupApi.prototype, 'listGroups').returns(mockAsyncCollection([mockGroup]));
 
     const mockClient = {
-      // request: sinon.stub().resolves(...) // Only if you use client.request
-      customizationApi: {
+     customizationApi: {
         listBrands: sinon.stub().returns(mockAsyncCollection([{ id: 'b1', name: 'Brand A', isDefault: true }]))
       }
     };
