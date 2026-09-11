@@ -180,6 +180,7 @@ pipeline {
                                     sh 'npm test -- --detectOpenHandles --verbose'
                                     // Live-Okta tests (npm run test:integration) are deliberately not run here -
                                     // they need real Okta credentials and have caused permission issues in Jenkins
+                                    // will work on this in ticket MCASM-15
                                     sh 'npm run test:bdd'
                                 }
                             }
