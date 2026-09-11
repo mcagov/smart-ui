@@ -160,7 +160,7 @@ There are four ways to test this app.
 npm run test
 ```
 
-This suite is a mix of true unit tests (fully mocked, no external dependencies) and integration-style tests that hit the real, dockerized SMarT API - it's not a clean unit/integration split yet, but everything in it passes as long as the backing services are running (`docker compose up` with the `api` profile, same as for local development).
+This suite is a mix of true unit tests (fully mocked, no external dependencies) and integration-style tests that hit the real, dockerised SMarT API - it's not a clean unit/integration split yet, but everything in it passes as long as the backing services are running (`docker compose up` with the `api` profile, same as for local development).
 
 #### Live Okta integration tests
 
@@ -168,7 +168,7 @@ This suite is a mix of true unit tests (fully mocked, no external dependencies) 
 npm run test:integration
 ```
 
-These test `OktaUsers` against a real Okta org rather than a mock or the dockerized API. They're deliberately excluded from both CI pipelines (GitHub Actions and Jenkins) - they need real Okta credentials, and have caused permission issues when run in Jenkins/Github but we are looking into integrating them into the pipelines soon.
+These test `OktaUsers` against a real Okta org rather than a mock or the dockerised API. They're deliberately excluded from both CI pipelines (GitHub Actions and Jenkins) - they need real Okta credentials, and have caused permission issues when run in Jenkins/Github but we are looking into integrating them into the pipelines soon.
 
 #### BDD (Cucumber) tests
 
@@ -176,7 +176,7 @@ These test `OktaUsers` against a real Okta org rather than a mock or the dockeri
 npm run test:bdd
 ```
 
-Like the unit tests, these need the dockerized SMarT API running. They're wired into both CI pipelines.
+Like the unit tests, these need the dockerised SMarT API running. They're wired into both CI pipelines.
 #### WDIO (end-to-end browser) tests
 
 ```shell
