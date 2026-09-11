@@ -6,7 +6,8 @@ export default {
     'src/**/{!(ignore-me),}.js'
   ],
   testPathIgnorePatterns: [
-    '<rootDir>/test/browser'
+    '<rootDir>/test/browser',
+    '<rootDir>/test/integration'
   ],
   coveragePathIgnorePatterns: [
     '<rootDir>/src/public',
