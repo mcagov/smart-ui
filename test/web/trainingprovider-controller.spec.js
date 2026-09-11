@@ -28,7 +28,7 @@ const {
 
 const flushPromises = () => new Promise((resolve) => setImmediate(resolve))
 
-describe('Unit tests for the training provider controller', () => {
+describe('trainingProviderControler', () => {
   let req, res, next
 
   beforeEach(() => {
