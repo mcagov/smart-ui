@@ -63,7 +63,7 @@ describe('Unit tests for the absences controller', () => {
       expect(res.redirect).toHaveBeenCalledWith('/training-providers/tp-1/trainees/trainee-1/absences')
     })
 
-    it('should render the details form with errors when validation fails', async () => {
+    it('should render the details form with errors when validation fails on create', async () => {
       mockValidationResult.mockReturnValue({
         isEmpty: () => false,
         errors: [{ msg: 'Enter the duration of the absence', param: 'duration' }]
@@ -110,7 +110,7 @@ describe('Unit tests for the absences controller', () => {
       expect(res.redirect).toHaveBeenCalledWith('/training-providers/tp-1/trainees/trainee-1/absences')
     })
 
-    it('should render the details form with errors when validation fails', async () => {
+    it('should render the details form with errors when validation fails on update', async () => {
       req.params.absenceId = 'absence-1'
       mockValidationResult.mockReturnValue({
         isEmpty: () => false,
