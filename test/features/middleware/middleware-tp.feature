@@ -5,7 +5,7 @@ Feature: Check Training Provider Middleware.
     Given I am logged in as 'mca.ab@service.dev.smart.mcga.uk'
     And The controller '../../../src/controllers/lookups/providers.js'
 
-  Scenario: The middleware getAllCC should return all CC
+  Scenario: The middleware getAllCC should return all Client Companies
     When getAllCC is called with no parameters
     Then next is called without an error
     And status code is 200
@@ -31,7 +31,7 @@ Feature: Check Training Provider Middleware.
     And the next error has message 'Could not find'
 
 
-  Scenario: The middleware getTP should get a TP
+  Scenario: The middleware getTP should get a Training Provider
     When getTP is called with parameter id and value 'f1198f11-8122-4182-bfaa-8c4ef5512d34'
     Then next is called without an error
     And status code is 200
