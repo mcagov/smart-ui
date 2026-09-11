@@ -27,7 +27,7 @@ describe('Unit tests for the training provider trainings controller', () => {
   })
 
   describe('createTraining()', () => {
-    it('should create a training against the chosen training item and redirect to the trainings list', async () => {
+    it('should return the correct training against the chosen training item and redirect to the trainings list', async () => {
       req.body = { 'training-item': '8b8b184f-8bfc-4d1f-a057-78c281bb9b7b' }
       mockCreate.mockResolvedValue({})
 

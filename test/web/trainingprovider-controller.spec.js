@@ -51,7 +51,7 @@ describe('Unit tests for the training provider controller', () => {
   })
 
   describe('updateDetails()', () => {
-    it('should create a training provider (no id yet) and redirect to the representative page', async () => {
+    it('should return the correct training provider data (no id yet) and redirect to the representative page', async () => {
       delete req.params.id
       req.body = {
         'company-name': 'test 232',
@@ -73,7 +73,7 @@ describe('Unit tests for the training provider controller', () => {
       expect(res.redirect).toHaveBeenCalledWith('/training-providers/new-tp-id/representative')
     })
 
-    it('should update an existing training provider and redirect to the representative page', async () => {
+    it('should return the correct training provider data and redirect to the representative page', async () => {
       req.body = {
         'company-name': 'test 232',
         'company-number': '55098765',
@@ -128,7 +128,7 @@ describe('Unit tests for the training provider controller', () => {
   })
 
   describe('updateRepresentativeDetails()', () => {
-    it('should update representative details and redirect to the address page', async () => {
+    it('should return the correct representative details and redirect to the address page', async () => {
       req.body = {
         representative: 'Company owner',
         'liaison-officer': 'Officer name 1',
@@ -162,7 +162,7 @@ describe('Unit tests for the training provider controller', () => {
   })
 
   describe('updateAddressDetails()', () => {
-    it('should update the address and redirect to the banking page', async () => {
+    it('should return the correct address and redirect to the banking page', async () => {
       req.body = {
         'address-line-1': 'address 1',
         'address-line-2': 'address 2',
@@ -197,7 +197,7 @@ describe('Unit tests for the training provider controller', () => {
   })
 
   describe('updateBankingDetails()', () => {
-    it('should update banking details and redirect to the summary page', async () => {
+    it('should return the correct banking details and redirect to the summary page', async () => {
       req.body = { 'sort-code': '123456', 'account-number': '12345678' }
       mockPut.mockResolvedValue({})
 
@@ -226,7 +226,7 @@ describe('Unit tests for the training provider controller', () => {
   })
 
   describe('updateStatus()', () => {
-    it('should update the training provider status and redirect to the provider page', async () => {
+    it('should reutrn the correct training provider status and redirect to the provider page', async () => {
       req.params.status = 'Active'
       mockPut.mockResolvedValue({})
 

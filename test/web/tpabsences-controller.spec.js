@@ -48,7 +48,7 @@ describe('Unit tests for the absences controller', () => {
   })
 
   describe('create()', () => {
-    it('should create the absence and redirect back to the absences list', async () => {
+    it('should call the service with the correctly-shaped absence and redirect on success', async () => {
       mockCreate.mockResolvedValue({})
 
       create(req, res, next)
@@ -96,7 +96,7 @@ describe('Unit tests for the absences controller', () => {
   })
 
   describe('update()', () => {
-    it('should update the absence and redirect back to the absences list', async () => {
+    it('should call the service with the correctly-shaped update and redirect on success', async () => {
       req.params.absenceId = 'absence-1'
       mockPut.mockResolvedValue({})
 

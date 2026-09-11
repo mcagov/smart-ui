@@ -58,7 +58,7 @@ describe('Unit tests for the training-provider trainee controller', () => {
       gender: 'Female'
     }
 
-    it('should create a new trainee (no traineeId yet) and redirect to the address page', async () => {
+    it('should return the correct new trainee (no traineeId yet) details and redirect to the address page', async () => {
       req.body = detailsBody
       mockCreate.mockResolvedValue({ id: 'new-trainee-id' })
 
@@ -74,7 +74,7 @@ describe('Unit tests for the training-provider trainee controller', () => {
       expect(res.redirect).toHaveBeenCalledWith('/training-providers/tp-1/trainees/new-trainee-id/address')
     })
 
-    it('should update an existing trainee and redirect to the address page', async () => {
+    it('should return the updated existing trainee and redirect to the address page', async () => {
       req.params.traineeId = 'trainee-1'
       req.body = detailsBody
       mockPut.mockResolvedValue({})
@@ -104,7 +104,7 @@ describe('Unit tests for the training-provider trainee controller', () => {
   })
 
   describe('updateTraineeAddressDetails()', () => {
-    it('should update the trainee address and redirect to the trainee page', async () => {
+    it('should return the updated trainee address and redirect to the trainee page', async () => {
       req.params.traineeId = 'trainee-1'
       req.body = {
         'address-line-1': '1 Orange Tree Road',
@@ -143,7 +143,7 @@ describe('Unit tests for the training-provider trainee controller', () => {
   })
 
   describe('updateTraineeStatus()', () => {
-    it('should update the trainee status and redirect to the trainee page', async () => {
+    it('should return the updated trainee status and redirect to the trainee page', async () => {
       req.params.traineeId = 'trainee-1'
       res.locals.statusAction = 'Active'
       mockUpdateStatus.mockResolvedValue({})
