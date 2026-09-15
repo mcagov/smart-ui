@@ -92,7 +92,7 @@ async function teardownUser (id) {
   }
 }
 
-describe.skip('OktaUsers', () => {
+describe('OktaUsers', () => {
   beforeAll(async () => {
     await teardownUser(user1.profile.login)
     await teardownUser(user2.profile.login)

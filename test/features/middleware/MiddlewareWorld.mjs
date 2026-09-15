@@ -3,6 +3,10 @@ import { version as uuidVersion } from 'uuid'
 import { validate as uuidValidate } from 'uuid'
 import { createMocks } from 'node-mocks-http'
 import { EventEmitter } from 'events'
+import { createSession } from '../../../src/local-oidc.js'
+import LocalUsers from '../../../src/services/local.users.js'
+
+const localUsers = new LocalUsers()
 
 export default class extends World {
 
@@ -12,6 +16,11 @@ export default class extends World {
 
     init(scenario) {
         this.result = {}
+        this.loggedInUser = undefined
+    }
+
+    async loginAs(email) {
+        this.loggedInUser = await localUsers.get(email)
     }
 
     async call(callback, options = {}, decorators = {}, ...args) {
@@ -30,6 +39,9 @@ export default class extends World {
         }
 
         const { req, res } = createMocks(options, { eventEmitter: EventEmitter })
+        if (this.loggedInUser) {
+            createSession(req, this.loggedInUser)
+        }
         this.result.req = req
         this.result.res = res
         // append extra properties to request and response, à la middleware

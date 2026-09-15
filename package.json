@@ -14,6 +14,7 @@
         "start": "gulp default && nodemon ./src/bin/www",
         "test": "NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --forceExit",
         "test-without-coverage": "npm run test -- --coverage=false",
+        "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.js --forceExit",
         "test:bdd": "cucumber-js",
         "ca:setup": "node scripts/setup-codeartifact-npm-registry.js",
         "test:wdio-chrome": "wdio run test/wdio-chrome.conf.js",
