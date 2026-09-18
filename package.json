@@ -29,7 +29,7 @@
         ]
     },
     "dependencies": {
-        "@mca/common-logger": "^2.0.4",
+        "@mca/common-logger": "^2.0.7",
         "@ministryofjustice/frontend": "^8.0.0",
         "@mswjs/interceptors": "0.39.5",
         "@okta/oidc-middleware": "^5.5.0",
