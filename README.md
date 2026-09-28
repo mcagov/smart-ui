@@ -73,33 +73,24 @@ region=eu-west-2
 output=json
 ```
 
-### aws-vault
+### AWS login
 
-We recommend using [AWS Vault]() for easy running of commands that need AWS access and an improved security position.
-
-Simply prefix any command with `aws-vault exec smart-dev-support --` as we do in the examples here. E.g.
-
+Log into AWS using:
 ```shell
-aws-vault exec smart-dev-support -- aws sts get-caller-identity
+aws sso login --profile=smart-dev-support
 ```
 
-For less typing, you can create add the following alias to your shell, which will leverage the `AWS_PROFILE` environment variable...
-
-```bash
-# In your `.bashrc`, `.zshrc` etc. file
-alias awsv='if [ -z "$AWS_PROFILE" ]; then echo "Error: AWS_PROFILE environment variable is required by the awsv alias"; fi; aws-vault exec $AWS_PROFILE -- '
-```
-
-...Then run your commands like this...
-
-```shell
-awsv aws sts get-caller-identity
-```
+... and follow the steps that your default browser automatically shows.
 
 ### Install dependencies
 
+Before you install the dependencies you need to be logged into the CodeArtifact repo, which you can do by running the following command:
 ```shell
-aws-vault exec smart-dev-support -- aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner $AWS_ACCOUNT_NUMBER
+npm run ca:setup
+```
+
+Then you can run the standard node dependency install command:
+```shell
 npm install
 ```
 
@@ -110,7 +101,7 @@ npm install
 Log into AWS Elastic Container Registry if Docker Compose will need to pull the images:
 
 ```shell
-aws-vault exec smart-dev-support -- aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_NUMBER.dkr.ecr.eu-west-2.amazonaws.com
+aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_NUMBER.dkr.ecr.eu-west-2.amazonaws.com
 ```
 
 Run the backing services with Docker Compose:
