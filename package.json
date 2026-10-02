@@ -17,6 +17,7 @@
     "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.js --forceExit",
     "test:bdd": "cucumber-js",
     "ca:setup": "node scripts/setup-codeartifact-npm-registry.js",
+    "ecr:login": "node scripts/podman-ecr-login.js",
     "test:wdio-chrome": "wdio run test/wdio-chrome.conf.js",
     "test:wdio-debug": "wdio run test/wdio-chrome.conf.js --suite debug",
     "test:wdio-headless": "wdio run test/wdio-headless.conf.js"
