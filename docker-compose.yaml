@@ -240,12 +240,15 @@ services:
       - 443:443
     environment:
       UI_PORT: ${UI_PORT-2997}
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: 1
     volumes:
       - ${PWD}/test/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ${PWD}/test/nginx/common:/etc/nginx/common
       - ${PWD}/test/nginx/html:/etc/nginx/error_pages
       - ${PWD}/test/nginx/smart.conf:/etc/nginx/templates/default.conf.template
       # Removed the SSL volume mount
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       cert-gen:
         condition: service_completed_successfully
@@ -285,6 +288,7 @@ services:
     hostname: smart-ui
     environment:
       UI_PORT: ${UI_PORT-2997}
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: 1
     volumes:
       - ${PWD}/test/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ${PWD}/test/nginx/smart-ui-external.conf:/etc/nginx/templates/default.conf.template
