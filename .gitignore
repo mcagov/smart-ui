@@ -19,6 +19,7 @@ coverage
 cucumber-report.html
 kubeconfig_*
 leaks_report.json
+new-certs/
 node_modules
 public
 reports
