@@ -1,0 +1,14 @@
+{% set traineeRows = [
+  { key: { text: 'Name' }, value: { text: trainee.contactName } },
+  { key: { text: 'MATSU number' }, value: { text: trainee.matsuNumber } },
+  { key: { text: 'Date of birth' }, value: { text: trainee.dateOfBirth | dateUKFormat } }
+] %}
+
+{% if override %}
+  {% set traineeRows = (traineeRows.push(
+    { key: { text: 'Retained until' }, value: { text: override.extendedUntil | dateUKFormat } },
+    { key: { text: 'Reason' }, value: { text: override.reason } }
+  ), traineeRows) %}
+{% endif %}
+
+{{ govukSummaryList({ rows: traineeRows, attributes: { id: 'trainee-summary' } }) }}
