@@ -1,11 +1,15 @@
 import moment from 'moment'
 import { validationResult } from 'express-validator'
+import { logger } from '@mca/common-logger'
 import TraineeRetention from '../services/trainee-retention.mjs'
-import { getAccessToken, govUKErrors, safeReturnUrl } from '../utils.js'
+import OktaUsers from '../services/okta.users.js'
+import LocalUsers from '../services/local.users.js'
+import { getAccessToken, govUKErrors, safeReturnUrl, useLocalAuth } from '../utils.js'
 import { createDate } from './common.js'
 import { getQueryParams, handleApiError, handleLookupError, setPageMeta } from './lookups/common.js'
 
 const service = new TraineeRetention()
+const users = useLocalAuth() ? new LocalUsers() : new OktaUsers()
 
 const BASE_URL = '/trainee-retention-review'
 const REVIEW_STATUSES = ['NeedsReview', 'Reviewed', 'Retained', 'All']
@@ -39,6 +43,12 @@ export async function list (req, res, next) {
       service.candidates(accessToken, { reviewStatus: 'NeedsReview', dueAtNextRun: true, page: 1, limit: 1 })
     ])
 
+    // Only the reviewed tab shows who reviewed them
+    if (req.query.reviewStatus === 'Reviewed') {
+      const names = await getUserNames(candidates.data.map((c) => c.reviewedBy))
+      candidates.data.forEach((c) => { c.reviewedByName = names.get(c.reviewedBy?.toLowerCase()) })
+    }
+
     setPageMeta(req, candidates, ['reviewStatus', ...FILTER_KEYS])
     res.locals.candidates = candidates
     res.locals.summary = summary
@@ -55,6 +65,28 @@ export async function list (req, res, next) {
     next()
   } catch (err) {
     handleLookupError(err, next)
+  }
+}
+
+/**
+ * Looks up the names of the users who made changes, which the API records by login.
+ * A login that isn't found, or a failed lookup, has no name, so the page shows the login instead.
+ * @returns {Promise<Map<string, string>>} lower case login to "First Last"
+ */
+async function getUserNames (logins) {
+  const unique = [...new Set(logins.filter(Boolean))]
+  if (unique.length === 0) {
+    return new Map()
+  }
+  try {
+    const found = await users.getAllByLogin(unique)
+    return new Map(found.map((u) => [
+      (u.profile.login || u.profile.email).toLowerCase(),
+      `${u.profile.firstName} ${u.profile.lastName}`
+    ]))
+  } catch (err) {
+    logger.error('Failed to look up user names, showing logins instead', err)
+    return new Map()
   }
 }
 
@@ -87,7 +119,10 @@ export function getOverride (required = false) {
 
 export async function getReview (req, res, next) {
   try {
-    res.locals.review = await service.getReview(getAccessToken(req), req.params.traineeId)
+    const review = await service.getReview(getAccessToken(req), req.params.traineeId)
+    const names = await getUserNames([review.reviewedBy])
+    review.reviewedByName = names.get(review.reviewedBy?.toLowerCase())
+    res.locals.review = review
     next()
   } catch (err) {
     handleLookupError(err, next)

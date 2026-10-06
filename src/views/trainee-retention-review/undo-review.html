@@ -18,7 +18,7 @@
     {% if review %}
       {{ govukSummaryList({
         rows: [
-          { key: { text: 'Reviewed by' }, value: { text: review.reviewedBy } },
+          { key: { text: 'Reviewed by' }, value: { text: review.reviewedByName or review.reviewedBy } },
           { key: { text: 'Reviewed on' }, value: { text: review.reviewed | mojDate('date') if review.reviewed } },
           { key: { text: 'Note' }, value: { text: review.note } }
         ],

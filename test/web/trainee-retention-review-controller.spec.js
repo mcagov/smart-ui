@@ -11,6 +11,15 @@ const mockGetReview = jest.fn()
 const mockCreateReview = jest.fn()
 const mockDeleteReview = jest.fn()
 const mockValidationResult = jest.fn()
+const mockGetAllByLogin = jest.fn()
+
+// The controller picks Okta or local users depending on the auth mode, so mock both the same way
+const mockUsers = () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({ getAllByLogin: mockGetAllByLogin }))
+})
+jest.unstable_mockModule('../../src/services/okta.users.js', mockUsers)
+jest.unstable_mockModule('../../src/services/local.users.js', mockUsers)
 
 jest.unstable_mockModule('../../src/services/trainee-retention.mjs', () => ({
   __esModule: true,
@@ -36,6 +45,7 @@ const {
   list,
   setReturnUrl,
   getOverride,
+  getReview,
   getNextRunDate,
   setRetainDefaults,
   retain,
@@ -57,6 +67,7 @@ describe('Unit tests for the trainee retention review controller', () => {
     mockCandidates.mockResolvedValue({ data: [], meta: { totalPages: 0, thisPage: 1 } })
     mockSummary.mockResolvedValue(summary)
     mockValidationResult.mockReturnValue({ isEmpty: () => true, errors: [] })
+    mockGetAllByLogin.mockResolvedValue([])
 
     req = {
       params: {},
@@ -169,6 +180,50 @@ describe('Unit tests for the trainee retention review controller', () => {
       expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 403 }))
     })
 
+    it('should look up the names of who reviewed the trainees on the reviewed tab', async () => {
+      req.query.reviewStatus = 'Reviewed'
+      mockCandidates.mockResolvedValueOnce({
+        data: [
+          { id: 't1', reviewedBy: 'mca.ab@service.dev.smart.mcga.uk' },
+          { id: 't2', reviewedBy: 'MCA.AB@service.dev.smart.mcga.uk' },
+          { id: 't3', reviewedBy: '0oa1clientid' }
+        ],
+        meta: { totalPages: 1, thisPage: 1 }
+      })
+      mockGetAllByLogin.mockResolvedValue([
+        { profile: { firstName: 'mca', lastName: 'ab', email: 'mca.ab@service.dev.smart.mcga.uk' } }
+      ])
+
+      await list(req, res, next)
+
+      expect(mockGetAllByLogin).toHaveBeenCalledWith(
+        ['mca.ab@service.dev.smart.mcga.uk', 'MCA.AB@service.dev.smart.mcga.uk', '0oa1clientid'])
+      expect(res.locals.candidates.data.map((c) => c.reviewedByName)).toEqual(['mca ab', 'mca ab', undefined])
+      expect(next).toHaveBeenCalledWith()
+    })
+
+    it('should not look up names on the other tabs', async () => {
+      req.query.reviewStatus = 'All'
+
+      await list(req, res, next)
+
+      expect(mockGetAllByLogin).not.toHaveBeenCalled()
+    })
+
+    it('should still show the list without names when the user lookup fails', async () => {
+      req.query.reviewStatus = 'Reviewed'
+      mockCandidates.mockResolvedValueOnce({
+        data: [{ id: 't1', reviewedBy: 'mca.ab@service.dev.smart.mcga.uk' }],
+        meta: { totalPages: 1, thisPage: 1 }
+      })
+      mockGetAllByLogin.mockRejectedValue(new Error('Okta is down'))
+
+      await list(req, res, next)
+
+      expect(res.locals.candidates.data[0].reviewedByName).toBeUndefined()
+      expect(next).toHaveBeenCalledWith()
+    })
+
     it('should show the success message once and then clear it', async () => {
       req.session.retentionReviewSuccess = 'Kieran Griffiths has been marked as reviewed'
 
@@ -229,6 +284,22 @@ describe('Unit tests for the trainee retention review controller', () => {
       await getOverride(true)(req, res, next)
 
       expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 404 }))
+    })
+  })
+
+  describe('getReview()', () => {
+    it('should set the review with the name of who reviewed them', async () => {
+      req.params.traineeId = 'trainee-1'
+      mockGetReview.mockResolvedValue({ reviewedBy: 'mca.ab@service.dev.smart.mcga.uk', note: 'ok' })
+      mockGetAllByLogin.mockResolvedValue([
+        { profile: { firstName: 'mca', lastName: 'ab', login: 'mca.ab@service.dev.smart.mcga.uk' } }
+      ])
+
+      await getReview(req, res, next)
+
+      expect(mockGetReview).toHaveBeenCalledWith('test-token', 'trainee-1')
+      expect(res.locals.review).toEqual({ reviewedBy: 'mca.ab@service.dev.smart.mcga.uk', note: 'ok', reviewedByName: 'mca ab' })
+      expect(next).toHaveBeenCalledWith()
     })
   })
 

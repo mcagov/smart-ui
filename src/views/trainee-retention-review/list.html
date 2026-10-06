@@ -100,7 +100,7 @@
           {% set nameHtml %}
             <a href="/trainees/{{item.id}}?return={{ returnUrl | urlencode }}" class="govuk-link">{{item.contactName}}</a>
             {% if item.reviewStatus == 'NeedsReview' and item.extendedUntil %}
-              <span class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Retention ends {{ item.extendedUntil | dateUKFormat }}</span>
+              <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Retention ends {{ item.extendedUntil | dateUKFormat }}</div>
             {% endif %}
           {% endset %}
           {% set row = [
@@ -117,9 +117,9 @@
             ), row) %}
           {% elif reviewStatus == 'Reviewed' %}
             {% set reviewedHtml %}
-              {{ item.reviewedBy }}
+              {{ item.reviewedByName or item.reviewedBy }}
               {% if item.reviewed %}
-                <span class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">{{ item.reviewed | mojDate('date') }}</span>
+                <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">{{ item.reviewed | mojDate('date') }}</div>
               {% endif %}
             {% endset %}
             {% set row = (row.push(

@@ -7,6 +7,7 @@ import pg from 'pg'
 const { Client } = pg
 
 const ADMIN_EMAIL = 'mca.ab@service.dev.smart.mcga.uk'
+const ADMIN_NAME = 'mca ab'
 const RETAIN_REASON = `WDIO TEST legal hold ${Date.now()}`
 const REVIEW_NOTE = `WDIO TEST no longer training ${Date.now()}`
 
@@ -128,6 +129,6 @@ describe('Admin retains a trainee and marks a trainee reviewed', () => {
     await expect(TraineeRetention.reviewedTab).toHaveAttribute('aria-current', 'page')
     await expect(TraineeRetention.actionLink(toReview.id, 'undo-review')).toExist()
     await expect(TraineeRetention.findTableCell(REVIEW_NOTE)).toExist()
-    await expect(TraineeRetention.findTableCellContaining(ADMIN_EMAIL)).toExist()
+    await expect(TraineeRetention.findTableCellContaining(ADMIN_NAME)).toExist()
   })
 })
