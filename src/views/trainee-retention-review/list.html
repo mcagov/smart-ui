@@ -103,19 +103,36 @@
               <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Retention ends {{ item.extendedUntil | dateUKFormat }}</div>
             {% endif %}
           {% endset %}
-          {% set row = [
-            { html: nameHtml },
-            { text: item.companyName },
-            { text: item.lastActiveDate | dateUKFormat },
-            { text: item.deletionDate | dateUKFormat }
-          ] %}
-
           {% if reviewStatus == 'Retained' %}
-            {% set row = (row.push(
+            {# The retention, not the original deletion date, decides when they could be deleted #}
+            {% set retainedByHtml %}
+              {% if item.extendedBy %}
+                {{ item.extendedByName or item.extendedBy }}
+                <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Extended {{ item.extended | mojDate('date') }}</div>
+              {% else %}
+                {{ item.retainedByName or item.retainedBy }}
+                {% if item.retained %}
+                  <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">{{ item.retained | mojDate('date') }}</div>
+                {% endif %}
+              {% endif %}
+            {% endset %}
+            {% set row = [
+              { html: nameHtml },
+              { text: item.companyName },
               { text: item.extendedUntil | dateUKFormat },
-              { text: item.reason }
-            ), row) %}
-          {% elif reviewStatus == 'Reviewed' %}
+              { text: item.reason },
+              { html: retainedByHtml }
+            ] %}
+          {% else %}
+            {% set row = [
+              { html: nameHtml },
+              { text: item.companyName },
+              { text: item.lastActiveDate | dateUKFormat },
+              { text: 'Retained until ' + (item.extendedUntil | dateUKFormat) if item.reviewStatus == 'Retained' else item.deletionDate | dateUKFormat }
+            ] %}
+          {% endif %}
+
+          {% if reviewStatus == 'Reviewed' %}
             {% set reviewedHtml %}
               {{ item.reviewedByName or item.reviewedBy }}
               {% if item.reviewed %}
@@ -155,17 +172,23 @@
 
         {% set head = [
           { text: 'Name', attributes: { "aria-sort": "none", "data-name": "contactName" } },
-          { text: 'Training provider', attributes: { "aria-sort": "none", "data-name": "companyName" } },
-          { text: 'Last active', attributes: { "aria-sort": "none", "data-name": "lastActiveDate" } },
-          { text: 'Deletion date', attributes: { "aria-sort": "none", "data-name": "deletionDate" } }
+          { text: 'Training provider', attributes: { "aria-sort": "none", "data-name": "companyName" } }
         ] %}
 
         {% if reviewStatus == 'Retained' %}
           {% set head = (head.push(
             { text: 'Retained until', attributes: { "aria-sort": "none", "data-name": "extendedUntil" } },
-            { text: 'Reason' }
+            { text: 'Reason' },
+            { text: 'Retained by' }
           ), head) %}
-        {% elif reviewStatus == 'Reviewed' %}
+        {% else %}
+          {% set head = (head.push(
+            { text: 'Last active', attributes: { "aria-sort": "none", "data-name": "lastActiveDate" } },
+            { text: 'Deletion date', attributes: { "aria-sort": "none", "data-name": "deletionDate" } }
+          ), head) %}
+        {% endif %}
+
+        {% if reviewStatus == 'Reviewed' %}
           {% set head = (head.push(
             { text: 'Note' },
             { text: 'Reviewed by' }

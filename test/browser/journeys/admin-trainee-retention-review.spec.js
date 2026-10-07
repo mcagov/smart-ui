@@ -98,11 +98,12 @@ describe('Admin retains a trainee and marks a trainee reviewed', () => {
       `${toRetain.name} will be retained until ${retainedUntil}`))
   })
 
-  it('should show the trainee on the retained tab', async () => {
+  it('should show the trainee on the retained tab with who retained them', async () => {
     await TraineeRetention.retainedTab.click()
     await expect(TraineeRetention.retainedTab).toHaveAttribute('aria-current', 'page')
     await expect(TraineeRetention.actionLink(toRetain.id, 'remove-retention')).toExist()
     await expect(TraineeRetention.findTableCell(RETAIN_REASON)).toExist()
+    await expect(TraineeRetention.findTableCellContaining(ADMIN_NAME)).toExist()
   })
 
   it('should find the trainee to review', async () => {

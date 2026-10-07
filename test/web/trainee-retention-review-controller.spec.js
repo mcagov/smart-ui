@@ -48,6 +48,7 @@ const {
   getReview,
   getNextRunDate,
   setRetainDefaults,
+  readRetainUntil,
   retain,
   review,
   removeRetention,
@@ -202,6 +203,35 @@ describe('Unit tests for the trainee retention review controller', () => {
       expect(next).toHaveBeenCalledWith()
     })
 
+    it('should list the retained tab by the retentions ending soonest', async () => {
+      req.query.reviewStatus = 'Retained'
+
+      await list(req, res, next)
+
+      expect(mockCandidates.mock.calls[0][1]).toEqual(expect.objectContaining({ sort: 'extendedUntil', order: 'asc' }))
+    })
+
+    it('should look up the names of who retained and who extended the trainees on the retained tab', async () => {
+      req.query.reviewStatus = 'Retained'
+      mockCandidates.mockResolvedValueOnce({
+        data: [
+          { id: 't1', retainedBy: 'mca.ab@service.dev.smart.mcga.uk' },
+          { id: 't2', retainedBy: 'mca.ab@service.dev.smart.mcga.uk', extendedBy: 'mca.su@service.dev.smart.mcga.uk' }
+        ],
+        meta: { totalPages: 1, thisPage: 1 }
+      })
+      mockGetAllByLogin.mockResolvedValue([
+        { profile: { firstName: 'mca', lastName: 'ab', email: 'mca.ab@service.dev.smart.mcga.uk' } },
+        { profile: { firstName: 'mca', lastName: 'su', email: 'mca.su@service.dev.smart.mcga.uk' } }
+      ])
+
+      await list(req, res, next)
+
+      expect(mockGetAllByLogin).toHaveBeenCalledWith(['mca.ab@service.dev.smart.mcga.uk', 'mca.su@service.dev.smart.mcga.uk'])
+      expect(res.locals.candidates.data[0]).toEqual(expect.objectContaining({ retainedByName: 'mca ab', extendedByName: undefined }))
+      expect(res.locals.candidates.data[1]).toEqual(expect.objectContaining({ retainedByName: 'mca ab', extendedByName: 'mca su' }))
+    })
+
     it('should not look up names on the other tabs', async () => {
       req.query.reviewStatus = 'All'
 
@@ -266,6 +296,23 @@ describe('Unit tests for the trainee retention review controller', () => {
 
       expect(mockGet).toHaveBeenCalledWith('test-token', 'trainee-1')
       expect(res.locals.override).toEqual({ extendedUntil: '2027-10-01' })
+      expect(next).toHaveBeenCalledWith()
+    })
+
+    it('should set the names of who retained and who last extended the trainee', async () => {
+      mockGet.mockResolvedValue({
+        extendedUntil: '2027-10-01',
+        createdBy: 'mca.ab@service.dev.smart.mcga.uk',
+        updatedBy: 'mca.su@service.dev.smart.mcga.uk'
+      })
+      mockGetAllByLogin.mockResolvedValue([
+        { profile: { firstName: 'mca', lastName: 'ab', email: 'mca.ab@service.dev.smart.mcga.uk' } },
+        { profile: { firstName: 'mca', lastName: 'su', email: 'mca.su@service.dev.smart.mcga.uk' } }
+      ])
+
+      await getOverride()(req, res, next)
+
+      expect(res.locals.override).toEqual(expect.objectContaining({ createdByName: 'mca ab', updatedByName: 'mca su' }))
       expect(next).toHaveBeenCalledWith()
     })
 
@@ -340,6 +387,34 @@ describe('Unit tests for the trainee retention review controller', () => {
       setRetainDefaults(req, res, next)
 
       expect(res.locals.retention.extendedUntil).toBe(moment().add(1, 'year').format('YYYY-MM-DD'))
+    })
+  })
+
+  describe('readRetainUntil()', () => {
+    const body = (day, month, year) => ({ 'extendedUntil-day': day, 'extendedUntil-month': month, 'extendedUntil-year': year })
+
+    it.each([
+      ['1', '10', '2027', '2027-10-01'],
+      ['01', '09', '2027', '2027-09-01'],
+      [' 5 ', '10', '2027', '2027-10-05'],
+      ['29', '2', '2028', '2028-02-29']
+    ])('should read %p/%p/%p as %s', (day, month, year, expected) => {
+      expect(readRetainUntil(body(day, month, year)).format('YYYY-MM-DD')).toBe(expected)
+    })
+
+    it.each([
+      ['abc', '10', '2027'],
+      ['1a', '10', '2027'],
+      ['1', '10', '27'],
+      ['31', '2', '2027'],
+      ['29', '2', '2027'],
+      ['31', '4', '2027'],
+      ['0', '10', '2027'],
+      ['1', '13', '2027'],
+      ['', '', ''],
+      [undefined, undefined, undefined]
+    ])('should not read %p/%p/%p as a date', (day, month, year) => {
+      expect(readRetainUntil(body(day, month, year))).toBeUndefined()
     })
   })
 

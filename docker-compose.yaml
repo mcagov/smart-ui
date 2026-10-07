@@ -47,7 +47,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.4-trainee-retention-backend
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.6-trainee-retention-backend
     ports:
       - "8080:8080"
       - "8082:8082"

@@ -5,10 +5,24 @@
 ] %}
 
 {% if override %}
+  {% set retainedByHtml %}
+    {{ override.createdByName or override.createdBy }}
+    <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">{{ override.created | mojDate('date') }}</div>
+  {% endset %}
   {% set traineeRows = (traineeRows.push(
     { key: { text: 'Retained until' }, value: { text: override.extendedUntil | dateUKFormat } },
-    { key: { text: 'Reason' }, value: { text: override.reason } }
+    { key: { text: 'Reason' }, value: { text: override.reason } },
+    { key: { text: 'Retained by' }, value: { html: retainedByHtml } }
   ), traineeRows) %}
+  {% if override.updatedBy %}
+    {% set extendedByHtml %}
+      {{ override.updatedByName or override.updatedBy }}
+      <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">{{ override.updated | mojDate('date') }}</div>
+    {% endset %}
+    {% set traineeRows = (traineeRows.push(
+      { key: { text: 'Last extended by' }, value: { html: extendedByHtml } }
+    ), traineeRows) %}
+  {% endif %}
 {% endif %}
 
 {{ govukSummaryList({ rows: traineeRows, attributes: { id: 'trainee-summary' } }) }}

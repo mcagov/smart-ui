@@ -6,6 +6,7 @@ import {
   getOverride,
   getReview,
   list,
+  readRetainUntil,
   removeRetention,
   retain,
   review,
@@ -13,7 +14,7 @@ import {
   setReturnUrl,
   undoReview
 } from '../controllers/trainee-retention-review.mjs'
-import { readDate, useView } from '../controllers/common.js'
+import { useView } from '../controllers/common.js'
 import { getTrainee } from '../controllers/lookups/trainees.js'
 
 const router = new express.Router()
@@ -23,8 +24,8 @@ const retainValidator = [
   check('reason', 'Enter a reason for retaining the trainee').trim().not().isEmpty(),
   // getNextRunDate has set res.locals.nextRunDate
   check('extendedUntil-day').custom((_, { req }) => {
-    const date = readDate('extendedUntil', req.body)
-    if (!date || !date.isValid()) {
+    const date = readRetainUntil(req.body)
+    if (!date) {
       throw new Error('Enter a real date to retain the trainee until')
     }
     const nextRunDate = req.res.locals.nextRunDate

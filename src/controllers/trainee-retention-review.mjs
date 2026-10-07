@@ -5,7 +5,6 @@ import TraineeRetention from '../services/trainee-retention.mjs'
 import OktaUsers from '../services/okta.users.js'
 import LocalUsers from '../services/local.users.js'
 import { getAccessToken, govUKErrors, safeReturnUrl, useLocalAuth } from '../utils.js'
-import { createDate } from './common.js'
 import { getQueryParams, handleApiError, handleLookupError, setPageMeta } from './lookups/common.js'
 
 const service = new TraineeRetention()
@@ -23,7 +22,9 @@ export async function list (req, res, next) {
       req.query.reviewStatus = DEFAULT_REVIEW_STATUS
     }
 
-    const params = getQueryParams(req, ['trainingProviderId'], 'lastActiveDate')
+    // The retained tab doesn't show last active, so it lists the retentions ending soonest first
+    const defaultSort = req.query.reviewStatus === 'Retained' ? 'extendedUntil' : 'lastActiveDate'
+    const params = getQueryParams(req, ['trainingProviderId'], defaultSort)
     if (req.query.reviewStatus !== 'All') {
       params.reviewStatus = req.query.reviewStatus
     }
@@ -43,10 +44,14 @@ export async function list (req, res, next) {
       service.candidates(accessToken, { reviewStatus: 'NeedsReview', dueAtNextRun: true, page: 1, limit: 1 })
     ])
 
-    // Only the reviewed tab shows who reviewed them
-    if (req.query.reviewStatus === 'Reviewed') {
-      const names = await getUserNames(candidates.data.map((c) => c.reviewedBy))
-      candidates.data.forEach((c) => { c.reviewedByName = names.get(c.reviewedBy?.toLowerCase()) })
+    // Only the reviewed and retained tabs show who made the change
+    if (['Reviewed', 'Retained'].includes(req.query.reviewStatus)) {
+      const nameOf = await getUserNames(candidates.data.flatMap((c) => [c.reviewedBy, c.retainedBy, c.extendedBy]))
+      candidates.data.forEach((c) => {
+        c.reviewedByName = nameOf(c.reviewedBy)
+        c.retainedByName = nameOf(c.retainedBy)
+        c.extendedByName = nameOf(c.extendedBy)
+      })
     }
 
     setPageMeta(req, candidates, ['reviewStatus', ...FILTER_KEYS])
@@ -71,23 +76,22 @@ export async function list (req, res, next) {
 /**
  * Looks up the names of the users who made changes, which the API records by login.
  * A login that isn't found, or a failed lookup, has no name, so the page shows the login instead.
- * @returns {Promise<Map<string, string>>} lower case login to "First Last"
+ * @returns {Promise<function(string): (string|undefined)>} gives the "First Last" name for a login
  */
 async function getUserNames (logins) {
+  const names = new Map()
   const unique = [...new Set(logins.filter(Boolean))]
-  if (unique.length === 0) {
-    return new Map()
+  if (unique.length > 0) {
+    try {
+      const found = await users.getAllByLogin(unique)
+      found.forEach((u) => {
+        names.set((u.profile.login || u.profile.email).toLowerCase(), `${u.profile.firstName} ${u.profile.lastName}`)
+      })
+    } catch (err) {
+      logger.error('Failed to look up user names, showing logins instead', err)
+    }
   }
-  try {
-    const found = await users.getAllByLogin(unique)
-    return new Map(found.map((u) => [
-      (u.profile.login || u.profile.email).toLowerCase(),
-      `${u.profile.firstName} ${u.profile.lastName}`
-    ]))
-  } catch (err) {
-    logger.error('Failed to look up user names, showing logins instead', err)
-    return new Map()
-  }
+  return (login) => names.get(login?.toLowerCase())
 }
 
 /**
@@ -105,7 +109,11 @@ export function setReturnUrl (req, res, next) {
 export function getOverride (required = false) {
   return async function (req, res, next) {
     try {
-      res.locals.override = await service.get(getAccessToken(req), req.params.traineeId)
+      const override = await service.get(getAccessToken(req), req.params.traineeId)
+      const nameOf = await getUserNames([override.createdBy, override.updatedBy])
+      override.createdByName = nameOf(override.createdBy)
+      override.updatedByName = nameOf(override.updatedBy)
+      res.locals.override = override
       next()
     } catch (err) {
       if (!required && err.status === 404) {
@@ -120,8 +128,8 @@ export function getOverride (required = false) {
 export async function getReview (req, res, next) {
   try {
     const review = await service.getReview(getAccessToken(req), req.params.traineeId)
-    const names = await getUserNames([review.reviewedBy])
-    review.reviewedByName = names.get(review.reviewedBy?.toLowerCase())
+    const nameOf = await getUserNames([review.reviewedBy])
+    review.reviewedByName = nameOf(review.reviewedBy)
     res.locals.review = review
     next()
   } catch (err) {
@@ -152,6 +160,20 @@ export function setRetainDefaults (req, res, next) {
   next()
 }
 
+/**
+ * Reads the retain until date strictly - whole numbers and a four digit year that make a real date - as the
+ * shared readDate is lenient and would read a mistyped day such as 'abc' or '1a' as the 1st
+ * @returns {moment.Moment|undefined} undefined when the date is missing or not real
+ */
+export function readRetainUntil (body) {
+  const [day, month, year] = ['day', 'month', 'year'].map((part) => `${body[`extendedUntil-${part}`] ?? ''}`.trim())
+  if (!/^\d{1,2}$/.test(day) || !/^\d{1,2}$/.test(month) || !/^\d{4}$/.test(year)) {
+    return undefined
+  }
+  const date = moment({ year: Number(year), month: Number(month) - 1, date: Number(day) })
+  return date.isValid() ? date : undefined
+}
+
 function redirectWithSuccess (req, res, message) {
   req.session[SUCCESS_KEY] = message
   res.redirect(safeReturnUrl(req.query.return, BASE_URL))
@@ -165,7 +187,7 @@ export async function retain (req, res, next) {
   const view = 'trainee-retention-review/retain'
   res.locals.retention = {
     traineeId: req.params.traineeId,
-    extendedUntil: createDate('extendedUntil', req.body),
+    extendedUntil: readRetainUntil(req.body)?.format('YYYY-MM-DD'),
     reason: req.body.reason?.trim()
   }
   const errors = validationResult(req)
