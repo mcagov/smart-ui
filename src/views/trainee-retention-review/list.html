@@ -98,7 +98,8 @@
         {% set rows = [] %}
         {% for item in candidates.data %}
           {% set nameHtml %}
-            <a href="/trainees/{{item.id}}?return={{ returnUrl | urlencode }}" class="govuk-link">{{item.contactName}}</a>
+            {% set traineeUrl = '/training-providers/' + item.trainingProviderId + '/trainees/' + item.id if item.trainingProviderId else '/trainees/' + item.id %}
+            <a href="{{ traineeUrl }}?return={{ returnUrl | urlencode }}" class="govuk-link">{{item.contactName}}</a>
             {% if item.reviewStatus == 'NeedsReview' and item.extendedUntil %}
               <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Retention ends {{ item.extendedUntil | dateUKFormat }}</div>
             {% endif %}

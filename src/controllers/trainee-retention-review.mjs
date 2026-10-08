@@ -37,11 +37,9 @@ export async function list (req, res, next) {
     }
 
     const accessToken = getAccessToken(req)
-    const [candidates, summary, dueNotReviewed] = await Promise.all([
+    const [candidates, summary] = await Promise.all([
       service.candidates(accessToken, params),
-      service.summary(accessToken),
-      // Only the count is needed, across all candidates whatever the filters
-      service.candidates(accessToken, { reviewStatus: 'NeedsReview', dueAtNextRun: true, page: 1, limit: 1 })
+      service.summary(accessToken)
     ])
 
     // Only the reviewed and retained tabs show who made the change
@@ -57,7 +55,8 @@ export async function list (req, res, next) {
     setPageMeta(req, candidates, ['reviewStatus', ...FILTER_KEYS])
     res.locals.candidates = candidates
     res.locals.summary = summary
-    res.locals.dueNotReviewed = dueNotReviewed.meta.totalItems
+    // Across all candidates whatever the filters, for the warning
+    res.locals.dueNotReviewed = summary.needsReviewDueAtNextRun
     res.locals.reviewStatus = req.query.reviewStatus
     res.locals.returnUrl = req.originalUrl
     // Filters carried across the tabs, which reset the page

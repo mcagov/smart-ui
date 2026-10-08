@@ -60,7 +60,7 @@ const apiError = (status, message) => ({ status, response: { body: { message } }
 describe('Unit tests for the trainee retention review controller', () => {
   let req, res, next
 
-  const summary = { needsReview: 412, reviewed: 60, retained: 21, total: 493, dueAtNextRun: 37, nextRunDate: '2026-11-01' }
+  const summary = { needsReview: 412, reviewed: 60, retained: 21, total: 493, dueAtNextRun: 37, needsReviewDueAtNextRun: 5, nextRunDate: '2026-11-01' }
   const returnUrl = '/trainee-retention-review?reviewStatus=Retained&page=2'
 
   beforeEach(() => {
@@ -109,20 +109,14 @@ describe('Unit tests for the trainee retention review controller', () => {
       expect(res.locals.reviewStatus).toBe('NeedsReview')
     })
 
-    it('should count the trainees due at the next run that need review, ignoring the filters', async () => {
+    it('should take the trainees due at the next run that need review from the summary, ignoring the filters', async () => {
       req.query = { reviewStatus: 'Retained', trainingProviderId: 'tp-1', searchText: 'Kieran' }
-      mockCandidates
-        .mockResolvedValueOnce({ data: [], meta: { totalPages: 0, thisPage: 1 } })
-        .mockResolvedValueOnce({ data: [{}], meta: { totalPages: 5, thisPage: 1, totalItems: 5 } })
 
       await list(req, res, next)
 
-      expect(mockCandidates).toHaveBeenNthCalledWith(2, 'test-token', {
-        reviewStatus: 'NeedsReview',
-        dueAtNextRun: true,
-        page: 1,
-        limit: 1
-      })
+      // the summary takes no filters, and the list is the only other call
+      expect(mockSummary).toHaveBeenCalledWith('test-token')
+      expect(mockCandidates).toHaveBeenCalledTimes(1)
       expect(res.locals.dueNotReviewed).toBe(5)
     })
 
