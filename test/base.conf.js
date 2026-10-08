@@ -13,7 +13,8 @@ export const baseConfig = {
       './test/browser/journeys/admin-create-new-client-company.spec.js',
       './test/browser/journeys/admin-create-new-smart-categoy.spec.js',
       './test/browser/journeys/admin-create-new-smart-item.spec.js',
-      './test/browser/journeys/admin-create-new-training-item.spec.js'
+      './test/browser/journeys/admin-create-new-training-item.spec.js',
+      './test/browser/journeys/admin-trainee-retention-review.spec.js'
       // './test/browser/journeys/admin-view-payment-schedules.js',
     ],
     claims: [

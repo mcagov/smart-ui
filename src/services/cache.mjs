@@ -65,6 +65,11 @@ class Cache {
       NX: false
     })
   }
+
+  async del (entity, id) {
+    logger.debug(`cache: DEL "${entity}::${id}"`)
+    return await this.redisClient.del(`${entity}::${id}`)
+  }
 }
 
 export default Cache

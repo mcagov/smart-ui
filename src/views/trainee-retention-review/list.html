@@ -1,0 +1,213 @@
+{% set titleText = 'Trainee retention review' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% from "components/admin-nav/macro.njk" import adminNav %}
+{% from "components/retention-review-nav/macro.njk" import retentionReviewNav %}
+{% from "notification-banner/macro.njk" import govukNotificationBanner %}
+
+{{ adminNav({ active: 'trainee-retention-review' }) }}
+
+{% set nextRunDate = summary.nextRunDate | mojDate('date') %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+        {% if successMessage %}
+          {{ govukNotificationBanner({
+            type: 'success',
+            text: successMessage,
+            attributes: { id: 'success-banner' }
+          }) }}
+        {% endif %}
+        <h1 id="page-title" class="govuk-heading-l">{{titleText}}</h1>
+        <p class="govuk-body govuk-!-font-weight-bold" id="needs-review-total">
+          {% if summary.needsReview > 0 %}
+            {{ summary.needsReview }} {{ 'trainee needs' if summary.needsReview == 1 else 'trainees need' }} review.
+          {% else %}
+            No trainees need review.
+          {% endif %}
+        </p>
+        {% if dueNotReviewed > 0 %}
+          {% set dueWarningHtml %}
+            {{ dueNotReviewed }} {{ 'trainee' if dueNotReviewed == 1 else 'trainees' }} due for deletion on {{ nextRunDate }}
+            {{ 'has' if dueNotReviewed == 1 else 'have' }} not been reviewed.
+            <a href="/trainee-retention-review?reviewStatus=NeedsReview&dueAtNextRun=true" class="govuk-link">View {{ 'trainee' if dueNotReviewed == 1 else 'trainees' }}</a>
+          {% endset %}
+          {{ govukWarningText({
+            html: dueWarningHtml,
+            iconFallbackText: 'Warning',
+            attributes: { id: 'due-at-next-run-warning' }
+          }) }}
+        {% endif %}
+    </div>
+
+    {% set tpItems = [{ value: '',  text: '--- training providers ---' }] %}
+    {% for tp in trainingProvidersDD %}
+        {% set tpItems = (tpItems.push({ text: tp.text, value: tp.id }), tpItems) %}
+    {% endfor %}
+
+    {% set customFilters %}
+        <input type="hidden" name="reviewStatus" value="{{ reviewStatus }}">
+
+        {{ govukSelect({
+            id: "trainingProviderId",
+            name: "trainingProviderId",
+            classes: "mca-filter",
+            formGroup: { classes: "govuk-!-display-inline" },
+            attributes: { "data-name": "trainingProviderId" },
+            label: {
+              text: 'Filter trainees by training provider',
+              classes: 'govuk-visually-hidden'
+            },
+            items: tpItems | selectValue(candidates.meta.queries.trainingProviderId)
+        }) }}
+
+        {{ govukCheckboxes({
+            idPrefix: "dueAtNextRun",
+            name: "dueAtNextRun",
+            classes: "govuk-checkboxes--small",
+            formGroup: { classes: "govuk-!-margin-top-2" },
+            items: [{
+              value: "true",
+              text: "Only trainees due for deletion on " + nextRunDate,
+              checked: candidates.meta.queries.dueAtNextRun == 'true'
+            }]
+        }) }}
+    {% endset %}
+
+    {{ listFilter({
+      columnClasses: "govuk-grid-column-full",
+      resetLink: "/trainee-retention-review?reviewStatus=" + reviewStatus,
+      includeTextFilter: true,
+      textFilterLabel: 'Filter trainees by name',
+      customFilters: customFilters,
+      meta: candidates.meta
+    }) }}
+
+    <div class="govuk-grid-column-full">
+        {{ retentionReviewNav({ active: reviewStatus, filterQuery: filterQuery }) }}
+
+        {% set statusTags = {
+          NeedsReview: { text: 'Needs review', classes: 'govuk-tag--yellow' },
+          Reviewed: { text: 'Reviewed', classes: 'govuk-tag--grey' },
+          Retained: { text: 'Retained', classes: 'govuk-tag--green' }
+        } %}
+
+        {% set rows = [] %}
+        {% for item in candidates.data %}
+          {% set nameHtml %}
+            {% set traineeUrl = '/training-providers/' + item.trainingProviderId + '/trainees/' + item.id if item.trainingProviderId else '/trainees/' + item.id %}
+            <a href="{{ traineeUrl }}?return={{ returnUrl | urlencode }}" class="govuk-link">{{item.contactName}}</a>
+            {% if item.reviewStatus == 'NeedsReview' and item.extendedUntil %}
+              <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Retention ends {{ item.extendedUntil | dateUKFormat }}</div>
+            {% endif %}
+          {% endset %}
+          {% if reviewStatus == 'Retained' %}
+            {# The retention, not the original deletion date, decides when they could be deleted #}
+            {% set retainedByHtml %}
+              {% if item.extendedBy %}
+                {{ item.extendedByName or item.extendedBy }}
+                <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Extended {{ item.extended | mojDate('date') }}</div>
+              {% else %}
+                {{ item.retainedByName or item.retainedBy }}
+                {% if item.retained %}
+                  <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">{{ item.retained | mojDate('date') }}</div>
+                {% endif %}
+              {% endif %}
+            {% endset %}
+            {% set row = [
+              { html: nameHtml },
+              { text: item.companyName },
+              { text: item.extendedUntil | dateUKFormat },
+              { text: item.reason },
+              { html: retainedByHtml }
+            ] %}
+          {% else %}
+            {% set row = [
+              { html: nameHtml },
+              { text: item.companyName },
+              { text: item.lastActiveDate | dateUKFormat },
+              { text: 'Retained until ' + (item.extendedUntil | dateUKFormat) if item.reviewStatus == 'Retained' else item.deletionDate | dateUKFormat }
+            ] %}
+          {% endif %}
+
+          {% if reviewStatus == 'Reviewed' %}
+            {% set reviewedHtml %}
+              {{ item.reviewedByName or item.reviewedBy }}
+              {% if item.reviewed %}
+                <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">{{ item.reviewed | mojDate('date') }}</div>
+              {% endif %}
+            {% endset %}
+            {% set row = (row.push(
+              { text: item.reviewNote },
+              { html: reviewedHtml }
+            ), row) %}
+          {% elif reviewStatus == 'All' %}
+            {% set row = (row.push(
+              { html: govukTag(statusTags[item.reviewStatus]) }
+            ), row) %}
+          {% endif %}
+
+          {% set actionBase = '/trainee-retention-review/' + item.id + '/' %}
+          {% set actionQuery = '?return=' + (returnUrl | urlencode) %}
+          {% set hiddenName %}<span class="govuk-visually-hidden"> {{ item.contactName }}</span>{% endset %}
+          {% set actionsHtml %}
+            <ul class="govuk-list govuk-!-margin-bottom-0">
+            {% if item.reviewStatus == 'NeedsReview' %}
+              <li><a href="{{ actionBase }}retain{{ actionQuery }}" class="govuk-link">{{ 'Extend' if item.extendedUntil else 'Retain' }}{{ hiddenName | safe }}</a></li>
+              <li><a href="{{ actionBase }}review{{ actionQuery }}" class="govuk-link">Mark reviewed{{ hiddenName | safe }}</a></li>
+            {% elif item.reviewStatus == 'Reviewed' %}
+              <li><a href="{{ actionBase }}undo-review{{ actionQuery }}" class="govuk-link">Undo review{{ hiddenName | safe }}</a></li>
+            {% elif item.reviewStatus == 'Retained' %}
+              <li><a href="{{ actionBase }}retain{{ actionQuery }}" class="govuk-link">Extend{{ hiddenName | safe }}</a></li>
+              <li><a href="{{ actionBase }}remove-retention{{ actionQuery }}" class="govuk-link">Remove{{ hiddenName | safe }}</a></li>
+            {% endif %}
+            </ul>
+          {% endset %}
+          {% set row = (row.push({ html: actionsHtml }), row) %}
+
+          {% set rows = (rows.push(row), rows) %}
+        {% endfor %}
+
+        {% set head = [
+          { text: 'Name', attributes: { "aria-sort": "none", "data-name": "contactName" } },
+          { text: 'Training provider', attributes: { "aria-sort": "none", "data-name": "companyName" } }
+        ] %}
+
+        {% if reviewStatus == 'Retained' %}
+          {% set head = (head.push(
+            { text: 'Retained until', attributes: { "aria-sort": "none", "data-name": "extendedUntil" } },
+            { text: 'Reason' },
+            { text: 'Retained by' }
+          ), head) %}
+        {% else %}
+          {% set head = (head.push(
+            { text: 'Last active', attributes: { "aria-sort": "none", "data-name": "lastActiveDate" } },
+            { text: 'Deletion date', attributes: { "aria-sort": "none", "data-name": "deletionDate" } }
+          ), head) %}
+        {% endif %}
+
+        {% if reviewStatus == 'Reviewed' %}
+          {% set head = (head.push(
+            { text: 'Note' },
+            { text: 'Reviewed by' }
+          ), head) %}
+        {% elif reviewStatus == 'All' %}
+          {% set head = (head.push(
+            { text: 'Status', attributes: { "aria-sort": "none", "data-name": "reviewStatus" } }
+          ), head) %}
+        {% endif %}
+        {% set head = (head.push({ text: 'Actions' }), head) %}
+
+        {{ sortableTable({
+            head: head,
+            rows: rows,
+            caption: 'Table showing trainees due for deletion, column headers with buttons are sortable',
+            noDataMessage: 'There are no trainees to show, try resetting your filters.',
+            meta: candidates.meta
+        }) }}
+    </div>
+</div>
+{% endblock %}
