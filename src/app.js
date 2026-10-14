@@ -62,6 +62,9 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send('User-agent: *\nDisallow: /\n')
+})
 app.locals.googleId = process.env.GOOGLE_ID
 initialiseSession(app)
 
