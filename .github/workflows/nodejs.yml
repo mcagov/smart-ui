@@ -2,19 +2,19 @@ name: SMarT-UI CI/CD Pipeline
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main]
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
   workflow_dispatch:
     inputs:
       push_test_container:
-        description: 'Build and push test container to ECR'
+        description: "Build and push test container to ECR"
         type: boolean
         required: false
         default: false
 
 permissions:
-  id-token: write  
+  id-token: write
   contents: read
 
 env:
@@ -27,32 +27,32 @@ env:
   UI_URL: http://localhost:2997
   APP_BASE_URL: http://localhost:2997
   HOST: 0.0.0.0
-  EXPOSED_POSTGRES_PORT: '7234'
+  EXPOSED_POSTGRES_PORT: "7234"
   LOGGER_TYPE: file
   LOGGER_LEVEL: info
-  LOGGER_COLOURIZE: 'false'
-  ENABLE_XRAY: 'false'
+  LOGGER_COLOURIZE: "false"
+  ENABLE_XRAY: "false"
   AWS_XRAY_CONTEXT_MISSING: LOG_ERROR
   AWS_XRAY_LOG_LEVEL: silent
   AWS_PRIVATE_BUCKET: mcauk-smart-dev-attachments
   ATTACHMENTS_BUCKET: mcauk-smart-dev-attachments
   STAGING_BUCKET: mcauk-smart-dev-staging-attachments
   EVENTS_QUEUE_URL: http://sqs.eu-west-2.aws.local.smart.mcga.uk:4566/000000000000/mcauk-smart-dev-events
-  LOCAL_AUTH: 'true'
+  LOCAL_AUTH: "true"
   OKTA_ORG_URL: https://id.preprod.mcga.uk/
   OKTA_AUD: api://local-smart
   OKTA_SCOPE: openid profile offline_access
   OKTA_REDIRECT_URI: http://localhost:2997/authorization-code/callback
   OKTA_ISSUER_URL: https://id.preprod.mcga.uk/oauth2/ausbuj5bluwtaUnO40x7
   OKTA_CLIENT_ID: 0oabsafq0qdYfzmu70x7
-  ENABLE_REDIS: 'true'
+  ENABLE_REDIS: "true"
   REDIS_HOST: localhost
-  REDIS_TLS: 'true'
-  REDIS_PORT: '6379'
-  CUCUMBER_PUBLISH_ENABLED: 'false'
-  API_SPRING_PROFILES: 'default, dev, test,local-auth'
+  REDIS_TLS: "true"
+  REDIS_PORT: "6379"
+  CUCUMBER_PUBLISH_ENABLED: "false"
+  API_SPRING_PROFILES: "default, dev, test,local-auth"
   JAVA_ENV: local
-  NODE_OPTIONS: '--experimental-vm-modules --experimental-specifier-resolution=node'
+  NODE_OPTIONS: "--experimental-vm-modules --experimental-specifier-resolution=node"
 
 jobs:
   smart-ui-test-and-publish:
@@ -74,12 +74,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '24'
-          cache: 'npm'
+          node-version: "24"
+          cache: "npm"
 
       - name: Install Global Tooling
         run: npm install -g grunt semver
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -104,18 +104,18 @@ jobs:
         run: |
           aws codeartifact login --tool npm --repository mcga-npm --domain mcga --domain-owner $AWS_ACCOUNT_ID --region ${{ env.AWS_REGION }}
           npm run ca:setup
-          
+
           OKTA_SCOPE_AB=$(aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text)
           OKTA_SCOPE_TP=$(aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text)
-          
+
           echo "OKTA_SCOPE_AB=$OKTA_SCOPE_AB" >> $GITHUB_ENV
           echo "OKTA_SCOPE_TP=$OKTA_SCOPE_TP" >> $GITHUB_ENV
 
-      - name: Install Dependencies 
+      - name: Install Dependencies
         run: |
           npm cache clean --force
-          rm -rf node_modules package-lock.json
-          npm install
+          rm -rf node_modules
+          npm ci
 
       - name: Configure Next Semantic Version
         id: versioning
@@ -123,15 +123,15 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           BASE_VERSION=$(node -p "require('./package.json').version" | grep -o '^[0-9]*\.[0-9]*')
           LATEST_VERSION=$(npm view "${PACKAGE_NAME}@~${BASE_VERSION}" version --json 2>/dev/null | grep '"' | cut -d '"' -f 2 | sort --version-sort --reverse | head -n 1 || echo "")
-          
+
           if [ -z "$LATEST_VERSION" ]; then
             NEXT_VERSION="${BASE_VERSION}.0"
           else
             NEXT_VERSION=$(npx semver -i patch "$LATEST_VERSION")
           fi
-          
+
           DOCKER_IMAGE_NAME=$(node -p "require('./package.json').name" | cut -d "/" -f 2)
-          
+
           echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
           echo "DOCKER_IMAGE_NAME=$DOCKER_IMAGE_NAME" >> $GITHUB_ENV
           echo "Configured next release version: $NEXT_VERSION"
@@ -139,7 +139,7 @@ jobs:
       # --- Integration Tests ---
       - name: Integration Tests
         env:
-          COMPOSE_PROFILES: 'default,api'
+          COMPOSE_PROFILES: "default,api"
         run: |
           npx gulp || true
           docker compose pull
@@ -149,25 +149,25 @@ jobs:
         run: |
           TARGET_API="http://localhost:8080"
           echo "Probing SMarT API at ${TARGET_API}..."
-          
+
           MAX_RETRIES=30
           ATTEMPT=0
           SUCCESS=0
-          
+
           while [ $ATTEMPT -lt $MAX_RETRIES ]; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${TARGET_API}/ 2>/dev/null || echo "000")
             echo "API Status: $STATUS"
-          
+
             if [[ "$STATUS" =~ ^(200|302|401|404)$ ]]; then
               echo "SMarT API initialized!"
               SUCCESS=1
               break
             fi
-          
+
             sleep 3
             ATTEMPT=$((ATTEMPT + 1))
           done
-          
+
           if [ $SUCCESS -eq 0 ]; then
             echo "Error: SMarT API health check timed out."
             exit 1
@@ -225,9 +225,9 @@ jobs:
             "Comments API:http://localhost:9080/"
             "Attachments API:http://localhost:7080/"
           )
-          
+
           MAX_RETRIES=30
-          
+
           for ITEM in "${ENDPOINTS[@]}"; do
             NAME="${ITEM%%:*}"
             URL="${ITEM#*:}"
@@ -250,11 +250,11 @@ jobs:
               echo "✖ Error: ${NAME} failed to respond in time."
               exit 1
             fi
-          done     
-         
+          done
+
       - name: Run WebdriverIO Headless Tests
         env:
-          DB_HOST: localhost   
+          DB_HOST: localhost
         run: |
           echo "Allowing system CPU and memory usage to stabilize after fleet startup..."
           sleep 5
@@ -296,10 +296,10 @@ jobs:
             SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '-')
             IMAGE_TAG="${SAFE_BRANCH}-TEST"
           fi
-          
+
           FULL_IMAGE_NAME="${ECR_REGISTRY}/${DOCKER_IMAGE_NAME}:${IMAGE_TAG}"
           echo "Building Docker Image: ${FULL_IMAGE_NAME}"
-          
+
           DOCKER_BUILDKIT=1 docker build \
             --pull --compress --no-cache --force-rm --progress=plain \
             -t "${FULL_IMAGE_NAME}" \
@@ -307,21 +307,21 @@ jobs:
             --build-arg AWS_DEV_ACCOUNT_ID=${AWS_DEV_ACCOUNT_ID} \
             --build-arg UI_VERSION=${{ env.NEXT_VERSION }} \
             .
-          
+
           docker push "${FULL_IMAGE_NAME}"
 
       - name: Poll ECR Image Vulnerability Scan
         if: github.ref == 'refs/heads/master'
         run: |
           DIGEST=$(aws ecr describe-images --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageTag=${{ env.NEXT_VERSION }} --region ${{ env.AWS_REGION }} --query 'imageDetails[0].imageDigest' --output text)
-          
+
           echo "Waiting 30 seconds for ECR scan initialization on digest $DIGEST..."
           sleep 30
-          
+
           IS_COMPLETE=false
           while [ "$IS_COMPLETE" = "false" ]; do
             SCAN_STATUS=$(aws ecr describe-image-scan-findings --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageDigest=${DIGEST} --region ${{ env.AWS_REGION }} --query 'imageScanStatus.status' --output text 2>/dev/null || echo "IN_PROGRESS")
-          
+
             if [ "$SCAN_STATUS" = "COMPLETE" ]; then
               IS_COMPLETE=true
               FINDINGS=$(aws ecr describe-image-scan-findings --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageDigest=${DIGEST} --region ${{ env.AWS_REGION }} --query 'imageScanFindings.findingSeverityCounts')
