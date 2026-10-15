@@ -6,13 +6,14 @@ import PrettyError from 'pretty-error'
 function initialiseErrors (app) {
   // catch 404 and forward to error handler
   app.use(function (req, res, next) {
-    logger.error(`creating a 404 for ${req.originalUrl}`)
     next(createError(404))
   })
 
   // error handler
   app.use(function (err, req, res, next) {
-    if (config.features.prettyErrors) {
+    if (err.status === 404) {
+      logger.warn(`404 for ${req.originalUrl}`)
+    } else if (config.features.prettyErrors) {
       const pe = new PrettyError()
       logger.error(pe.render(err))
     } else {
@@ -33,10 +34,11 @@ function initialiseErrors (app) {
         break
     }
     res.status(err.status || 500)
+    const csrfFailure = err.code === 'EBADCSRFTOKEN'
     if (err && err.response && err.response.body && err.response.body.message) {
-      res.render(`errors/${page}.html`, { error: err.response.body })
+      res.render(`errors/${page}.html`, { error: err.response.body, csrfFailure })
     } else {
-      res.render(`errors/${page}.html`, { error: err })
+      res.render(`errors/${page}.html`, { error: err, csrfFailure })
     }
   })
 }
