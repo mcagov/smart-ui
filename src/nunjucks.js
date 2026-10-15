@@ -16,7 +16,8 @@ import {
   isReactivateStatus,
   isTransferring,
   isSmart1,
-  getDurationInWeeks
+  getDurationInWeeks,
+  safeReturnUrl
 } from './utils.js'
 import { logger } from '@mca/common-logger'
 import * as util from 'util'
@@ -193,6 +194,8 @@ function configureNunjucks(app) {
     }
     return ''
   })
+
+  env.addFilter('returnUrl', safeReturnUrl)
 
   env.addFilter('dateToday', () => {
     return moment().format('YYYY-MM-DD')
