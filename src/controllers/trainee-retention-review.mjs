@@ -29,8 +29,8 @@ export async function list (req, res, next) {
       params.reviewStatus = req.query.reviewStatus
     }
     if (req.query.searchText) {
-      // Setting manually as the key is different
-      params.contactName = req.query.searchText.trim()
+      // Matches the trainee's name or MATSU number
+      params.searchText = req.query.searchText.trim()
     }
     if (req.query.dueAtNextRun === 'true') {
       params.dueAtNextRun = true
@@ -182,6 +182,11 @@ function ukDate (date) {
   return moment(date).format('D MMMM YYYY')
 }
 
+// Most trainees migrated from MATSU have no name, so they are identified by their MATSU number
+function traineeLabel (trainee) {
+  return trainee.contactName || trainee.matsuNumber || 'The trainee'
+}
+
 export async function retain (req, res, next) {
   const view = 'trainee-retention-review/retain'
   res.locals.retention = {
@@ -202,7 +207,7 @@ export async function retain (req, res, next) {
       await service.create(getAccessToken(req), res.locals.retention)
     }
     redirectWithSuccess(req, res,
-      `${res.locals.trainee.contactName} will be retained until ${ukDate(res.locals.retention.extendedUntil)}`)
+      `${traineeLabel(res.locals.trainee)} will be retained until ${ukDate(res.locals.retention.extendedUntil)}`)
   } catch (err) {
     handleApiError(req, res, next, err, view)
   }
@@ -216,7 +221,7 @@ export async function review (req, res, next) {
   }
   try {
     await service.createReview(getAccessToken(req), res.locals.review)
-    redirectWithSuccess(req, res, `${res.locals.trainee.contactName} has been marked as reviewed`)
+    redirectWithSuccess(req, res, `${traineeLabel(res.locals.trainee)} has been marked as reviewed`)
   } catch (err) {
     handleApiError(req, res, next, err, view)
   }
@@ -225,7 +230,7 @@ export async function review (req, res, next) {
 export async function removeRetention (req, res, next) {
   try {
     await service.del(getAccessToken(req), req.params.traineeId)
-    redirectWithSuccess(req, res, `Retention removed for ${res.locals.trainee.contactName}`)
+    redirectWithSuccess(req, res, `Retention removed for ${traineeLabel(res.locals.trainee)}`)
   } catch (err) {
     handleApiError(req, res, next, err, 'trainee-retention-review/remove-retention')
   }
@@ -234,7 +239,7 @@ export async function removeRetention (req, res, next) {
 export async function undoReview (req, res, next) {
   try {
     await service.deleteReview(getAccessToken(req), req.params.traineeId)
-    redirectWithSuccess(req, res, `Review undone for ${res.locals.trainee.contactName}`)
+    redirectWithSuccess(req, res, `Review undone for ${traineeLabel(res.locals.trainee)}`)
   } catch (err) {
     handleApiError(req, res, next, err, 'trainee-retention-review/undo-review')
   }

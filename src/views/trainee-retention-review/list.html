@@ -81,7 +81,7 @@
       columnClasses: "govuk-grid-column-full",
       resetLink: "/trainee-retention-review?reviewStatus=" + reviewStatus,
       includeTextFilter: true,
-      textFilterLabel: 'Filter trainees by name',
+      textFilterLabel: 'Filter trainees by name or MATSU number',
       customFilters: customFilters,
       meta: candidates.meta
     }) }}
@@ -99,7 +99,11 @@
         {% for item in candidates.data %}
           {% set nameHtml %}
             {% set traineeUrl = '/training-providers/' + item.trainingProviderId + '/trainees/' + item.id if item.trainingProviderId else '/trainees/' + item.id %}
-            <a href="{{ traineeUrl }}?return={{ returnUrl | urlencode }}" class="govuk-link">{{item.contactName}}</a>
+            {# Most trainees migrated from MATSU have no name, so they are identified by their MATSU number #}
+            <a href="{{ traineeUrl }}?return={{ returnUrl | urlencode }}" class="govuk-link">{{ item.contactName or item.matsuNumber or 'Name not recorded' }}</a>
+            {% if not item.contactName and item.matsuNumber %}
+              <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Name not recorded</div>
+            {% endif %}
             {% if item.reviewStatus == 'NeedsReview' and item.extendedUntil %}
               <div class="govuk-hint govuk-!-font-size-16 govuk-!-margin-bottom-0">Retention ends {{ item.extendedUntil | dateUKFormat }}</div>
             {% endif %}
@@ -152,7 +156,7 @@
 
           {% set actionBase = '/trainee-retention-review/' + item.id + '/' %}
           {% set actionQuery = '?return=' + (returnUrl | urlencode) %}
-          {% set hiddenName %}<span class="govuk-visually-hidden"> {{ item.contactName }}</span>{% endset %}
+          {% set hiddenName %}<span class="govuk-visually-hidden"> {{ item.contactName or item.matsuNumber }}</span>{% endset %}
           {% set actionsHtml %}
             <ul class="govuk-list govuk-!-margin-bottom-0">
             {% if item.reviewStatus == 'NeedsReview' %}

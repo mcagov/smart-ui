@@ -1,5 +1,5 @@
 {% set traineeRows = [
-  { key: { text: 'Name' }, value: { text: trainee.contactName } },
+  { key: { text: 'Name' }, value: { text: trainee.contactName or 'Not recorded' } },
   { key: { text: 'MATSU number' }, value: { text: trainee.matsuNumber } },
   { key: { text: 'Date of birth' }, value: { text: trainee.dateOfBirth | dateUKFormat } }
 ] %}

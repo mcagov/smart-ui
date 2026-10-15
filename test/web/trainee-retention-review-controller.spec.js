@@ -142,7 +142,7 @@ describe('Unit tests for the trainee retention review controller', () => {
       expect(mockCandidates).toHaveBeenCalledWith('test-token', expect.objectContaining({
         reviewStatus: 'Retained',
         trainingProviderId: 'tp-1',
-        contactName: 'Kieran',
+        searchText: 'Kieran',
         dueAtNextRun: true
       }))
     })
@@ -505,6 +505,14 @@ describe('Unit tests for the trainee retention review controller', () => {
       expect(mockCreateReview).toHaveBeenCalledWith('test-token', { traineeId: 'trainee-1', note: 'No longer training' })
       expect(req.session.retentionReviewSuccess).toBe('Kieran Griffiths has been marked as reviewed')
       expect(res.redirect).toHaveBeenCalledWith(returnUrl)
+    })
+
+    it('should name a trainee migrated without a name by their MATSU number', async () => {
+      res.locals.trainee = { matsuNumber: 'CM1012787' }
+
+      await review(req, res, next)
+
+      expect(req.session.retentionReviewSuccess).toBe('CM1012787 has been marked as reviewed')
     })
 
     it('should leave out a blank note', async () => {
