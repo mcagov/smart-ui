@@ -1,4 +1,4 @@
-{% set titleText = 'Forbidden' %}
+{% set titleText = 'Your session has expired' if csrfFailure else 'Forbidden' %}
 
 {% extends "layout.html" %}
 
@@ -8,9 +8,18 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-l">{{titleText}}</h1>
+        {% if csrfFailure %}
+        <p class="govuk-body">
+            The form you submitted has expired, so your changes have not been saved.
+        </p>
+        <p class="govuk-body">
+            Go back, refresh the page and try again.
+        </p>
+        {% else %}
         <p class="govuk-body">
             You have requested a page or service for which you do not have the correct permissions.
         </p>
+        {% endif %}
         {# <p class="govuk-body">
             {{error|dump}}
         </p> #}
