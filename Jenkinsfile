@@ -301,6 +301,17 @@ pipeline {
                     }
                     steps {
                         script {
+                            sh '''
+                                for attempt in $(seq 1 10); do
+                                    if npm view "${PACKAGE_NAME}@${NEXT_VERSION}" version --prefer-online | grep -q .; then
+                                        exit 0
+                                    fi
+                                    echo "Waiting for ${PACKAGE_NAME}@${NEXT_VERSION} to appear in CodeArtifact (attempt ${attempt}/10)..."
+                                    sleep 6
+                                done
+                                echo "${PACKAGE_NAME}@${NEXT_VERSION} was published but never became visible in CodeArtifact"
+                                exit 1
+                            '''
                         def imageTag = (env.BRANCH_NAME == 'master') ? "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" : "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${env.BRANCH_NAME}-TEST"
                             sh """
                             echo "Building docker image ${imageTag}"
