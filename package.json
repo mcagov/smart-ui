@@ -8,6 +8,9 @@
   },
   "author": "Catapult CX",
   "description": "SMarT UI",
+  "engines": {
+    "node": ">=24.22.1"
+  },
   "scripts": {
     "clear-test-outputs": "rm -rf reports && rm -rf wdio-output",
     "lint": "standard src/**/*.js",
