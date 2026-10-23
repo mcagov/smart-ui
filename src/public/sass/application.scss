@@ -2,7 +2,7 @@ $govuk-global-styles: true;
 $govuk-suppressed-warnings: (
   ie8
 );
-@import "govuk-frontend/dist/govuk/all";
+@import "govuk-frontend/dist/govuk/index";
 //$govuk-assets-path: '/public/';
 
 // Patterns that aren't in Frontend
