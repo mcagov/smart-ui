@@ -1,5 +1,36 @@
 [tools]
 node = "24.22.1"
 awscli = "2.37.4"
-direnv = "2.37.0"
 terraform = "1.6.6"
+
+[env]
+AWS_PROFILE = "smart-dev-support"
+AWS_ACCESS_KEY_ID = false
+AWS_SECRET_ACCESS_KEY = false
+AWS_SESSION_TOKEN = false
+PODMAN_COMPOSE_WARNING_LOGS = "false"
+
+[tasks.aws-login]
+description = "Log into AWS SSO if the current session has expired"
+raw = true
+run = "aws sts get-caller-identity >/dev/null 2>&1 || aws sso login"
+
+[tasks.deps]
+description = "Refresh the CodeArtifact token and install npm dependencies when the lockfile changes"
+depends = ["aws-login"]
+sources = ["package.json", "package-lock.json"]
+outputs = ["node_modules/.package-lock.json"]
+run = ["npm run ca:setup", "npm install", "touch node_modules/.package-lock.json"]
+
+[tasks.services]
+description = "Log Podman into ECR and start the backing services in the background"
+depends = ["aws-login"]
+run = ["npm run ecr:login", "podman compose up -d"]
+
+[tasks.down]
+description = "Stop the backing services, keeping their containers and data"
+run = "COMPOSE_PROFILES=$(podman compose config --profiles | paste -sd, -) podman compose stop"
+
+[tasks.clean]
+description = "Stop and remove this project's containers and volumes for every compose profile"
+run = "COMPOSE_PROFILES=$(podman compose config --profiles | paste -sd, -) podman compose down --volumes --remove-orphans"
