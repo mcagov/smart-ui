@@ -7,6 +7,7 @@ const targetUrl = process.env.UI_URL || 'http://localhost:2997';
 export const config = merge(baseConfig, {
   maxInstances: 1,
   bail: 5,
+  autoXvfb: false,
   capabilities: [{
     maxInstances: 1,
     browserName: 'chrome',
