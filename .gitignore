@@ -21,7 +21,7 @@ kubeconfig_*
 leaks_report.json
 new-certs/
 node_modules
-public
+/public
 reports
 rg-notes.md
 smarts-ui.iml

@@ -5,7 +5,7 @@ const GDS_NONCE = 'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='
 
 function configureHelmet (app) {
   app.use(function (req, res, next) {
-    res.locals.cspNonce = new Buffer(randomUUID()).toString('base64')
+    res.locals.cspNonce = Buffer.from(randomUUID()).toString('base64')
     next()
   })
   // Access to XMLHttpRequest has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
