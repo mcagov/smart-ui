@@ -38,6 +38,8 @@ class SubMenu extends Page {
 
   get paymentSchedules () { return $('a.moj-sub-navigation__link=Payment Schedules') }
 
+  get traineeRetention () { return $('a.moj-sub-navigation__link=Trainee Retention') }
+
 }
 
 export default new SubMenu()
