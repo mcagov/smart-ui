@@ -22,14 +22,12 @@ export async function list (req, res, next) {
       req.query.reviewStatus = DEFAULT_REVIEW_STATUS
     }
 
-    // The retained tab doesn't show last active, so it lists the retentions ending soonest first
     const defaultSort = req.query.reviewStatus === 'Retained' ? 'extendedUntil' : 'lastActiveDate'
     const params = getQueryParams(req, ['trainingProviderId'], defaultSort)
     if (req.query.reviewStatus !== 'All') {
       params.reviewStatus = req.query.reviewStatus
     }
     if (req.query.searchText) {
-      // Matches the trainee's name or MATSU number
       params.searchText = req.query.searchText.trim()
     }
     if (req.query.dueAtNextRun === 'true') {
@@ -42,7 +40,6 @@ export async function list (req, res, next) {
       service.summary(accessToken)
     ])
 
-    // Only the reviewed and retained tabs show who made the change
     if (['Reviewed', 'Retained'].includes(req.query.reviewStatus)) {
       const nameOf = await getUserNames(candidates.data.flatMap((c) => [c.reviewedBy, c.retainedBy, c.extendedBy]))
       candidates.data.forEach((c) => {
@@ -55,15 +52,12 @@ export async function list (req, res, next) {
     setPageMeta(req, candidates, ['reviewStatus', ...FILTER_KEYS])
     res.locals.candidates = candidates
     res.locals.summary = summary
-    // Across all candidates whatever the filters, for the warning
     res.locals.dueNotReviewed = summary.needsReviewDueAtNextRun
     res.locals.reviewStatus = req.query.reviewStatus
     res.locals.returnUrl = req.originalUrl
-    // Filters carried across the tabs, which reset the page
     const filters = {}
     FILTER_KEYS.forEach((k) => { if (candidates.meta.queries[k]) filters[k] = candidates.meta.queries[k] })
     res.locals.filterQuery = new URLSearchParams(filters).toString()
-    // Shown once, after an action redirects back to the list
     res.locals.successMessage = req.session[SUCCESS_KEY]
     delete req.session[SUCCESS_KEY]
     next()
@@ -72,11 +66,6 @@ export async function list (req, res, next) {
   }
 }
 
-/**
- * Looks up the names of the users who made changes, which the API records by login.
- * A login that isn't found, or a failed lookup, has no name, so the page shows the login instead.
- * @returns {Promise<function(string): (string|undefined)>} gives the "First Last" name for a login
- */
 async function getUserNames (logins) {
   const names = new Map()
   const unique = [...new Set(logins.filter(Boolean))]
@@ -93,18 +82,11 @@ async function getUserNames (logins) {
   return (login) => names.get(login?.toLowerCase())
 }
 
-/**
- * Sets the action pages' return link, back to the list as the user left it
- */
 export function setReturnUrl (req, res, next) {
   res.locals.returnUrl = safeReturnUrl(req.query.return, BASE_URL)
   next()
 }
 
-/**
- * Loads the trainee's retention override, if they have one
- * @param {boolean} required when false a trainee without an override is not an error
- */
 export function getOverride (required = false) {
   return async function (req, res, next) {
     try {
@@ -146,9 +128,6 @@ export async function getNextRunDate (req, res, next) {
   }
 }
 
-/**
- * Defaults the retain form to a year from now, or for an extension a year past the current override
- */
 export function setRetainDefaults (req, res, next) {
   const override = res.locals.override
   const from = override ? moment.max(moment(), moment(override.extendedUntil)) : moment()
@@ -159,11 +138,6 @@ export function setRetainDefaults (req, res, next) {
   next()
 }
 
-/**
- * Reads the retain until date strictly - whole numbers and a four digit year that make a real date - as the
- * shared readDate is lenient and would read a mistyped day such as 'abc' or '1a' as the 1st
- * @returns {moment.Moment|undefined} undefined when the date is missing or not real
- */
 export function readRetainUntil (body) {
   const [day, month, year] = ['day', 'month', 'year'].map((part) => `${body[`extendedUntil-${part}`] ?? ''}`.trim())
   if (!/^\d{1,2}$/.test(day) || !/^\d{1,2}$/.test(month) || !/^\d{4}$/.test(year)) {
@@ -182,7 +156,6 @@ function ukDate (date) {
   return moment(date).format('D MMMM YYYY')
 }
 
-// Most trainees migrated from MATSU have no name, so they are identified by their MATSU number
 function traineeLabel (trainee) {
   return trainee.contactName || trainee.matsuNumber || 'The trainee'
 }
@@ -200,7 +173,6 @@ export async function retain (req, res, next) {
     return
   }
   try {
-    // The API rejects a second override for a trainee, so an existing one is updated instead
     if (res.locals.override) {
       await service.put(getAccessToken(req), req.params.traineeId, res.locals.retention)
     } else {

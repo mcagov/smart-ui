@@ -15,8 +15,6 @@ const dbHost = process.env.DB_HOST || 'service.local.smart.mcga.uk'
 const dbPort = process.env.EXPOSED_POSTGRES_PORT || '7432'
 const connectionString = `postgres://smart:password@${dbHost}:${dbPort}/smart`
 
-// The candidates depend on today's date and the seed data, so pick two that need review
-// and have nothing recorded against them yet
 let toRetain
 let toReview
 
