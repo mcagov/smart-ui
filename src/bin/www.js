@@ -72,10 +72,10 @@ function onError(error) {
     switch (error.code) {
         case 'EACCES':
             console.error(bind + ' requires elevated privileges')
-            gracefulExit(1)
+            process.exit(1)
         case 'EADDRINUSE':
             console.error(bind + ' is already in use')
-            gracefulExit(1)
+            process.exit(1)
         default:
             throw error
     }
