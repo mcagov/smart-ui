@@ -33,7 +33,10 @@ export function safeReturnUrl(url, defaultUrl) {
   if (isLocalUrl(url)) {
     return url
   }
-  return defaultUrl
+  if (isLocalUrl(defaultUrl)) {
+    return defaultUrl
+  }
+  return '/'
 }
 
 export function govApiErrorMsg(err) {

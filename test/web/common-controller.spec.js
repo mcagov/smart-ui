@@ -23,4 +23,16 @@ describe('handleRedirect', () => {
 
     expect(res.redirect).toHaveBeenCalledWith(expected)
   })
+
+  it.each([
+    ['//evil.example'],
+    ['https://evil.example'],
+    [undefined]
+  ])('redirects to / when the default page %p is not local', (unsafeDefault) => {
+    const res = { redirect: jest.fn() }
+
+    handleRedirect(res, undefined, unsafeDefault)
+
+    expect(res.redirect).toHaveBeenCalledWith('/')
+  })
 })
