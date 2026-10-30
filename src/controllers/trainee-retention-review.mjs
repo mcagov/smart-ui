@@ -6,6 +6,7 @@ import OktaUsers from '../services/okta.users.js'
 import LocalUsers from '../services/local.users.js'
 import { getAccessToken, govUKErrors, safeReturnUrl, useLocalAuth } from '../utils.js'
 import { getQueryParams, handleApiError, handleLookupError, setPageMeta } from './lookups/common.js'
+import { handleRedirect } from './common.js'
 
 const service = new TraineeRetention()
 const users = useLocalAuth() ? new LocalUsers() : new OktaUsers()
@@ -149,7 +150,7 @@ export function readRetainUntil (body) {
 
 function redirectWithSuccess (req, res, message) {
   req.session[SUCCESS_KEY] = message
-  res.redirect(safeReturnUrl(req.query.return, BASE_URL))
+  handleRedirect(res, req.query.return, BASE_URL)
 }
 
 function ukDate (date) {

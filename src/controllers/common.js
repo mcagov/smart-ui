@@ -1,6 +1,6 @@
 import { logger } from '@mca/common-logger'
 import assert from 'assert'
-import { getAccessToken, getUserRole, isBlank, isInGroup, safeReturnUrl } from '../utils.js'
+import { getAccessToken, getUserRole, isBlank, isInGroup, isLocalUrl } from '../utils.js'
 import moment from 'moment'
 import Disciplines from '../services/disciplines.mjs'
 import Levels from '../services/levels.mjs'
@@ -36,7 +36,13 @@ export function useJson (property, status = 200) {
 }
 
 export function handleRedirect (res, returnParam, defaultPage) {
-  res.redirect(safeReturnUrl(returnParam, defaultPage))
+  if (isLocalUrl(returnParam)) {
+    res.redirect(returnParam)
+  } else if (isLocalUrl(defaultPage)) {
+    res.redirect(defaultPage)
+  } else {
+    res.redirect('/')
+  }
 }
 
 export async function redirectAfterPost (req, res, next) {
