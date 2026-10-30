@@ -62,7 +62,11 @@ describe('test utils', () => {
     ['//evil.example', false],
     ['/\\evil.example', false],
     ['https://evil.example', false],
-    ['javascript:alert(1)', false]
+    ['javascript:alert(1)', false],
+    ['/trainees\\evil.example', false],
+    ['/\t/evil.example', false],
+    ['/trainees\r\nSet-Cookie: x=1', false],
+    ['/trainees\x7F', false]
   ])('check isLocalUrl(%p) = %s', (url, result) => {
     expect(isLocalUrl(url)).toBe(result)
   })

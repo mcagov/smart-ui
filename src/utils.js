@@ -14,7 +14,19 @@ export function govUKErrors(errs) {
 }
 
 export function isLocalUrl(url) {
-  return typeof url === 'string' && /^\/(?![/\\])/.test(url)
+  if (typeof url !== 'string') {
+    return false
+  }
+  if (!url.startsWith('/')) {
+    return false
+  }
+  if (url.startsWith('//')) {
+    return false
+  }
+  if (url.includes('\\') || /[\x00-\x1F\x7F]/.test(url)) {
+    return false
+  }
+  return true
 }
 
 export function safeReturnUrl(url, defaultUrl) {
