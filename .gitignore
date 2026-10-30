@@ -45,6 +45,7 @@ test/keycloak/h2/keycloakdb.mv.db
 test/keycloak/h2/keycloakdb.trace.db
 
 PLAN.md
+code-scanning-alerts.md
 
 #claude
 .claude

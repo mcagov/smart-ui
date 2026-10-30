@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { contains, isBlank, isNotBlank } from '../src/utils'
+import { contains, isBlank, isLocalUrl, isNotBlank } from '../src/utils'
 dotenv.config()
 
 describe('test utils', () => {
@@ -48,5 +48,22 @@ describe('test utils', () => {
     ['/callback/callback ', '/callback', true]
   ])('check contains(%s, %s) = %s', (str, search, result) => {
     expect(contains(str, search)).toBe(result)
+  })
+
+  it.each([
+    ['/', true],
+    ['/trainees/abc', true],
+    ['/trainees?page=2#top', true],
+    [null, false],
+    [undefined, false],
+    ['', false],
+    [['/trainees'], false],
+    ['trainees/abc', false],
+    ['//evil.example', false],
+    ['/\\evil.example', false],
+    ['https://evil.example', false],
+    ['javascript:alert(1)', false]
+  ])('check isLocalUrl(%p) = %s', (url, result) => {
+    expect(isLocalUrl(url)).toBe(result)
   })
 })

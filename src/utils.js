@@ -13,9 +13,15 @@ export function govUKErrors(errs) {
   return errors
 }
 
-// only allow a relative path on this site, so a return link can't point elsewhere
+export function isLocalUrl(url) {
+  return typeof url === 'string' && /^\/(?![/\\])/.test(url)
+}
+
 export function safeReturnUrl(url, defaultUrl) {
-  return typeof url === 'string' && /^\/(?![/\\])/.test(url) ? url : defaultUrl
+  if (isLocalUrl(url)) {
+    return url
+  }
+  return defaultUrl
 }
 
 export function govApiErrorMsg(err) {

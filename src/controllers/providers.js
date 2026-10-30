@@ -4,6 +4,7 @@ import { validationResult } from 'express-validator'
 import { getAccessToken, govUKErrors } from '../utils.js'
 import { logger } from '@mca/common-logger'
 import { getQueryParams, handleLookupError, setPageMeta } from './lookups/common.js'
+import { handleRedirect } from './common.js'
 
 const trainingProviders = new TrainingProviders()
 const clientCompanies = new ClientCompanies()
@@ -147,14 +148,6 @@ async function updateTrainingProvider (req, res, next, data, page, nextPage) {
         next(err)
       }
     }
-  }
-}
-
-function handleRedirect (res, returnParam, defaultPage) {
-  if (returnParam) {
-    res.redirect(returnParam)
-  } else {
-    res.redirect(defaultPage)
   }
 }
 
