@@ -134,5 +134,15 @@
       "public"
     ],
     "ext": "js,yaml,html,njk,mjs"
+  },
+  "allowScripts": {
+    "@parcel/watcher": false,
+    "preact": false,
+    "chromedriver": false,
+    "edgedriver": false,
+    "es5-ext": false,
+    "esbuild": false,
+    "fsevents": false,
+    "geckodriver": false
   }
 }

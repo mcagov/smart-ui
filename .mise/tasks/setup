@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+#MISE description="Install and configure everything SMarT needs on this Mac. Safe to re-run."
+#MISE raw=true
+#MISE quiet=true
+set -euo pipefail
+
+local_hostname="service.local.smart.mcga.uk"
+containers_conf="${XDG_CONFIG_HOME:-$HOME/.config}/containers/containers.conf"
+rosetta_ready=true
+to_do=()
+
+step() {
+  printf '\n==> %s\n' "$1"
+}
+
+aws_cli() {
+  env -u AWS_PROFILE mise exec -- aws "$@"
+}
+
+is_apple_silicon() {
+  [[ $(uname -m) == arm64 ]]
+}
+
+step ".env"
+if [[ ! -f .env ]]; then
+  echo "Missing."
+  to_do+=("Create .env: copy .env.example to .env, then fill it in from \"SMarT-UI .env contents\" in the SMarT 1Password vault (click Edit before copying, so the # characters come too).")
+elif cmp -s .env .env.example; then
+  echo "Not filled in yet."
+  to_do+=("Fill in .env from \"SMarT-UI .env contents\" in the SMarT 1Password vault (click Edit before copying, so the # characters come too).")
+else
+  echo "Filled in."
+fi
+
+step "Podman and Docker Compose"
+if brew bundle check --file=Brewfile >/dev/null 2>&1; then
+  echo "Already installed."
+else
+  brew bundle install --file=Brewfile
+fi
+if [[ -d /Applications/Docker.app ]]; then
+  to_do+=("Docker Desktop is installed. There is potential for conflict with Podman.")
+fi
+
+if is_apple_silicon; then
+  step "Rosetta"
+  if arch -x86_64 /usr/bin/true 2>/dev/null; then
+    echo "Already installed."
+  else
+    echo "Not installed."
+    rosetta_ready=false
+    to_do+=("Install Rosetta with: softwareupdate --install-rosetta --agree-to-license, then re-run mise run setup to create the Podman machine.")
+  fi
+
+  step "Rosetta in Podman's config ($containers_conf)"
+  if [[ -f $containers_conf ]] && grep -Eq '^[[:space:]]*rosetta[[:space:]]*=[[:space:]]*true' "$containers_conf"; then
+    echo "Already set."
+  elif [[ -f $containers_conf ]] && grep -Eq '^[[:space:]]*\[machine\]' "$containers_conf"; then
+    rosetta_ready=false
+    to_do+=("Add 'rosetta = true' under [machine] in $containers_conf, then re-run mise run setup to create the Podman machine.")
+  else
+    mkdir -p "$(dirname "$containers_conf")"
+    if [[ -s $containers_conf ]]; then
+      printf '\n' >>"$containers_conf"
+    fi
+    printf '[machine]\nrosetta = true\n' >>"$containers_conf"
+    echo "Added rosetta = true."
+  fi
+fi
+
+step "Podman machine"
+if podman machine inspect >/dev/null 2>&1; then
+  echo "Already created."
+  if is_apple_silicon && [[ $(podman machine inspect --format '{{.Rosetta}}') != true ]]; then
+    to_do+=("Your Podman machine was created without Rosetta. Recreate it with: podman machine stop && podman machine rm, then re-run mise run setup. This deletes its pulled images and container data.")
+  fi
+elif $rosetta_ready; then
+  podman machine init --rootful --cpus 4 --memory 8192
+else
+  echo "Skipped until Rosetta is ready, so the machine isn't created without it."
+fi
+if podman machine inspect >/dev/null 2>&1 && [[ $(podman machine inspect --format '{{.State}}') != running ]]; then
+  podman machine start
+fi
+
+step "Node, the AWS CLI and Terraform"
+mise install
+
+step "AWS profile '$AWS_PROFILE' in ~/.aws/config"
+if aws_cli configure list-profiles 2>/dev/null | grep -qx "$AWS_PROFILE"; then
+  echo "Already set up."
+else
+  account_id=""
+  if [[ -t 0 ]]; then
+    echo "Find the smart-dev account number in the AWS access portal (https://mcaconsole.awsapps.com/start/)."
+    while read -r -p "smart-dev account number (12 digits, Enter to skip): " account_id; do
+      [[ -z $account_id || $account_id =~ ^[0-9]{12}$ ]] && break
+      echo "That isn't a 12-digit number."
+    done
+  fi
+  if [[ -n $account_id ]]; then
+    aws_cli configure set sso_start_url "https://mcaconsole.awsapps.com/start/#" --profile "$AWS_PROFILE"
+    aws_cli configure set sso_region eu-west-2 --profile "$AWS_PROFILE"
+    aws_cli configure set sso_account_id "$account_id" --profile "$AWS_PROFILE"
+    aws_cli configure set sso_role_name SMarTSupportAccess --profile "$AWS_PROFILE"
+    aws_cli configure set region eu-west-2 --profile "$AWS_PROFILE"
+    aws_cli configure set output json --profile "$AWS_PROFILE"
+    echo "Added the profile."
+  else
+    to_do+=("Add the '$AWS_PROFILE' profile to ~/.aws/config (README: Doing the setup by hand).")
+  fi
+fi
+
+step "$local_hostname in /etc/hosts"
+if awk -v host="$local_hostname" '
+  $1 == "127.0.0.1" { for (i = 2; i <= NF && $i !~ /^#/; i++) if ($i == host) found = 1 }
+  END { exit !found }' /etc/hosts; then
+  echo "Already there."
+else
+  echo "Not there."
+  to_do+=("Add '127.0.0.1 $local_hostname' to /etc/hosts, for example with: sudo nano /etc/hosts")
+fi
+
+echo
+if ((${#to_do[@]})); then
+  echo "Setup finished. Still to do:"
+  printf '  - %s\n' "${to_do[@]}"
+  echo
+  echo "Then run: mise run dev"
+else
+  echo "Setup finished. Run: mise run dev"
+fi

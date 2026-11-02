@@ -5,6 +5,7 @@
 .eslintrc.js
 .history
 .idea/
+.mise/
 .npmrc
 .nvmrc
 .nyc_output
@@ -15,6 +16,7 @@
 *.dump.gz
 *.iml
 *.log
+Brewfile
 coverage
 cypress*
 docker-compose-tmp.yml
@@ -24,6 +26,7 @@ Jenkinsfile
 jest.config.js
 jsconfig.json
 logs.txt
+mise.toml
 node_modules
 output.log*
 reports

@@ -62,7 +62,8 @@ gulp.task('sass', function () {
   return gulp.src('./public/sass/**/*.scss')
     .pipe(sass.sync({
       includePaths: 'node_modules',
-      quietDeps: true
+      quietDeps: true,
+      silenceDeprecations: ['legacy-js-api', 'import', 'global-builtin', 'color-functions']
     }).on('error', sass.logError))
     .pipe(gulp.dest('./public/css'))
 })
