@@ -5,6 +5,7 @@ terraform = "1.6.6"
 
 [env]
 AWS_PROFILE = "smart-dev-support"
+AWS_REGION = "eu-west-2"
 AWS_ACCESS_KEY_ID = false
 AWS_SECRET_ACCESS_KEY = false
 AWS_SESSION_TOKEN = false
