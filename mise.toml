@@ -10,6 +10,7 @@ AWS_ACCESS_KEY_ID = false
 AWS_SECRET_ACCESS_KEY = false
 AWS_SESSION_TOKEN = false
 PODMAN_COMPOSE_WARNING_LOGS = "false"
+DOCKER_CONFIG = "{{env.HOME}}/.config/smart-ui/docker"
 
 [tasks.aws-login]
 description = "Log into AWS SSO if the current session has expired"
@@ -26,12 +27,12 @@ run = ["npm run ca:setup", "npm install", "touch node_modules/.package-lock.json
 [tasks.services]
 description = "Log Podman into ECR and start the backing services in the background"
 depends = ["aws-login"]
-run = ["npm run ecr:login", "podman-compose up -d"]
+run = ["npm run ecr:login", "podman compose up -d"]
 
 [tasks.down]
 description = "Stop the backing services, keeping their containers and data"
-run = "COMPOSE_PROFILES=$(podman-compose config --profiles | paste -sd, -) podman-compose stop"
+run = "COMPOSE_PROFILES=$(podman compose config --profiles | paste -sd, -) podman compose stop"
 
 [tasks.clean]
 description = "Stop and remove this project's containers and volumes for every compose profile"
-run = "COMPOSE_PROFILES=$(podman-compose config --profiles | paste -sd, -) podman-compose down --volumes --remove-orphans"
+run = "COMPOSE_PROFILES=$(podman compose config --profiles | paste -sd, -) podman compose down --volumes --remove-orphans"

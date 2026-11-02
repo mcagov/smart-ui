@@ -74,17 +74,17 @@ under QEMU emulation instead:
 
 1. Make sure Rosetta is installed on your Mac:
 
-   ```shell
-   softwareupdate --install-rosetta --agree-to-license
-   ```
+```shell
+softwareupdate --install-rosetta --agree-to-license
+```
 
 2. Add the following to `~/.config/containers/containers.conf`, creating the
 file if it doesn't exist:
 
-   ```toml
-   [machine]
-   rosetta = true
-   ```
+```toml
+[machine]
+rosetta = true
+```
 
 This only takes effect when a machine is created. If you already have a Podman
 machine, recreate it with `podman machine stop && podman machine rm`, then
@@ -117,6 +117,12 @@ podman machine ssh ls /proc/sys/fs/binfmt_misc/
 so the existing `docker-compose.yaml` works without changes. If you see a
 message about `podman-compose` instead, check that `docker-compose` is on your
 `PATH`.
+
+Inside this repo, mise sets `DOCKER_CONFIG` to `~/.config/smart-ui/docker`, so
+`docker-compose` uses the ECR login from `npm run ecr:login` and ignores
+`~/.docker/config.json`. Docker Desktop's `credsStore` setting in that file
+would otherwise hand `docker-compose` an old ECR token, and pulls fail with
+"credentials are stale".
 
 `podman compose` prints `>>>> Executing external compose provider ... <<<<`
 before every command. Inside this repo, mise hides it by setting
