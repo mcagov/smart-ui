@@ -13,6 +13,11 @@ export function govUKErrors(errs) {
   return errors
 }
 
+// only allow a relative path on this site, so a return link can't point elsewhere
+export function safeReturnUrl(url, defaultUrl) {
+  return typeof url === 'string' && /^\/(?![/\\])/.test(url) ? url : defaultUrl
+}
+
 export function govApiErrorMsg(err) {
   return err?.response?.body?.message ? err.response.body.message : err.message
 }

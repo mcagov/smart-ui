@@ -2,14 +2,16 @@
 Feature: Check Trainee Middleware.
 
   Background:
-    Given The controller '../../../src/controllers/lookups/trainees'
+    Given I am logged in as 'mca.ab@service.dev.smart.mcga.uk'
+    And The controller '../../../src/controllers/lookups/trainees.js'
 
-  Scenario: The middleware getTrainees should return first page of trainees if no parameters are passed to it
-    When getTrainees is called with no parameters
+  Scenario: The middleware getTrainees should return the first page of Active trainees
+    When getTrainees is called with parameters
+    | status | Active |
     Then next is called without an error
     And status code is 200
     And res.locals has trainees with data and meta
-    And current page is 0 of 187, page size 10 and total items 1868
+    And current page is 1 of 256, page size 10 and total items 2555
     And sort is by contactName and order is asc
     And queries contains
     | status | Active |
@@ -17,16 +19,9 @@ Feature: Check Trainee Middleware.
     And data has 10 items
     And data[0].id is a UUID
     And data[0] has keys
+    | id |
     | contactName |
-    | seafarerClassification |
-    | nationality |
-    | gender |
     | dateOfBirth |
-    | addressLine1 |
-    | addressLine2 |
-    | placeOfBirth |
-    | ethnicity |
-    | ukDischargeBookNumber |
     | status |
 
   # Scenario: The middleware getTrainee should throw an error if no paramters are passed to it

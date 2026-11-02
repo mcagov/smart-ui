@@ -1,0 +1,41 @@
+{% set titleText = 'Remove retention' %}
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+{{ govukBackLink({
+    text: "Back",
+    href: returnUrl
+}) }}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 id="page-title" class="govuk-heading-l">{{ titleText }}</h1>
+
+    {% include "trainee-retention-review/trainee-summary.html" %}
+
+    {{ govukWarningText({
+      text: 'The trainee will go back to needs review, and will be permanently deleted at their deletion run unless they are retained again.',
+      iconFallbackText: 'Warning'
+    }) }}
+
+    <form action="" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+      {{ govukButton({
+        text: titleText,
+        preventDoubleClick: true,
+        classes: 'govuk-button--warning',
+        attributes: { id: 'save-button' }
+      }) }}
+      {{ govukButton({
+        text: 'Cancel',
+        classes: 'govuk-button--secondary',
+        href: returnUrl,
+        attributes: { id: 'cancel-button' }
+      }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}

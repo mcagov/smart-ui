@@ -104,11 +104,9 @@ pipeline {
                                 env.OKTA_SCOPE_AB = sh(script: '''aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                                 env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                             }
-                            // TODO stop removing package-lock.json and use npm ci
                             sh 'npm cache clean --force'
-                            sh 'rm -rf node_modules package-lock.json'
-                            sh 'npm install'
-                            //sh 'npm ci'
+                            sh 'rm -rf node_modules'
+                            sh 'npm ci'
 
                             // Get next version
                             env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()
@@ -178,6 +176,10 @@ pipeline {
                                 ]) {
                                     sh 'docker compose exec redis env'
                                     sh 'npm test -- --detectOpenHandles --verbose'
+                                    // Live-Okta tests (npm run test:integration) are deliberately not run here -
+                                    // they need real Okta credentials and have caused permission issues in Jenkins
+                                    // will work on this in ticket MCASM-15
+                                    sh 'npm run test:bdd'
                                 }
                             }
                         }
@@ -297,6 +299,17 @@ pipeline {
                     }
                     steps {
                         script {
+                            sh '''
+                                for attempt in $(seq 1 10); do
+                                    if npm view "${PACKAGE_NAME}@${NEXT_VERSION}" version --prefer-online | grep -q .; then
+                                        exit 0
+                                    fi
+                                    echo "Waiting for ${PACKAGE_NAME}@${NEXT_VERSION} to appear in CodeArtifact (attempt ${attempt}/10)..."
+                                    sleep 6
+                                done
+                                echo "${PACKAGE_NAME}@${NEXT_VERSION} was published but never became visible in CodeArtifact"
+                                exit 1
+                            '''
                         def imageTag = (env.BRANCH_NAME == 'master') ? "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${NEXT_VERSION}" : "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${env.BRANCH_NAME}-TEST"
                             sh """
                             echo "Building docker image ${imageTag}"

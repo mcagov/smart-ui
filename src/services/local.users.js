@@ -206,6 +206,11 @@ class LocalUsers {
     return users.filter((u) => ids.includes(u.id))
   }
 
+  // local users sign in with their email, so it is their login
+  async getAllByLogin (logins) {
+    return users.filter((u) => logins.includes(u.profile.email))
+  }
+
   async authn (credentials) {
     const user = await this.get(credentials.username)
     logger.debug(`local authn: credentials\n${JSON.stringify(credentials, null, 2)}`)

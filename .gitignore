@@ -16,8 +16,10 @@
 .vscode
 TESTS-sonar.xml
 coverage
+cucumber-report.html
 kubeconfig_*
 leaks_report.json
+new-certs/
 node_modules
 public
 reports
@@ -43,3 +45,7 @@ test/keycloak/h2/keycloakdb.mv.db
 test/keycloak/h2/keycloakdb.trace.db
 
 PLAN.md
+
+#claude
+.claude
+CLAUDE.md

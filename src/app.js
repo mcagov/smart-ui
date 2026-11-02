@@ -28,6 +28,7 @@ import reports from './routes/reports.mjs'
 import smartCategories from './routes/smart-categories.mjs'
 import smartItems from './routes/smart-items.mjs'
 import paymentSchedules from './routes/payment-schedules.mjs'
+import traineeRetentionReview from './routes/trainee-retention-review.mjs'
 import api from './routes/api.js'
 import apiReports from './routes/api-reports.js'
 import config from './config.js'
@@ -62,6 +63,9 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send('User-agent: *\nDisallow: /\n')
+})
 app.locals.googleId = process.env.GOOGLE_ID
 initialiseSession(app)
 
@@ -168,6 +172,7 @@ app.use('/training-items', ensureAuthenticated, isAb, csrf, setCsrf, trainingsIt
 app.use('/smart-categories', ensureAuthenticated, isAb, csrf, setCsrf, smartCategories)
 app.use('/smart-items', ensureAuthenticated, isAb, csrf, setCsrf, smartItems)
 app.use('/payment-schedules', ensureAuthenticated, isAb, csrf, setCsrf, paymentSchedules)
+app.use('/trainee-retention-review', ensureAuthenticated, isAb, csrf, setCsrf, traineeRetentionReview)
 app.use('/admin', ensureAuthenticated, isAb, csrf, setCsrf, useView('admin'))
 app.use('/api', ensureAuthenticated, api)
 app.use('/reports', ensureAuthenticated, isReportUser, csrf, setCsrf, reports)

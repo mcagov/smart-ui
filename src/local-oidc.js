@@ -6,7 +6,7 @@ import { setUserContext } from './controllers/common.js'
 import { contains, isBlank } from './utils.js'
 const service = new LocalUsers()
 
-function createSession (req, user) {
+export function createSession (req, user) {
   user.tokens = {}
 
   const scp = /^mcauk-smart-\w*-administrative-body$/.test(user.groups[0]) ? process.env.OKTA_SCOPE_AB : process.env.OKTA_SCOPE_TP
@@ -14,7 +14,7 @@ function createSession (req, user) {
   const claims = {
     iss: config.okta.issuerUrl,
     aud: config.okta.aud,
-    sub: user.email,
+    sub: user.profile.email,
     uid: user.id,
     scp: scp.split(' '),
     localAuth: 'true',

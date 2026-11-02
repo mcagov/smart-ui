@@ -4,9 +4,10 @@
 {% block content %}
 
 {% if user.role == 'admin' %}
+    {# Pages that link here, such as the trainee retention review, can send the admin back to them #}
     {{ govukBackLink({
-        text: "Back to " + trainingProvider.companyName,
-        href: '/training-providers/' + trainingProvider.id + '/trainees'
+        text: "Back" if query.return | returnUrl(false) else "Back to " + trainingProvider.companyName,
+        href: query.return | returnUrl('/training-providers/' + trainingProvider.id + '/trainees')
     }) }}
 {% endif %}
 
