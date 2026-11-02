@@ -21,6 +21,17 @@ is_apple_silicon() {
   [[ $(uname -m) == arm64 ]]
 }
 
+step ".env"
+if [[ ! -f .env ]]; then
+  echo "Missing."
+  to_do+=("Create .env: copy .env.example to .env, then fill it in from \"SMarT-UI .env contents\" in the SMarT 1Password vault (click Edit before copying, so the # characters come too).")
+elif cmp -s .env .env.example; then
+  echo "Not filled in yet."
+  to_do+=("Fill in .env from \"SMarT-UI .env contents\" in the SMarT 1Password vault (click Edit before copying, so the # characters come too).")
+else
+  echo "Filled in."
+fi
+
 step "Podman and Docker Compose"
 if brew bundle check --file=Brewfile >/dev/null 2>&1; then
   echo "Already installed."
@@ -108,22 +119,6 @@ if awk -v host="$local_hostname" '
 else
   echo "Not there."
   to_do+=("Add '127.0.0.1 $local_hostname' to /etc/hosts, for example with: sudo nano /etc/hosts")
-fi
-
-step ".env"
-env_to_do=false
-if [[ ! -f .env ]]; then
-  cp .env.example .env
-  echo "Copied .env.example to .env."
-  env_to_do=true
-elif cmp -s .env .env.example; then
-  echo "Still the same as .env.example."
-  env_to_do=true
-else
-  echo "Already filled in."
-fi
-if $env_to_do; then
-  to_do+=("Fill in .env from \"SMarT-UI .env contents\" in the SMarT 1Password vault (click Edit before copying, so the # characters come too).")
 fi
 
 echo

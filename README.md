@@ -47,25 +47,84 @@ These instructions assume you're on the SMarT team and already have access to:
 Without these, the private packages, container images and configuration this
 app needs won't be available.
 
-### Required software
+### Setup
 
-You will need [mise-en-place](https://mise.jdx.dev/), [Podman](https://podman.io/) and [Docker Compose](https://docs.docker.com/compose/) installed. Please don't use Docker Desktop: it needs a paid licence for enterprise use. Podman and the standalone Docker Compose binary are both free and open source.
+SMarT runs on [mise-en-place](https://mise.jdx.dev/), [Podman](https://podman.io/) and [Docker Compose](https://docs.docker.com/compose/). Please don't use Docker Desktop: it needs a paid licence for enterprise use. Podman and the standalone Docker Compose binary are both free and open source. If Docker Desktop is installed, uninstall it first so the two don't conflict.
 
-If Docker Desktop is installed, uninstall it first so the two don't conflict.
-Then, with [Homebrew](https://brew.sh/), install everything in one go:
+On Apple Silicon Macs, install Rosetta first (see [why](#podman-macos)). It may
+ask for your Mac password:
+
+```shell
+softwareupdate --install-rosetta --agree-to-license
+```
+
+Then, with [Homebrew](https://brew.sh/) installed, install mise and clone the
+repo:
+
+```shell
+brew install mise
+git clone https://github.com/mcagov/smart-ui.git
+cd smart-ui
+```
+
+Before anything else, create your `.env`. Copy `.env.example` to `.env`, then
+fill it in with the values in "SMarT-UI .env contents", inside the SMarT
+1Password Vault. Ensure you click 'EDIT' before you copy or else the hashtags
+won't copy as required.
+
+```shell
+cp .env.example .env
+```
+
+Then run the setup:
+
+```shell
+mise trust
+mise run setup
+```
+
+`mise run setup` installs and configures everything else. It skips anything
+that's already done, so it's safe to run again:
+
+- installs Podman and Docker Compose from the `Brewfile`
+- on Apple Silicon, turns Rosetta on in Podman's config
+- creates and starts the Podman machine. On Apple Silicon it waits until
+  Rosetta is installed, because a machine created without it has to be
+  recreated later
+- installs Node, the AWS CLI and Terraform, at the versions in `mise.toml`
+- adds the `smart-dev-support` AWS profile, after asking for the smart-dev
+  account number from the AWS access portal
+- checks `/etc/hosts` has the `service.local.smart.mcga.uk` entry
+- checks `.env` exists and has been filled in
+
+It never uses `sudo`. At the end it lists anything left for you to do, such as
+adding the `/etc/hosts` entry (see [Configuration](#configuration)).
+
+Always browse to `http://localhost:2997`. `http://service.local.smart.mcga.uk`
+loads the start page without styles, and sign-in fails there, because the app's
+security policy upgrades requests to HTTPS on any host other than localhost.
+
+Optionally, hook mise into your shell (for zsh) so `AWS_PROFILE` and the tool
+versions also apply when you run commands like `npm start` or `aws` yourself:
+
+```shell
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
+```
+
+`mise run` tasks don't need this. Run `mise tasks` to see every available task.
+
+### Doing the setup by hand
+
+If `mise run setup` can't do a step, or you'd rather do it yourself, these are
+the same steps by hand.
+
+Install the tools:
 
 ```shell
 brew install mise podman docker-compose
 ```
 
-Clone this repo and change into it:
-
-```shell
-git clone https://github.com/mcagov/smart-ui.git
-cd smart-ui
-```
-
-#### Podman setup (macOS)
+#### Podman (macOS)
 
 **On Apple Silicon Macs, turn on Rosetta before creating the machine.** Our ECR
 images (Redis, the APIs and the databases) are built for Intel (`amd64`) only.
@@ -134,35 +193,22 @@ before every command. Inside this repo, mise hides it by setting
 compose_warning_logs = false
 ```
 
-#### mise setup
+#### mise tools
 
 mise installs the project's tools (Node, the AWS CLI, Terraform), sets
 `AWS_PROFILE` whenever you're in the repo, and runs the local development tasks.
-All of this is defined in `mise.toml`.
-
-Hook mise into your shell (for zsh):
-
-```shell
-echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
-```
-
-Open a new terminal, then from the repo trust the config and install the tools:
+All of this is defined in `mise.toml`. From the repo, trust the config and
+install the tools:
 
 ```shell
 mise trust
 mise install
 ```
 
-Check it's loaded with `echo $AWS_PROFILE`, which should print
-`smart-dev-support`. mise also unsets any `AWS_ACCESS_KEY_ID`,
-`AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` left in your shell, so they
-can't override the SSO profile.
+mise also unsets any `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and
+`AWS_SESSION_TOKEN` left in your shell, so they can't override the SSO profile.
 
-Run `mise tasks` to see every available task.
-
-### Configuration
-
-Copy `.env.example` as `.env` and replace the placeholders with variables found within the contents of the "SMarT-UI .env contents", inside the SMarT 1Password Vault. Ensure you click 'EDIT' before you copy or else the hashtags won't copy as required. 
+#### Configuration
 
 Add the following to your `/etc/hosts` file. SMarT UI uses this name to reach
 the APIs and Redis, so it's needed even if you browse to `localhost`:
@@ -171,10 +217,6 @@ the APIs and Redis, so it's needed even if you browse to `localhost`:
 # SMarT UI
 127.0.0.1 service.local.smart.mcga.uk
 ```
-
-Always browse to `http://localhost:2997`. `http://service.local.smart.mcga.uk`
-loads the start page without styles, and sign-in fails there, because the app's
-security policy upgrades requests to HTTPS on any host other than localhost.
 
 Add the following to your `~/.aws/config` file
 
@@ -196,7 +238,7 @@ mise run dev
 
 It first checks your setup: the `.env` file, the `smart-dev-support` AWS
 profile, the `/etc/hosts` entry and the Podman machine. If anything's missing,
-it lists every problem and the README section that fixes it, then stops. If the
+it lists every problem and tells you to run `mise run setup`, then stops. If the
 Podman machine exists but is stopped, it starts it for you.
 
 You'll be asked how you want to run SMarT:
