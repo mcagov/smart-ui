@@ -14,21 +14,22 @@ check_setup() {
   local problems=()
 
   [[ -f .env ]] ||
-    problems+=("No .env file. Copy .env.example to .env and fill it in from 1Password (README: Configuration).")
+    problems+=("No .env file.")
 
   aws configure list-profiles 2>/dev/null | grep -qx "$AWS_PROFILE" ||
-    problems+=("No '$AWS_PROFILE' profile in ~/.aws/config (README: Configuration).")
+    problems+=("No '$AWS_PROFILE' profile in ~/.aws/config.")
 
   node -e "require('dns').lookup('$local_hostname', (err, address) => process.exit(!err && address === '127.0.0.1' ? 0 : 1))" ||
-    problems+=("$local_hostname doesn't point to 127.0.0.1. Add it to /etc/hosts (README: Configuration).")
+    problems+=("$local_hostname doesn't point to 127.0.0.1 in /etc/hosts.")
 
   if ! podman machine inspect >/dev/null 2>&1; then
-    problems+=("No Podman machine. Create one (README: Podman setup).")
+    problems+=("No Podman machine.")
   fi
 
   if ((${#problems[@]})); then
     echo "SMarT can't start until these are fixed:" >&2
     printf '  - %s\n' "${problems[@]}" >&2
+    echo "Run mise run setup to fix them." >&2
     exit 1
   fi
 
