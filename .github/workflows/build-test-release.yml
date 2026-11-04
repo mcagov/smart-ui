@@ -315,9 +315,9 @@ jobs:
 
       - name: Install Cosign
         if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4
         with:
-          cosign-release: "v2.4.1"
+          cosign-release: "v3.1.4"
 
       - name: Sign Docker Image
         if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
