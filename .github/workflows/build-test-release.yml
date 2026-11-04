@@ -311,6 +311,32 @@ jobs:
 
           docker push "${FULL_IMAGE_NAME}"
 
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+
+      - name: Install Cosign
+        if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.4.1"
+
+      - name: Sign Docker Image
+        if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
+        run: |
+          IMAGE_DIGEST=$(aws ecr describe-images --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageTag=${IMAGE_TAG} --region ${{ env.AWS_REGION }} --query 'imageDetails[0].imageDigest' --output text)
+          IMAGE_REF="${ECR_REGISTRY}/${DOCKER_IMAGE_NAME}@${IMAGE_DIGEST}"
+
+          cosign sign --yes "${IMAGE_REF}"
+
+          echo "IMAGE_REF=${IMAGE_REF}" >> $GITHUB_ENV
+
+      - name: Verify Docker Image Signature
+        if: github.ref == 'refs/heads/master' || github.event.inputs.push_test_container == 'true'
+        run: |
+          cosign verify \
+            --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/build-test-release.yml@${{ github.ref }}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${IMAGE_REF}"
+
       - name: Poll ECR Image Vulnerability Scan
         if: github.ref == 'refs/heads/master'
         timeout-minutes: 15
