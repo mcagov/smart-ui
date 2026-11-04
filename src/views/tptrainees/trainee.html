@@ -6,7 +6,7 @@
 {% if user.role == 'admin' %}
     {# Pages that link here, such as the trainee retention review, can send the admin back to them #}
     {{ govukBackLink({
-        text: "Back" if query.return | returnUrl(false) else "Back to " + trainingProvider.companyName,
+        text: "Back" if query.return | isLocalUrl else "Back to " + trainingProvider.companyName,
         href: query.return | returnUrl('/training-providers/' + trainingProvider.id + '/trainees')
     }) }}
 {% endif %}

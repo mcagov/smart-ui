@@ -12,6 +12,25 @@ describe('Nunjucks Custom Filters', () => {
     expect(env).toBeDefined();
   });
 
+  describe('back link text on the training provider trainee page', () => {
+    const renderBackText = (returnParam) => env.renderString(
+      '{{ "Back" if query.return | isLocalUrl else "Back to provider" }}',
+      { query: { return: returnParam } }
+    )
+
+    it('uses "Back" when the return URL is local', () => {
+      expect(renderBackText('/trainee-retention-review')).toBe('Back')
+    })
+
+    it.each([
+      [undefined],
+      ['https://evil.example'],
+      ['//evil.example']
+    ])('falls back to the provider text when the return URL is %p', (returnParam) => {
+      expect(renderBackText(returnParam)).toBe('Back to provider')
+    })
+  })
+
   describe('currencyUK filter', () => {
     let currencyUK;
 
