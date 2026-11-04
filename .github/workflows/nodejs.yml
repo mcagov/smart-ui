@@ -302,6 +302,7 @@ jobs:
 
           DOCKER_BUILDKIT=1 docker build \
             --pull --compress --no-cache --force-rm --progress=plain \
+            --provenance=false \
             -t "${FULL_IMAGE_NAME}" \
             --secret id=npmrc,src=.npmrc \
             --build-arg AWS_DEV_ACCOUNT_ID=${AWS_DEV_ACCOUNT_ID} \
@@ -312,6 +313,7 @@ jobs:
 
       - name: Poll ECR Image Vulnerability Scan
         if: github.ref == 'refs/heads/master'
+        timeout-minutes: 15
         run: |
           DIGEST=$(aws ecr describe-images --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageTag=${{ env.NEXT_VERSION }} --region ${{ env.AWS_REGION }} --query 'imageDetails[0].imageDigest' --output text)
 
