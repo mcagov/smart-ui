@@ -1,4 +1,4 @@
-name: SMarT-UI CI/CD Pipeline
+name: Build, test and release
 
 on:
   push:
@@ -302,6 +302,7 @@ jobs:
 
           DOCKER_BUILDKIT=1 docker build \
             --pull --compress --no-cache --force-rm --progress=plain \
+            --sbom=true \
             -t "${FULL_IMAGE_NAME}" \
             --secret id=npmrc,src=.npmrc \
             --build-arg AWS_DEV_ACCOUNT_ID=${AWS_DEV_ACCOUNT_ID} \
@@ -312,8 +313,16 @@ jobs:
 
       - name: Poll ECR Image Vulnerability Scan
         if: github.ref == 'refs/heads/master'
+        timeout-minutes: 15
         run: |
-          DIGEST=$(aws ecr describe-images --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageTag=${{ env.NEXT_VERSION }} --region ${{ env.AWS_REGION }} --query 'imageDetails[0].imageDigest' --output text)
+          IMAGE_MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-ids imageTag=${{ env.NEXT_VERSION }} --region ${{ env.AWS_REGION }} \
+            --accepted-media-types application/vnd.oci.image.index.v1+json application/vnd.docker.distribution.manifest.list.v2+json application/vnd.oci.image.manifest.v1+json application/vnd.docker.distribution.manifest.v2+json \
+            --query 'images[0].imageManifest' --output text)
+
+          DIGEST=$(echo "$IMAGE_MANIFEST" | jq -r '.manifests[]? | select(.platform.os == "linux" and .platform.architecture == "amd64") | .digest')
+          if [ -z "$DIGEST" ]; then
+            DIGEST=$(aws ecr describe-images --repository-name ${{ env.DOCKER_IMAGE_NAME }} --image-id imageTag=${{ env.NEXT_VERSION }} --region ${{ env.AWS_REGION }} --query 'imageDetails[0].imageDigest' --output text)
+          fi
 
           echo "Waiting 30 seconds for ECR scan initialization on digest $DIGEST..."
           sleep 30

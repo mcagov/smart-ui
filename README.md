@@ -296,7 +296,7 @@ When you push a PR, commit to a PR, or merge to master, a pipeline will run the
 tests - currently the unit tests, the Cucumber (BDD) tests and the WDIO tests.
 The live Okta integration tests are not run in CI (see [Testing](#testing)).
 You can create a test container for use in dev/staging by going to
-Actions/SMarT-UI CI/CD Pipeline in the repo, clicking on Run workflow,
+Actions/Build, test and release in the repo, clicking on Run workflow,
 selecting the correct branch you wish to use, and then checking the
 `Build and push test container to ECR` checkbox. This will build a new
 container to the ECR repository, which you can then use the smart-deploy
