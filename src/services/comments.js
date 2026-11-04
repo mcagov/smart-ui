@@ -13,14 +13,14 @@ class Comments extends WebService {
 
   resolve (accessToken, id) {
     return agent
-      .post(`${this.url}/${id}/resolve`)
+      .post(this.urlFor(id, 'resolve'))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
 
   reply (accessToken, id, item) {
     return agent
-      .post(`${this.url}/${id}/messages`)
+      .post(this.urlFor(id, 'messages'))
       .set('Authorization', `Bearer ${accessToken}`)
       .send(item)
       .then((data) => { return data.body })
@@ -28,7 +28,7 @@ class Comments extends WebService {
 
   messages (accessToken, id, params) {
     return agent
-      .get(`${this.url}/${id}/messages`)
+      .get(this.urlFor(id, 'messages'))
       .set('Authorization', `Bearer ${accessToken}`)
       .query(params)
       .then((data) => { return data.body })

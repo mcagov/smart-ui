@@ -13,21 +13,21 @@ class TrainingItems extends WebService {
 
   addSmartItem (accessToken, id, smartItemId) {
     return agent
-      .post(`${this.url}/${id}/smart-item/${smartItemId}`)
+      .post(this.urlFor(id, 'smart-item', smartItemId))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
 
   delSmartItem (accessToken, id, smartItemId) {
     return agent
-      .delete(`${this.url}/${id}/smart-item/${smartItemId}`)
+      .delete(this.urlFor(id, 'smart-item', smartItemId))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
 
   updateStatus (accessToken, id, status) {
     return agent
-      .put(`${this.url}/${id}/status/${status}`)
+      .put(this.urlFor(id, 'status', status))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }

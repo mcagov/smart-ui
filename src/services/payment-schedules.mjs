@@ -14,7 +14,7 @@ class PaymentSchedules extends WebService {
 
   addRate (accessToken, id, startDate, paymentAmount) {
     return agent
-      .post(`${this.url}/${id}/rate`)
+      .post(this.urlFor(id, 'rate'))
       .set('Authorization', `Bearer ${accessToken}`)
       .query({ startDate, paymentAmount })
       .then((data) => { return data.body })
@@ -29,7 +29,7 @@ class PaymentSchedules extends WebService {
 
   getByYear (accessToken, year, params = {}) {
     return agent
-      .get(`${this.url}/${year}`)
+      .get(this.urlFor(year))
       .set('Authorization', `Bearer ${accessToken}`)
       .query(params)
       .then((data) => { return data.body })
@@ -53,7 +53,7 @@ class PaymentSchedules extends WebService {
 
   get (accessToken, year, period) {
     return agent
-      .get(`${this.url}/${year}/${period}`)
+      .get(this.urlFor(year, period))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
