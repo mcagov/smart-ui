@@ -14,6 +14,10 @@ class WebService {
     this.url = url
   }
 
+  urlFor (...segments) {
+    return [this.url, ...segments.map((segment) => encodeURIComponent(segment))].join('/')
+  }
+
   all (accessToken, params = {}) {
     return agent
       .get(this.url)
@@ -31,14 +35,14 @@ class WebService {
 
   get (accessToken, id) {
     return agent
-      .get(`${this.url}/${id}`)
+      .get(this.urlFor(id))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
 
   del (accessToken, id) {
     return agent
-      .delete(`${this.url}/${id}`)
+      .delete(this.urlFor(id))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
@@ -53,7 +57,7 @@ class WebService {
 
   put (accessToken, id, item) {
     return agent
-      .put(this.url + '/' + id)
+      .put(this.urlFor(id))
       .set('Authorization', `Bearer ${accessToken}`)
       .set('Accept', 'application/json')
       .send(item)

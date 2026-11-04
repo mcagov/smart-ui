@@ -21,14 +21,14 @@ class ClientCompanies extends WebService {
 
   linkTrainingProvider (accessToken, clientId, trainingProviderId) {
     return agent
-      .put(`${this.url}/${clientId}/training-provider/${trainingProviderId}`)
+      .put(this.urlFor(clientId, 'training-provider', trainingProviderId))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
 
   removeTrainingProvider (accessToken, clientId, trainingProviderId) {
     return agent
-      .delete(`${this.url}/${clientId}/training-provider/${trainingProviderId}`)
+      .delete(this.urlFor(clientId, 'training-provider', trainingProviderId))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }

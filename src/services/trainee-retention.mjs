@@ -73,7 +73,7 @@ class TraineeRetention extends WebService {
 
   getReview (accessToken, traineeId) {
     return agent
-      .get(`${this.url}/reviews/${traineeId}`)
+      .get(this.urlFor('reviews', traineeId))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
@@ -90,7 +90,7 @@ class TraineeRetention extends WebService {
 
   async deleteReview (accessToken, traineeId) {
     const data = await agent
-      .delete(`${this.url}/reviews/${traineeId}`)
+      .delete(this.urlFor('reviews', traineeId))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
     await this.clearSummary()

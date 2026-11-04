@@ -46,7 +46,7 @@ class TrainingProviderTrainings extends WebService {
    */
   createTrainee (accessToken, id, traineeId, body) {
     return agent
-      .post(`${this.url}/${id}/trainees/${traineeId}`)
+      .post(this.urlFor(id, 'trainees', traineeId))
       .set('Authorization', `Bearer ${accessToken}`)
       .send(body)
       .then((data) => { return data.body })
@@ -62,7 +62,7 @@ class TrainingProviderTrainings extends WebService {
    */
   updateTrainee (accessToken, id, traineeId, body) {
     return agent
-      .put(`${this.url}/${id}/trainees/${traineeId}`)
+      .put(this.urlFor(id, 'trainees', traineeId))
       .set('Authorization', `Bearer ${accessToken}`)
       .send(body)
       .then((data) => { return data.body })
@@ -77,7 +77,7 @@ class TrainingProviderTrainings extends WebService {
    */
   deleteTrainee (accessToken, id, traineeId) {
     return agent
-      .delete(`${this.url}/${id}/trainees/${traineeId}`)
+      .delete(this.urlFor(id, 'trainees', traineeId))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
