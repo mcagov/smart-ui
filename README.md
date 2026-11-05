@@ -304,6 +304,28 @@ pipeline in Jenkins to deploy to the EKS cluster.
 
 TODO: deploy from within the github workflow.
 
+#### Image signing
+
+Every image the workflow pushes to ECR (master releases and `-TEST` images) is
+signed with [cosign](https://docs.sigstore.dev/cosign/) using keyless
+signing. The signer is the workflow run itself, identified by its GitHub OIDC
+token; there are no signing keys to manage. Signatures are stored in ECR as
+OCI referrers of the image: untagged entries linked to the image they sign.
+Don't delete them by hand.
+
+To verify an image locally (cosign installed, logged in to ECR):
+
+```bash
+cosign verify \
+  --certificate-identity "https://github.com/mcagov/smart-ui/.github/workflows/build-test-release.yml@refs/heads/master" \
+  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+  <account>.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:<version>
+```
+
+For a `-TEST` image, replace `refs/heads/master` with `refs/heads/<branch>`.
+Verification fails for unsigned images and for images signed from a different
+branch.
+
 ### SMarT UI: Overview
 
 SMarT UI is a Node.js and Express website that shows GOV.UK‑style pages and
