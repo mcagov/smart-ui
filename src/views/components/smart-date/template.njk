@@ -3,7 +3,7 @@
 {{ govukDateInput({
     id: params.id,
     namePrefix: params.name if params.name else params.id,
-    fieldset: { legend: { text: params.legend } } if params.inline != true,
+    fieldset: { legend: { text: params.legend, classes: params.legendClasses } } if params.inline != true,
     hint: {  text: params.hint if params.hint else 'For example, 5 9 2021' } if params.inline != true ,
     errorMessage: params.id | getError(params.errors),
     items: [

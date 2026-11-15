@@ -55,6 +55,7 @@ class OktaUsers {
             firstName: user.profile.firstName,
             lastName: user.profile.lastName,
             email: user.profile.email,
+            login: user.profile.login,
             primaryPhone: user.profile.primaryPhone,
           }
         });
@@ -293,6 +294,14 @@ class OktaUsers {
   async getAll(ids) {
     if (!ids || ids.length === 0) return [];
     const search = `id eq "${ids.join('" or id eq "')}"`;
+    const collection = await this.userApi.listUsers({ search });
+    return this._users(collection);
+  }
+
+  // the API records who made a change from the access token's sub, which is the user's login
+  async getAllByLogin(logins) {
+    if (!logins || logins.length === 0) return [];
+    const search = `profile.login eq "${logins.join('" or profile.login eq "')}"`;
     const collection = await this.userApi.listUsers({ search });
     return this._users(collection);
   }

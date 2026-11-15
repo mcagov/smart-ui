@@ -104,11 +104,9 @@ pipeline {
                                 env.OKTA_SCOPE_AB = sh(script: '''aws ssm get-parameters --names "/dev/scopes/ab" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                                 env.OKTA_SCOPE_TP = sh(script: '''aws ssm get-parameters --names "/dev/scopes/tp" --query "Parameters[].Value" --output text''', returnStdout: true).trim()
                             }
-                            // TODO stop removing package-lock.json and use npm ci
                             sh 'npm cache clean --force'
-                            sh 'rm -rf node_modules package-lock.json'
-                            sh 'npm install'
-                            //sh 'npm ci'
+                            sh 'rm -rf node_modules'
+                            sh 'npm ci'
 
                             // Get next version
                             env.PACKAGE_NAME = sh(script: 'node -p "require(\'./package.json\').name"', returnStdout: true).trim()

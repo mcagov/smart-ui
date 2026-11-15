@@ -14,7 +14,7 @@ export function createSession (req, user) {
   const claims = {
     iss: config.okta.issuerUrl,
     aud: config.okta.aud,
-    sub: user.email,
+    sub: user.profile.email,
     uid: user.id,
     scp: scp.split(' '),
     localAuth: 'true',

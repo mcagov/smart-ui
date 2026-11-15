@@ -13,6 +13,32 @@ export function govUKErrors(errs) {
   return errors
 }
 
+export function isLocalUrl(url) {
+  if (typeof url !== 'string') {
+    return false
+  }
+  if (!url.startsWith('/')) {
+    return false
+  }
+  if (url.startsWith('//')) {
+    return false
+  }
+  if (url.includes('\\') || /[\x00-\x1F\x7F]/.test(url)) {
+    return false
+  }
+  return true
+}
+
+export function safeReturnUrl(url, defaultUrl) {
+  if (isLocalUrl(url)) {
+    return url
+  }
+  if (isLocalUrl(defaultUrl)) {
+    return defaultUrl
+  }
+  return '/'
+}
+
 export function govApiErrorMsg(err) {
   return err?.response?.body?.message ? err.response.body.message : err.message
 }

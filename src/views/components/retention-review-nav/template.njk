@@ -1,0 +1,31 @@
+{% from "sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set baseUrl = '/trainee-retention-review?' + (params.filterQuery + '&' if params.filterQuery else '') + 'reviewStatus=' %}
+
+{% set items = [
+    {
+        text: 'Needs review',
+        href: baseUrl + 'NeedsReview',
+        active: true if params.active == 'NeedsReview' else false,
+        attributes: { id: 'needs-review' }
+    },{
+        text: 'Reviewed',
+        href: baseUrl + 'Reviewed',
+        active: true if params.active == 'Reviewed' else false,
+        attributes: { id: 'reviewed' }
+    },{
+        text: 'Retained',
+        href: baseUrl + 'Retained',
+        active: true if params.active == 'Retained' else false,
+        attributes: { id: 'retained' }
+    }, {
+        text: 'All',
+        href: baseUrl + 'All',
+        active: true if params.active == 'All' else false,
+        attributes: { id: 'all' }
+    }] %}
+
+{{ mojSubNavigation({
+    label: 'Trainee retention review status',
+    items: items
+}) }}

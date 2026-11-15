@@ -410,13 +410,35 @@ When you push a PR, commit to a PR, or merge to master, a pipeline will run the
 tests - currently the unit tests, the Cucumber (BDD) tests and the WDIO tests.
 The live Okta integration tests are not run in CI (see [Testing](#testing)).
 You can create a test container for use in dev/staging by going to
-Actions/SMarT-UI CI/CD Pipeline in the repo, clicking on Run workflow,
+Actions/Build, test and release in the repo, clicking on Run workflow,
 selecting the correct branch you wish to use, and then checking the
 `Build and push test container to ECR` checkbox. This will build a new
 container to the ECR repository, which you can then use the smart-deploy
 pipeline in Jenkins to deploy to the EKS cluster.
 
 TODO: deploy from within the github workflow.
+
+#### Image signing
+
+Every image the workflow pushes to ECR (master releases and `-TEST` images) is
+signed with [cosign](https://docs.sigstore.dev/cosign/) using keyless
+signing. The signer is the workflow run itself, identified by its GitHub OIDC
+token; there are no signing keys to manage. Signatures are stored in ECR as
+OCI referrers of the image: untagged entries linked to the image they sign.
+Don't delete them by hand.
+
+To verify an image locally (cosign installed, logged in to ECR):
+
+```bash
+cosign verify \
+  --certificate-identity "https://github.com/mcagov/smart-ui/.github/workflows/build-test-release.yml@refs/heads/master" \
+  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+  <account>.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:<version>
+```
+
+For a `-TEST` image, replace `refs/heads/master` with `refs/heads/<branch>`.
+Verification fails for unsigned images and for images signed from a different
+branch.
 
 ### SMarT UI: Overview
 
