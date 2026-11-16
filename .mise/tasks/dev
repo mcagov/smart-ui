@@ -9,22 +9,34 @@ api_livez_url="http://localhost:8080/livez"
 comments_health_url="http://localhost:9082/actuator/health"
 attachments_livez_url="http://localhost:7080/livez"
 local_hostname="service.local.smart.mcga.uk"
+ui_log=smart-ui.log
 
-check_setup() {
+podman_machine_exists() {
+  podman machine inspect >/dev/null 2>&1
+}
+
+podman_machine_is_running() {
+  [[ $(podman machine inspect --format '{{.State}}') == running ]]
+}
+
+aws_profile_exists() {
+  aws configure list-profiles 2>/dev/null | grep -qx "$AWS_PROFILE"
+}
+
+local_hostname_points_to_localhost() {
+  node -e "require('dns').lookup('$local_hostname', (err, address) => process.exit(!err && address === '127.0.0.1' ? 0 : 1))"
+}
+
+is_responding() {
+  curl -sf -o /dev/null "$1"
+}
+
+exit_unless_setup_is_complete() {
   local problems=()
-
-  [[ -f .env ]] ||
-    problems+=("No .env file.")
-
-  aws configure list-profiles 2>/dev/null | grep -qx "$AWS_PROFILE" ||
-    problems+=("No '$AWS_PROFILE' profile in ~/.aws/config.")
-
-  node -e "require('dns').lookup('$local_hostname', (err, address) => process.exit(!err && address === '127.0.0.1' ? 0 : 1))" ||
-    problems+=("$local_hostname doesn't point to 127.0.0.1 in /etc/hosts.")
-
-  if ! podman machine inspect >/dev/null 2>&1; then
-    problems+=("No Podman machine.")
-  fi
+  [[ -f .env ]] || problems+=("No .env file.")
+  aws_profile_exists || problems+=("No '$AWS_PROFILE' profile in ~/.aws/config.")
+  local_hostname_points_to_localhost || problems+=("$local_hostname doesn't point to 127.0.0.1 in /etc/hosts.")
+  podman_machine_exists || problems+=("No Podman machine.")
 
   if ((${#problems[@]})); then
     echo "SMarT can't start until these are fixed:" >&2
@@ -32,16 +44,16 @@ check_setup() {
     echo "Run mise run setup to fix them." >&2
     exit 1
   fi
+}
 
-  if [[ $(podman machine inspect --format '{{.State}}') != running ]]; then
+start_podman_machine_if_stopped() {
+  if ! podman_machine_is_running; then
     echo "Starting the Podman machine..."
     podman machine start
   fi
 }
 
-check_setup
-
-choose_mode() {
+ask_how_to_run_smart() {
   cat <<'MENU'
 How would you like to run SMarT?
 
@@ -70,63 +82,69 @@ MENU
   done
 }
 
-mode=""
-show_logs=false
-for arg in "$@"; do
-  case $arg in
-  ui | api | full) mode=$arg ;;
-  --logs) show_logs=true ;;
-  *)
-    echo "Unknown option '$arg'. Use ui, api or full, and --logs to show SMarT UI's logs here." >&2
-    exit 1
-    ;;
-  esac
-done
-[[ -n $mode ]] || choose_mode
-[[ -n $mode ]] || exit 1
-
-case $mode in
-ui) profiles="default,api" ;;
-api) profiles="default,attachments,comments" ;;
-full) profiles="full" ;;
-esac
-
-all_profiles=$(podman compose config --profiles | paste -sd, -)
-all_services=$(COMPOSE_PROFILES=$all_profiles podman compose config --services | sort)
-wanted_services=$(COMPOSE_PROFILES=$profiles podman compose config --services | sort)
-unwanted_services=$(comm -23 <(echo "$all_services") <(echo "$wanted_services"))
-if [[ -n $unwanted_services ]]; then
-  COMPOSE_PROFILES=$all_profiles podman compose stop $unwanted_services
-fi
-
-export COMPOSE_PROFILES=$profiles
-if [[ $mode == full ]]; then
-  mise run deps
-  npx gulp default
-  mise run services
-else
-  mise run deps ::: services
-fi
-
-if [[ $mode == api ]] && ! curl -sf -o /dev/null "$api_livez_url"; then
-  echo
-  echo "smart-api isn't responding at $api_livez_url."
-  echo "Start it from the smart-api repo with ./gradlew bootRunLocalAuth (LOCAL_AUTH=true) or ./gradlew bootRunNoAuth."
-  echo
-fi
-
-is_up() {
-  curl -sf -o /dev/null "$1"
+read_mode_and_logs_option() {
+  mode=""
+  show_logs=false
+  for arg in "$@"; do
+    case $arg in
+    ui | api | full) mode=$arg ;;
+    --logs) show_logs=true ;;
+    *)
+      echo "Unknown option '$arg'. Use ui, api or full, and --logs to show SMarT UI's logs here." >&2
+      exit 1
+      ;;
+    esac
+  done
+  [[ -n $mode ]] || ask_how_to_run_smart
+  [[ -n $mode ]] || exit 1
 }
 
-print_link_when_ready() {
+compose_profiles_for_mode() {
+  case $mode in
+  ui) echo "default,api" ;;
+  api) echo "default,attachments,comments" ;;
+  full) echo "full" ;;
+  esac
+}
+
+stop_containers_outside_profiles() {
+  local wanted_profiles=$1 all_profiles all_services wanted_services unwanted_services
+  all_profiles=$(podman compose config --profiles | paste -sd, -)
+  all_services=$(COMPOSE_PROFILES=$all_profiles podman compose config --services | sort)
+  wanted_services=$(COMPOSE_PROFILES=$wanted_profiles podman compose config --services | sort)
+  unwanted_services=$(comm -23 <(echo "$all_services") <(echo "$wanted_services"))
+  if [[ -n $unwanted_services ]]; then
+    COMPOSE_PROFILES=$all_profiles podman compose stop $unwanted_services
+  fi
+}
+
+install_dependencies_and_start_containers() {
+  if [[ $mode == full ]]; then
+    mise run deps
+    npx gulp default
+    mise run services
+  else
+    mise run deps ::: services
+  fi
+}
+
+warn_if_local_smart_api_is_not_running() {
+  if ! is_responding "$api_livez_url"; then
+    echo
+    echo "smart-api isn't responding at $api_livez_url."
+    echo "Start it from the smart-api repo with ./gradlew bootRunLocalAuth (LOCAL_AUTH=true) or ./gradlew bootRunNoAuth."
+    echo
+  fi
+}
+
+wait_for_ui_then_print_links_and_api_readiness() {
   until curl -s -o /dev/null "$ui_url"; do sleep 1; done
   printf '\nSMarT UI is ready: %s\nsmart-api health:  %s\n' "$ui_url" "$api_livez_url"
 
   local api_ready=false comments_ready=false attachments_ready=false
-  is_up "$api_livez_url" && api_ready=true
-  is_up "$comments_health_url" && comments_ready=true
-  is_up "$attachments_livez_url" && attachments_ready=true
+  is_responding "$api_livez_url" && api_ready=true
+  is_responding "$comments_health_url" && comments_ready=true
+  is_responding "$attachments_livez_url" && attachments_ready=true
   if $api_ready && $comments_ready && $attachments_ready; then
     printf 'All APIs are ready.\n'
     return
@@ -138,47 +156,79 @@ print_link_when_ready() {
   $attachments_ready && printf 'Attachments API is ready.\n'
   until $api_ready && $comments_ready && $attachments_ready; do
     sleep 1
-    if ! $api_ready && is_up "$api_livez_url"; then
+    if ! $api_ready && is_responding "$api_livez_url"; then
       api_ready=true
       printf 'smart-api is ready.\n'
     fi
-    if ! $comments_ready && is_up "$comments_health_url"; then
+    if ! $comments_ready && is_responding "$comments_health_url"; then
       comments_ready=true
       printf 'Comments API is ready.\n'
     fi
-    if ! $attachments_ready && is_up "$attachments_livez_url"; then
+    if ! $attachments_ready && is_responding "$attachments_livez_url"; then
       attachments_ready=true
       printf 'Attachments API is ready.\n'
     fi
   done
 }
-if [[ $mode == full ]]; then
-  print_link_when_ready
-  if $show_logs; then
-    exec podman compose logs -f smart-ui
-  fi
+
+follow_smart_ui_container_logs() {
+  exec podman compose logs -f smart-ui
+}
+
+print_how_to_follow_logs_and_stop() {
   printf '\nEverything is running in the background.\n'
   printf 'Follow the logs: mise run logs (or mise run logs smart-ui)\n'
   printf 'Stop everything: mise run down\n'
-  exit
-fi
+}
 
-print_link_when_ready &
-link_waiter=$!
-trap 'kill $link_waiter 2>/dev/null || true' EXIT
-
-if $show_logs; then
+run_smart_ui_with_logs_in_terminal() {
   npm start
-  exit
-fi
+}
 
-ui_log=smart-ui.log
-printf "\nSMarT UI is starting. Its logs go to %s: follow them with mise run ui-logs.\n" "$ui_log"
-printf 'Ctrl+C stops SMarT UI. The containers keep running.\n'
-status=0
-npm start >"$ui_log" 2>&1 || status=$?
-if ((status != 0 && status != 130)); then
-  echo "SMarT UI stopped with an error. The end of $ui_log:" >&2
-  tail -n 20 "$ui_log" >&2
+run_smart_ui_with_logs_in_file() {
+  printf "\nSMarT UI is starting. Its logs go to %s: follow them with mise run ui-logs.\n" "$ui_log"
+  printf 'Ctrl+C stops SMarT UI. The containers keep running.\n'
+  local status=0
+  npm start >"$ui_log" 2>&1 || status=$?
+  if ((status != 0 && status != 130)); then
+    echo "SMarT UI stopped with an error. The end of $ui_log:" >&2
+    tail -n 20 "$ui_log" >&2
+  fi
+  return $status
+}
+
+run_everything_in_containers() {
+  wait_for_ui_then_print_links_and_api_readiness
+  if $show_logs; then
+    follow_smart_ui_container_logs
+  fi
+  print_how_to_follow_logs_and_stop
+}
+
+run_smart_ui_on_this_machine() {
+  wait_for_ui_then_print_links_and_api_readiness &
+  local readiness_waiter=$!
+  trap "kill $readiness_waiter 2>/dev/null || true" EXIT
+
+  if $show_logs; then
+    run_smart_ui_with_logs_in_terminal
+  else
+    run_smart_ui_with_logs_in_file
+  fi
+}
+
+exit_unless_setup_is_complete
+start_podman_machine_if_stopped
+read_mode_and_logs_option "$@"
+profiles=$(compose_profiles_for_mode)
+stop_containers_outside_profiles "$profiles"
+export COMPOSE_PROFILES=$profiles
+install_dependencies_and_start_containers
+if [[ $mode == api ]]; then
+  warn_if_local_smart_api_is_not_running
 fi
-exit $status
+if [[ $mode == full ]]; then
+  run_everything_in_containers
+else
+  run_smart_ui_on_this_machine
+fi
