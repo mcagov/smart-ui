@@ -140,35 +140,28 @@ warn_if_local_smart_api_is_not_running() {
 wait_for_ui_then_print_links_and_api_readiness() {
   until curl -s -o /dev/null "$ui_url"; do sleep 1; done
   printf '\nSMarT UI is ready: %s\nsmart-api health:  %s\n' "$ui_url" "$api_livez_url"
+  wait_for_each_api_and_count_it_in
+}
 
-  local api_ready=false comments_ready=false attachments_ready=false
-  is_responding "$api_livez_url" && api_ready=true
-  is_responding "$comments_health_url" && comments_ready=true
-  is_responding "$attachments_livez_url" && attachments_ready=true
-  if $api_ready && $comments_ready && $attachments_ready; then
-    printf 'All APIs are ready.\n'
-    return
-  fi
+wait_for_each_api_and_count_it_in() {
+  local api_names=("smart-api" "Comments API" "Attachments API")
+  local api_urls=("$api_livez_url" "$comments_health_url" "$attachments_livez_url")
+  local total=${#api_names[@]} ready_count=0 ready_apis=() i
 
-  printf 'APIs are still starting (usually under a minute)...\n'
-  $api_ready && printf 'smart-api is ready.\n'
-  $comments_ready && printf 'Comments API is ready.\n'
-  $attachments_ready && printf 'Attachments API is ready.\n'
-  until $api_ready && $comments_ready && $attachments_ready; do
-    sleep 1
-    if ! $api_ready && is_responding "$api_livez_url"; then
-      api_ready=true
-      printf 'smart-api is ready.\n'
-    fi
-    if ! $comments_ready && is_responding "$comments_health_url"; then
-      comments_ready=true
-      printf 'Comments API is ready.\n'
-    fi
-    if ! $attachments_ready && is_responding "$attachments_livez_url"; then
-      attachments_ready=true
-      printf 'Attachments API is ready.\n'
+  printf '%d APIs starting up...\n' "$total"
+  while ((ready_count < total)); do
+    for i in "${!api_names[@]}"; do
+      if [[ -z ${ready_apis[i]:-} ]] && is_responding "${api_urls[i]}"; then
+        ready_apis[i]=yes
+        ready_count=$((ready_count + 1))
+        printf '%d/%d %s is ready.\n' "$ready_count" "$total" "${api_names[i]}"
+      fi
+    done
+    if ((ready_count < total)); then
+      sleep 1
     fi
   done
+  printf 'All %d APIs are ready.\n' "$total"
 }
 
 follow_smart_ui_container_logs() {

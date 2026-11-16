@@ -82,9 +82,18 @@ with Ctrl+C. Stopping it leaves the containers running.
 The first run takes longer: it installs the npm dependencies and downloads
 several GB of container images. Later runs reuse both.
 
-The APIs often take up to a minute longer to start than the UI. If any are
-still starting, you'll see a message saying so, then `smart-api is ready.`,
-`Comments API is ready.` and `Attachments API is ready.` as each one comes up.
+The APIs often take up to a minute longer to start than the UI. Once the UI is
+ready, you'll see how many APIs are starting, then a count as each one comes
+up, in whatever order they're ready:
+
+```text
+3 APIs starting up...
+1/3 Comments API is ready.
+2/3 smart-api is ready.
+3/3 Attachments API is ready.
+All 3 APIs are ready.
+```
+
 The parts of the UI that use an API won't work until it's ready.
 
 ### Logs
