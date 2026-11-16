@@ -274,6 +274,19 @@ The containers always run in the background. In options 1 and 2 the terminal
 is only taken up by SMarT UI itself, so you get hot reloading and can stop it
 with Ctrl+C. Stopping it leaves the containers running.
 
+SMarT UI's logs don't show in the terminal. In options 1 and 2 they go to
+`smart-ui.log`, which is replaced on every run. Follow them from another
+terminal with:
+
+```shell
+mise run ui-logs
+```
+
+If SMarT UI stops with an error, `mise run dev` prints the end of the log.
+To see the logs in the terminal instead, add `--logs`, for example
+`mise run dev ui --logs`. With option 3, `--logs` follows the `smart-ui`
+container's logs once everything is ready.
+
 The first run takes longer: it installs the npm dependencies and downloads
 several GB of container images. Later runs reuse both.
 

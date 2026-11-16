@@ -70,15 +70,19 @@ MENU
   done
 }
 
-mode="${1:-}"
-case $mode in
-ui | api | full) ;;
-"") choose_mode ;;
-*)
-  echo "Unknown mode '$mode'. Use ui, api or full." >&2
-  exit 1
-  ;;
-esac
+mode=""
+show_logs=false
+for arg in "$@"; do
+  case $arg in
+  ui | api | full) mode=$arg ;;
+  --logs) show_logs=true ;;
+  *)
+    echo "Unknown option '$arg'. Use ui, api or full, and --logs to show SMarT UI's logs here." >&2
+    exit 1
+    ;;
+  esac
+done
+[[ -n $mode ]] || choose_mode
 [[ -n $mode ]] || exit 1
 
 case $mode in
@@ -150,6 +154,9 @@ print_link_when_ready() {
 }
 if [[ $mode == full ]]; then
   print_link_when_ready
+  if $show_logs; then
+    exec podman compose logs -f smart-ui
+  fi
   printf '\nEverything is running in the background.\n'
   printf 'Follow the logs: mise run logs (or mise run logs smart-ui)\n'
   printf 'Stop everything: mise run down\n'
@@ -160,4 +167,18 @@ print_link_when_ready &
 link_waiter=$!
 trap 'kill $link_waiter 2>/dev/null || true' EXIT
 
-npm start
+if $show_logs; then
+  npm start
+  exit
+fi
+
+ui_log=smart-ui.log
+printf "\nSMarT UI is starting. Its logs go to %s: follow them with mise run ui-logs.\n" "$ui_log"
+printf 'Ctrl+C stops SMarT UI. The containers keep running.\n'
+status=0
+npm start >"$ui_log" 2>&1 || status=$?
+if ((status != 0 && status != 130)); then
+  echo "SMarT UI stopped with an error. The end of $ui_log:" >&2
+  tail -n 20 "$ui_log" >&2
+fi
+exit $status

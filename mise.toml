@@ -34,6 +34,10 @@ run = ["npm run ecr:login", "podman compose up -d"]
 description = "Follow the containers' logs: all of them, or name services (mise run logs smart-ui)"
 run = "COMPOSE_PROFILES=$(podman compose config --profiles | paste -sd, -) podman compose logs -f"
 
+[tasks.ui-logs]
+description = "Follow the logs of SMarT UI started by mise run dev ui or api"
+run = "tail -n 50 -F smart-ui.log"
+
 [tasks.down]
 description = "Stop the backing services, keeping their containers and data"
 run = "COMPOSE_PROFILES=$(podman compose config --profiles | paste -sd, -) podman compose stop"
