@@ -148,12 +148,16 @@ print_link_when_ready() {
     fi
   done
 }
+if [[ $mode == full ]]; then
+  print_link_when_ready
+  printf '\nEverything is running in the background.\n'
+  printf 'Follow the logs: mise run logs (or mise run logs smart-ui)\n'
+  printf 'Stop everything: mise run down\n'
+  exit
+fi
+
 print_link_when_ready &
 link_waiter=$!
 trap 'kill $link_waiter 2>/dev/null || true' EXIT
 
-if [[ $mode == full ]]; then
-  podman compose logs -f smart-ui
-else
-  npm start
-fi
+npm start

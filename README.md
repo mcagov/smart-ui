@@ -266,8 +266,13 @@ Then it:
 5. Runs SMarT UI, then once it's answering prints its link
    (`http://localhost:2997`) and smart-api's health check
    (`http://localhost:8080/livez`). Cmd+click a link to open it, or
-   Shift+click if you use tmux with mouse mode on. For option 3, it follows the
-   `smart-ui` container's logs instead of running SMarT UI on your machine.
+   Shift+click if you use tmux with mouse mode on. For option 3, SMarT UI runs
+   in its container instead, so `mise run dev` waits until the UI and the APIs
+   are ready, then hands your terminal back.
+
+The containers always run in the background. In options 1 and 2 the terminal
+is only taken up by SMarT UI itself, so you get hot reloading and can stop it
+with Ctrl+C. Stopping it leaves the containers running.
 
 The first run takes longer: it installs the npm dependencies and downloads
 several GB of container images. Later runs reuse both.
@@ -296,7 +301,14 @@ mise run clean
 
 Pulled images are kept, so the next `mise run dev` doesn't download them again.
 
-Use `podman compose logs -f` to follow the backing services' logs.
+Follow the containers' logs, either all of them or only the services you name:
+
+```shell
+mise run logs
+mise run logs smart-ui smart-api
+```
+
+Ctrl+C stops following the logs. The containers keep running.
 
 #### Running the steps by hand
 
@@ -307,7 +319,7 @@ aws sso login
 npm run ca:setup
 npm install
 npm run ecr:login
-podman compose up
+podman compose up -d
 npm start
 ```
 
