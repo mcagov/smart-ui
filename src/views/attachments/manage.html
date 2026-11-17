@@ -10,7 +10,7 @@
         <h1 class="govuk-heading-l">{{ titleText }}</h1>
         {% block uploads %}
             {% for type in attachmentTypes %}
-                <h2 class="govuk-heading-m uksr-!-required ">{{ type.description }}</h2>
+                <h2 class="govuk-heading-m">{{ type.description }}</h2>
                 <div class="govuk-summary-list">
                     <dl>
                     {% for attachment in attachments.data | where ("fileType", type.fileType) %}
