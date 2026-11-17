@@ -9,7 +9,7 @@ function loginToEcr() {
   const region = process.env.AWS_REGION || 'eu-west-2';
   const registry = `${accountId}.dkr.ecr.${region}.amazonaws.com`;
 
-  const dockerConfigDir = join(homedir(), '.docker');
+  const dockerConfigDir = process.env.DOCKER_CONFIG || join(homedir(), '.docker');
   const authFile = join(dockerConfigDir, 'config.json');
 
   try {

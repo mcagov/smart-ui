@@ -39,169 +39,89 @@ This project uses [nunjucks](https://mozilla.github.io/nunjucks/) for its view t
 
 ## Local development
 
-### Required software
+These instructions assume you're on the SMarT team and already have access to:
 
-You will need [Podman](https://podman.io/) and [Docker Compose](https://docs.docker.com/compose/) installed. Please don't use Docker Desktop: it needs a paid licence for enterprise use. Podman and the standalone Docker Compose binary are both free and open source.
+- the smart-dev AWS account through SSO, with the `SMarTSupportAccess` role
+- the SMarT 1Password vault
 
-#### Podman setup (macOS)
+Without these, the private packages, container images and configuration this
+app needs won't be available.
 
-If Docker Desktop is installed, uninstall it first so the two don't conflict.
+SMarT runs on [mise-en-place](https://mise.jdx.dev/), [Podman](https://podman.io/)
+and [Docker Compose](https://docs.docker.com/compose/). Please don't use Docker
+Desktop: it needs a paid licence for enterprise use. If it's installed,
+uninstall it first so it doesn't conflict with Podman.
 
-Install Podman and Docker Compose:
+### Setup
 
-```shell
-brew install podman docker-compose
-```
-
-**On Apple Silicon Macs, turn on Rosetta before creating the machine.** Our ECR
-images (Redis, the APIs and the databases) are built for Intel (`amd64`) only.
-Podman turns Rosetta off by default, so without this step those images run
-under QEMU emulation instead:
-
-1. Make sure Rosetta is installed on your Mac:
+1. On Apple Silicon Macs, install Rosetta. It may ask for your Mac password:
 
    ```shell
    softwareupdate --install-rosetta --agree-to-license
    ```
 
-2. Add the following to `~/.config/containers/containers.conf`, creating the
-file if it doesn't exist:
+2. With [Homebrew](https://brew.sh/) installed, install mise and clone the repo:
 
-   ```toml
-   [machine]
-   rosetta = true
+   ```shell
+   brew install mise
+   git clone https://github.com/mcagov/smart-ui.git
+   cd smart-ui
    ```
 
-This only takes effect when a machine is created. If you already have a Podman
-machine, recreate it with `podman machine stop && podman machine rm`, then
-follow the next step. Recreating the machine deletes its pulled images and volumes.
+3. Create your `.env`, then fill it in with the values in "SMarT-UI .env
+   contents", inside the SMarT 1Password vault. Click 'EDIT' before you copy,
+   or the hashtags won't copy:
 
-Create and start the Podman virtual machine:
+   ```shell
+   cp .env.example .env
+   ```
 
-```shell
-podman machine init --rootful --cpus 4 --memory 8192
-podman machine start
-```
+4. Run the setup. If it ends with a "Still to do" list, do those, then run it
+   again:
 
-- `--rootful` lets nginx bind ports 80 and 443.
-- The backing services are memory hungry, so we need to use at least 8GB of ram.
-
-Check it's working:
-
-```shell
-podman compose version
-```
-
-On Apple Silicon, also check Rosetta is active. The first command should print `true`, and the second should list a `rosetta` entry:
-
-```shell
-podman machine inspect --format '{{.Rosetta}}'
-podman machine ssh ls /proc/sys/fs/binfmt_misc/
-```
-
-`podman compose` runs the `docker-compose` binary you installed against Podman,
-so the existing `docker-compose.yaml` works without changes. If you see a
-message about `podman-compose` instead, check that `docker-compose` is on your
-`PATH`.
-
-`podman compose` prints `>>>> Executing external compose provider ... <<<<` before every command. To hide it, add this to `~/.config/containers/containers.conf`:
-
-```toml
-[engine]
-compose_warning_logs = false
-```
-
-The rest of this documentation will assume you are using:
-
-- [mise-en-place](https://mise.jdx.dev/) to manage the required software (see the `mise.toml` if you want to manage them some other way).
-- [direnv](https://direnv.net/) to manage your shell environment.
-
-### Configuration
-
-Copy `.env.example` as `.env` and replace the placeholders with variables found within the contents of the "SMarT-UI .env contents", inside the SMarT 1Password Vault. Ensure you click 'EDIT' before you copy or else the hashtags won't copy as required. 
-
-Copy `.envrc.example` as `.envrc`, replace the placeholders, then allow direnv
-to load it:
-
-```shell
-direnv allow
-```
-
-Check it's loaded with `echo $AWS_PROFILE $AWS_ACCOUNT_NUMBER`. If you see
-nothing, check that direnv is hooked into your shell
-(for zsh, `eval "$(direnv hook zsh)"` in `~/.zshrc`).
-
-Add the following to your `/etc/hosts` file
-
-```text
-# SMarT UI
-127.0.0.1 service.local.smart.mcga.uk
-```
-
-Add the following to your `~/.aws/config` file
-
-```text
-[profile smart-dev-support]
-sso_start_url=https://mcaconsole.awsapps.com/start/#
-sso_region=eu-west-2
-sso_account_id=<smart_dev_aws_account_number_as_found_for_smart_dev_account_in_the_aws_console>
-sso_role_name=SMarTSupportAccess
-region=eu-west-2
-output=json
-```
-
-### AWS login
-
-Log into AWS using:
-```shell
-aws sso login --profile=smart-dev-support
-```
-
-... and follow the steps that your default browser automatically shows.
-
-Check it worked with `aws sts get-caller-identity`, which should show the
-smart-dev account.
-
-### Install dependencies
-
-Before you install the dependencies you need to be logged into the CodeArtifact
-repo, which you can do by running the following command:
-```shell
-npm run ca:setup
-```
-
-Then you can run the standard node dependency install command:
-```shell
-npm install
-```
+   ```shell
+   mise trust
+   mise run setup
+   ```
 
 ### Run the application
 
-#### Run the backing services with Podman
+1. Start SMarT, and choose how to run it when asked. Option 1, Local UI dev, is
+   the usual choice. The first run takes a while, as it downloads several GB of
+   container images:
 
-Log into AWS Elastic Container Registry if the images need to be pulled:
+   ```shell
+   mise run dev
+   ```
 
-```shell
-npm run ecr:login
-```
+2. Browse to `http://localhost:2997`. Not `http://service.local.smart.mcga.uk`:
+   sign-in fails there, because the app's security policy upgrades requests to
+   HTTPS on any host other than localhost.
 
-Run the backing services:
+3. When you've finished, stop SMarT UI with Ctrl+C, then stop the containers:
 
-```shell
-podman compose up
-```
+   ```shell
+   mise run down
+   ```
 
-#### Run SMarT UI
+### Mise Tasks
 
-```shell
-npm start
-```
+A quick rundown of the available `mise` tasks that are available.
 
-The service will be available at `http://localhost:2997/`
+| Task | What it does |
+|---|---|
+| `mise run setup` | Installs and configures everything SMarT needs to run locally |
+| `mise run dev` | Checks your setup, starts the backing services and runs SMarT UI |
+| `mise run ui-logs` | Follows SMarT UI's logs (options 1 and 2) |
+| `mise run logs` | Follows the containers' logs: all of them, or the services you name |
+| `mise run down` | Stops the containers, keeping their data |
+| `mise run clean` | Removes this project's containers and volumes, including the database data |
+| `mise run aws-login` | Logs into AWS SSO if your session has expired |
+| `mise run deps` | Refreshes the CodeArtifact token and runs `npm install` when the lockfile changes |
+| `mise run services` | Logs Podman into ECR and starts the backing services |
 
-All certificates required for Redis to run locally with TLS are generated by
-a container (`cert-gen`), and saved into your local repo. This folder is
-ignored by git but required for running locally, so please so not remove it.
+For what the setup and `mise run dev` do in detail, the `--logs` option and
+doing the setup by hand, see [.mise/README.md](.mise/README.md).
 
 ### Run SMarT UI with your locally running SMarT API
 
@@ -213,15 +133,14 @@ well with `./gradlew bootRunNoAuth`, or `./gradlew bootRunLocalAuth` to match
 `LOCAL_AUTH=true`. Check it's up at `http://localhost:8080/livez`. If the UI
 reports `connect ECONNREFUSED 127.0.0.1:8080`, the API isn't running.
 
-Change `COMPOSE_PROFILES` in your `.env` file to `COMPOSE_PROFILES=default,attachments,comments`.
-
-[Run the application](#run-the-application).
+Then [run the application](#run-the-application) and choose option 2,
+Local API dev. It warns you if the API isn't answering yet.
 
 ### Run SMarT UI with Azure B2C authentication
 
-Ensure your `COMPOSE_PROFILES` in your `.env` is set to `COMPOSE_PROFILES=default,attachments,comments`
+Run the application with option 2, Local API dev (`mise run dev api`).
 
-Then make sure the following are set in the `.env` file too...
+Make sure the following are set in the `.env` file too...
 
 ```shell
 NODE_ENV=dev
