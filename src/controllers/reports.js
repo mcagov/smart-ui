@@ -123,7 +123,7 @@ export function downloadReport () {
       }
 
       const accessToken = getAccessToken(req)
-      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${reportType}/download`)
+      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${encodeURIComponent(reportType)}/download`)
 
       logger.info(`Getting presigned URL for ${reportType}: ${apiUrl}`, { reportParams })
 
@@ -321,7 +321,7 @@ export function checkReportExists() {
       const { reportParams } = req.query
 
       const accessToken = getAccessToken(req)
-      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${req.params.reportType}`)
+      const apiUrl = urlJoin(config.endpoints.api, `/v1/reports/${encodeURIComponent(req.params.reportType)}`)
       const queryParams = new URLSearchParams()
       if (Array.isArray(reportParams)) {
         reportParams.forEach(param => queryParams.append('reportParams', param))

@@ -22,7 +22,7 @@ class Claims extends WebService {
 
   updateStatus(accessToken, trainingProvider, year, period, status) {
     return agent
-      .post(`${this._getUrl(trainingProvider, year, period)}/${status}`)
+      .post(this.urlFor(trainingProvider, year, period, status))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => {
         return data.body
@@ -32,7 +32,7 @@ class Claims extends WebService {
   getFinancialYear(accessToken, trainingProvider, year) {
     return (
       agent
-        .get(this.url + `/${trainingProvider}/${year}`)
+        .get(this.urlFor(trainingProvider, year))
         .set('Authorization', `Bearer ${accessToken}`)
         // .query({ trainingProviderId: trainingProvider })
         .then((data) => {
@@ -109,7 +109,7 @@ class Claims extends WebService {
 
   getTraineesWithClaims(accessToken, trainingProvider) {
     return agent
-      .get(`${this.url}/${trainingProvider}/trainees-with-claims`)
+      .get(this.urlFor(trainingProvider, 'trainees-with-claims'))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => {
         return data.body
@@ -118,7 +118,7 @@ class Claims extends WebService {
 
   getBcTraineesDropDown(accessToken, trainingProvider) {
     return agent
-      .get(`${this.url}/${trainingProvider}/bc-trainees-drop-down`)
+      .get(this.urlFor(trainingProvider, 'bc-trainees-drop-down'))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => {
         return data.body
@@ -127,7 +127,7 @@ class Claims extends WebService {
 
   getBcTrainingDropDown(accessToken, trainingProvider) {
     return agent
-      .get(`${this.url}/${trainingProvider}/bc-training-drop-down`)
+      .get(this.urlFor(trainingProvider, 'bc-training-drop-down'))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => {
         return data.body
@@ -136,7 +136,7 @@ class Claims extends WebService {
 
   getTraineeClaims(accessToken, trainingProvider, trainee) {
     return agent
-      .get(`${this.url}/${trainingProvider}/trainee-claims/${trainee}`)
+      .get(this.urlFor(trainingProvider, 'trainee-claims', trainee))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => {
         return data.body
@@ -160,7 +160,7 @@ class Claims extends WebService {
   }
 
   _getUrl(trainingProvider, year, period) {
-    return this.url + `/${trainingProvider}/${year}/${period}`
+    return this.urlFor(trainingProvider, year, period)
   }
 }
 

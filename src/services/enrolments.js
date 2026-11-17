@@ -33,7 +33,7 @@ class Enrolments extends WebService {
 
   adminUpdate(accessToken, id, item) {
     return agent
-      .put(this.url + '/' + id + '/adminUpdate')
+      .put(this.urlFor(id, 'adminUpdate'))
       .set('Authorization', `Bearer ${accessToken}`)
       .set('Accept', 'application/json')
       .send(item)
@@ -44,7 +44,7 @@ class Enrolments extends WebService {
 
   updateStatus(accessToken, id, status) {
     return agent
-      .put(this.url + '/' + id + '/status/' + status)
+      .put(this.urlFor(id, 'status', status))
       .set('Authorization', `Bearer ${accessToken}`)
       .set('Accept', 'application/json')
       .then((data) => {
@@ -54,7 +54,7 @@ class Enrolments extends WebService {
 
   reactivate(accessToken, id) {
     return agent
-      .post(this.url + '/' + id + '/reactivate')
+      .post(this.urlFor(id, 'reactivate'))
       .set('Authorization', `Bearer ${accessToken}`)
       .set('Accept', 'application/json')
       .then((data) => {
@@ -64,7 +64,7 @@ class Enrolments extends WebService {
 
   rejectTransfer(accessToken, id) {
     return agent
-      .post(this.url + '/' + id + '/rejectTransfer')
+      .post(this.urlFor(id, 'rejectTransfer'))
       .set('Authorization', `Bearer ${accessToken}`)
       .set('Accept', 'application/json')
       .then((data) => {
