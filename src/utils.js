@@ -274,7 +274,6 @@ export function hoursAsMS(hours) {
 
 export function getDomain() {
   // TODO extract this from the requestgro
-  // https://ukshipregister.local.mcga.uk/
   switch (process.env.NODE_ENV || 'local') {
     case 'local':
       return 'localhost'
