@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { contains, isBlank, isLocalUrl, isNotBlank } from '../src/utils'
+import { contains, isBlank, isLeaveStatus, isLocalUrl, isNotBlank, isReactivateStatus } from '../src/utils'
 dotenv.config()
 
 describe('test utils', () => {
@@ -69,5 +69,28 @@ describe('test utils', () => {
     ['/trainees\x7F', false]
   ])('check isLocalUrl(%p) = %s', (url, result) => {
     expect(isLocalUrl(url)).toBe(result)
+  })
+
+  it.each([
+    ['Left', true],
+    ['LeaveOfAbsence', true],
+    ['Deceased', true],
+    ['Transferred', true],
+    ['ChangingCourse', true],
+    ['Active', false],
+    ['Completed', false],
+    ['Transferring', false]
+  ])('check isLeaveStatus(%s) = %s', (status, result) => {
+    expect(isLeaveStatus(status)).toBe(result)
+  })
+
+  it.each([
+    ['Completed', true],
+    ['ChangingCourse', true],
+    ['Left', true],
+    ['Active', false],
+    ['Transferring', false]
+  ])('check isReactivateStatus(%s) = %s', (status, result) => {
+    expect(isReactivateStatus(status)).toBe(result)
   })
 })
