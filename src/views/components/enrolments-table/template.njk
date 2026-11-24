@@ -39,7 +39,7 @@
         { html: tableLink},
         { text: tableWeekCount + ' w', format: "numeric"},
         { text: govukTag({
-            text: item.status,
+            text: item.status | enrolmentStatusLabel,
             classes: item.status | getStatusCssClass
         }) }
     ]| cleanList), rows) %}

@@ -98,7 +98,7 @@
                     } if enrolment.status not in ['Migrated', 'Transferred', 'Transferring', 'Transferred_in'],
                     {
                         key: { text: "Status" },
-                        value: { text: govukTag({  text: enrolment.status, classes: enrolment.status | getStatusCssClass }) }
+                        value: { text: govukTag({  text: enrolment.status | enrolmentStatusLabel, classes: enrolment.status | getStatusCssClass }) }
                     } if enrolment.status in ['Migrated', 'Transferred', 'Transferring', 'Transferred_in']
                 ] | cleanList
             }) }}

@@ -37,7 +37,7 @@
                     },
                     {
                         key: { text: "Current Status" },
-                        value: { text: govukTag({  text: enrolment.status, classes: enrolment.status | getStatusCssClass }) }
+                        value: { text: govukTag({  text: enrolment.status | enrolmentStatusLabel, classes: enrolment.status | getStatusCssClass }) }
                     },
                     {
                         key: { text: "New Status" },

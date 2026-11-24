@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { contains, isBlank, isLeaveStatus, isLocalUrl, isNotBlank, isReactivateStatus } from '../src/utils'
+import { contains, enrolmentStatusLabel, isBlank, isLeaveStatus, isLocalUrl, isNotBlank, isReactivateStatus } from '../src/utils'
 dotenv.config()
 
 describe('test utils', () => {
@@ -92,5 +92,17 @@ describe('test utils', () => {
     ['Transferring', false]
   ])('check isReactivateStatus(%s) = %s', (status, result) => {
     expect(isReactivateStatus(status)).toBe(result)
+  })
+
+  it.each([
+    ['ChangingCourse', 'Changing Course'],
+    ['LeaveOfAbsence', 'Leave of absence'],
+    ['Ill_health', 'Ill health'],
+    ['Transferred_in', 'Transferred in'],
+    ['Active', 'Active'],
+    ['Resigned', 'Resigned'],
+    [undefined, undefined]
+  ])('check enrolmentStatusLabel(%s) = %s', (status, label) => {
+    expect(enrolmentStatusLabel(status)).toBe(label)
   })
 })

@@ -13,7 +13,7 @@
         <p class="govuk-body">
             Are you sure you want to change the status of the <strong>{{enrolment.training.trainingItem.description}}</strong> enrolment for the trainee
             <strong>{{enrolment.trainee.contactName if enrolment.trainee.contactName else enrolment.trainee.matsuNumber}}</strong>
-            from <strong>{{enrolment.status}}</strong> to  <strong>{{updated.status}}</strong>?</p>
+            from <strong>{{enrolment.status | enrolmentStatusLabel}}</strong> to  <strong>{{updated.status | enrolmentStatusLabel}}</strong>?</p>
         <p class="govuk-body">
             Please contact the Administering Body or MCA if you have further queries or are unsure on how to proceed.
         </p>

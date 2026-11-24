@@ -14,6 +14,7 @@ import {
   dateNotPassed,
   isLeaveStatus,
   isReactivateStatus,
+  enrolmentStatusLabel,
   isTransferring,
   isSmart1,
   getDurationInWeeks,
@@ -525,6 +526,7 @@ function configureNunjucks(app) {
   env.addFilter('isFalseOrNotSet', isFalseOrNotSet)
   env.addFilter('isLeaveStatus', isLeaveStatus)
   env.addFilter('isReactivateStatus', isReactivateStatus)
+  env.addFilter('enrolmentStatusLabel', enrolmentStatusLabel)
   env.addFilter('isTransferring', isTransferring)
   env.addFilter('isSmart1', isSmart1)
 
