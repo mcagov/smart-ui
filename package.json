@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clear-test-outputs": "rm -rf reports && rm -rf wdio-output",
-    "lint": "standard src/**/*.js",
+    "lint": "eslint src --ext .js,.mjs",
     "start": "gulp default && nodemon ./src/bin/www",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --forceExit",
     "test-without-coverage": "npm run test -- --coverage=false",
@@ -24,13 +24,6 @@
     "test:wdio-chrome": "wdio run test/wdio-chrome.conf.js",
     "test:wdio-debug": "wdio run test/wdio-chrome.conf.js --suite debug",
     "test:wdio-headless": "wdio run test/wdio-headless.conf.js"
-  },
-  "standard": {
-    "ignore": [
-      "src/public/",
-      "src/bin/",
-      "test/"
-    ]
   },
   "dependencies": {
     "@mca/common-logger": "^2.0.7",
