@@ -6,6 +6,7 @@
         { value: "Left", text: "Left" },
         { value: "LeaveOfAbsence", text: "Leave of absence" },
         { value: "Deceased", text: "Deceased" },
+        { value: "ChangingCourse", text: "Changing Course" },
         { value: "Transferring", text: "Transferring to another TP" },
         { value: "Deactivated", text: "Deactivated (Legacy)" },
         { value: "Dismissed", text: "Dismissed (Legacy)" },
@@ -23,6 +24,7 @@
         { value: "Left", text: "Left" },
         { value: "LeaveOfAbsence", text: "Leave of absence" },
         { value: "Deceased", text: "Deceased" },
+        { value: "ChangingCourse", text: "Changing Course" },
         { value: "Transferring", text: "Transferring" },
         { value: "Deactivated", text: "Deactivated" },
         { value: "Dismissed", text: "Dismissed" },
@@ -37,7 +39,8 @@
         { value: "Left", text: "Left" },
         { value: "LeaveOfAbsence", text: "Leave of absence" },
         { value: "Transferred", text: "Transferred" },
-        { value: "Deceased", text: "Deceased" }
+        { value: "Deceased", text: "Deceased" },
+        { value: "ChangingCourse", text: "Changing Course" }
     ] | selectValue(params.value) %}
     {% from "select/macro.njk" import govukSelect %}
     {{ govukSelect({
@@ -54,6 +57,7 @@
         { value: "Left", text: "Left" },
         { value: "LeaveOfAbsence", text: "Leave of absence" },
         { value: "Deceased", text: "Deceased" },
+        { value: "ChangingCourse", text: "Changing Course" },
         { value: "Transferring", text: "Transferring to another TP" }
     ] | selectValue(params.value) %}
     {% from "select/macro.njk" import govukSelect %}

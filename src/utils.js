@@ -332,9 +332,19 @@ export function parseDate(field, body) {
   return moment([year, month - 1, day])
 }
 
-export const leaveStatus = ['Left', 'LeaveOfAbsence', 'Deceased', 'Transferred']
+export const leaveStatus = ['Left', 'LeaveOfAbsence', 'Deceased', 'Transferred', 'ChangingCourse']
 export function isLeaveStatus(status) {
   return leaveStatus.includes(status)
+}
+
+const enrolmentStatusLabels = {
+  LeaveOfAbsence: 'Leave of absence',
+  Ill_health: 'Ill health',
+  Transferred_in: 'Transferred in',
+  ChangingCourse: 'Changing Course'
+}
+export function enrolmentStatusLabel(status) {
+  return enrolmentStatusLabels[status] ?? status
 }
 
 export const reactivateStatus = ['Completed', ...leaveStatus]
