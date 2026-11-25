@@ -67,6 +67,7 @@ app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send('User-agent: *\nDisallow: /\n')
 })
 app.locals.googleId = process.env.GOOGLE_ID
+app.set('trust proxy', 1)
 initialiseSession(app)
 
 const jqueryPath = require.resolve('jquery/package.json')

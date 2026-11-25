@@ -57,7 +57,7 @@ export function initialiseSession (app) {
       secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
-      cookie: { maxAge: 86400000 }
+      cookie: { maxAge: 86400000, secure: 'auto' }
     }))
 
     return redisClient
@@ -66,7 +66,8 @@ export function initialiseSession (app) {
     app.use(session({
       secret: process.env.SESSION_SECRET,
       resave: false,
-      saveUninitialized: false
+      saveUninitialized: false,
+      cookie: { secure: 'auto' }
     }))
   }
 }
