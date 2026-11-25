@@ -55,7 +55,11 @@ MCGAFrontend.SortableTable.prototype.getButtonId = function (sortName) {
 
 MCGAFrontend.SortableTable.prototype.createHeadingButton = function (heading, i, sortName) {
   const text = heading.text()
-  const button = $('<button id="' + this.getButtonId(sortName) + '"type="button" data-index="' + i + '">' + text + '<span aria-hidden="true"></span></button>')
+  const button = $('<button type="button"></button>')
+    .attr('id', this.getButtonId(sortName))
+    .attr('data-index', i)
+    .text(text)
+    .append('<span aria-hidden="true"></span>')
   heading.text('')
   heading.append(button)
 }
