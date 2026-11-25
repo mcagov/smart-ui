@@ -51,7 +51,7 @@ href: "/"
       e.preventDefault();
       const selectedReport = reportTypeSelect.value;
       if (selectedReport) {
-        window.location.href = '/reports/' + selectedReport;
+        window.location.href = '/reports/' + encodeURIComponent(selectedReport);
       }
     });
   })();
