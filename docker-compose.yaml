@@ -47,7 +47,7 @@ services:
     memswap_limit: 4g
 
   smart-api:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.11-trainee-retention-backend
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-api:1.0.72
     ports:
       - "8080:8080"
       - "8082:8082"
@@ -114,7 +114,7 @@ services:
     memswap_limit: 1g
 
   smart-comments-api:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-api:1.0.46
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-comments-api:1.0.9
     ports:
       - "${COMMENTS_API_PORT-9080}:8080"
       - "${COMMENTS_API_MANAGEMENT_PORT-9082}:8082"
@@ -180,7 +180,7 @@ services:
     memswap_limit: 1g
 
   smart-attachments-api:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-api:1.0.5
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-attachments-api:1.0.3
     ports:
       - "7080:8080"
       - "7082:8082"
@@ -305,7 +305,7 @@ services:
     memswap_limit: 1g
 
   smart-ui:
-    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:trainee-review-interface-TEST
+    image: ${AWS_DEV_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/smart-ui:0.2.183
     hostname: smart-ui
     build:
       context: .
