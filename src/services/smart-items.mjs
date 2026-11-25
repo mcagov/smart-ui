@@ -13,7 +13,7 @@ class SmartItems extends WebService {
 
   addRate (accessToken, id, startDate, paymentAmount) {
     return agent
-      .post(`${this.url}/${id}/rate`)
+      .post(this.urlFor(id, 'rate'))
       .set('Authorization', `Bearer ${accessToken}`)
       .query({ startDate, paymentAmount })
       .then((data) => { return data.body })

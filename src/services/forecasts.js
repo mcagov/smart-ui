@@ -28,12 +28,11 @@ class Forecasts extends WebService {
     logger.info(
       `Forecasts: schedule ${forecastType} forecast called for ${trainingProvider} - ${year}/${period}`
     )
-    let url =`${this.url}/schedule/${forecastType}/${trainingProvider}/${year}`
-    if(isSet(period)){
-      url+=`/${period}`
-    }
+    const url = isSet(period)
+      ? this.urlFor('schedule', forecastType, trainingProvider, year, period)
+      : this.urlFor('schedule', forecastType, trainingProvider, year)
     return agent
-      .post(url      )
+      .post(url)
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => {
         return data.body
@@ -50,14 +49,7 @@ class Forecasts extends WebService {
   ) {
     // period = 0 means update the full
     return agent
-      .post(
-        `${this._getUrl(
-          forecastType,
-          trainingProvider,
-          year,
-          period
-        )}/${status}`
-      )
+      .post(this._getUrl(forecastType, trainingProvider, year, period, status))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => {
         return data.body
@@ -67,14 +59,14 @@ class Forecasts extends WebService {
   getAvailableYears(accessToken, forecastType, trainingProvider, year) {
     if (forecastType) {
       return agent
-        .get(this.url + `/${forecastType}/${trainingProvider}/availableYears`)
+        .get(this.urlFor(forecastType, trainingProvider, 'availableYears'))
         .set('Authorization', `Bearer ${accessToken}`)
         .then((data) => {
           return data.body
         })
     } else {
       return agent
-        .get(`${this.url}/${trainingProvider}/availableYears`)
+        .get(this.urlFor(trainingProvider, 'availableYears'))
         .set('Authorization', `Bearer ${accessToken}`)
         .then((data) => {
           return data.body
@@ -124,9 +116,7 @@ class Forecasts extends WebService {
     params = {}
   ) {
     return agent
-      .get(
-        `${this.url}/items-summary/${forecastType}/${trainingProvider}/${year}/${period}`
-      )
+      .get(this.urlFor('items-summary', forecastType, trainingProvider, year, period))
       .set('Authorization', `Bearer ${accessToken}`)
       .query(params)
       .then((data) => {
@@ -167,11 +157,11 @@ class Forecasts extends WebService {
       })
   }
 
-  _getUrl(forecastType, trainingProvider, year, period, schedule = false) {
+  _getUrl(forecastType, trainingProvider, year, period, ...suffix) {
     if (isSet(period)) {
-      return this.url + `/${forecastType}/${trainingProvider}/${year}/${period}`
+      return this.urlFor(forecastType, trainingProvider, year, period, ...suffix)
     } else {
-      return this.url + `/${forecastType}/${trainingProvider}/${year}`
+      return this.urlFor(forecastType, trainingProvider, year, ...suffix)
     }
   }
 }

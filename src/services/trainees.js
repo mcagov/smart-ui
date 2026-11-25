@@ -21,7 +21,7 @@ class Trainees extends WebService {
 
   updateStatus (accessToken, id, status) {
     return agent
-      .put(`${this.url}/${id}/status/${status}`)
+      .put(this.urlFor(id, 'status', status))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body })
   }
@@ -85,7 +85,7 @@ class Trainees extends WebService {
 
   getTraineesClaims (accessToken, id, params) {
     return agent
-      .get(`${this.url}/${id}/claims`)
+      .get(this.urlFor(id, 'claims'))
       .set('Authorization', `Bearer ${accessToken}`)
       .query(params)
       .then((data) => { return data.body })
@@ -93,7 +93,7 @@ class Trainees extends WebService {
 
   getAllClaims (accessToken, id, params) {
     return agent
-      .get(`${this.url}/${id}/all-claims`)
+      .get(this.urlFor(id, 'all-claims'))
       .set('Authorization', `Bearer ${accessToken}`)
       .query(params)
       .then((data) => { return data.body })
@@ -101,16 +101,15 @@ class Trainees extends WebService {
 
   getAllForecasts (accessToken, id, params) {
     return agent
-      .get(`${this.url}/${id}/all-forecasts`)
+      .get(this.urlFor(id, 'all-forecasts'))
       .set('Authorization', `Bearer ${accessToken}`)
       .query(params)
       .then((data) => { return data.body })
   }
 
    removeClientCompany(accessToken, traineeId) {
-    const url = `${this.url}/${traineeId}/remove-client-company`
     return agent
-      .del(`${this.url}/${traineeId}/remove-client-company`)
+      .del(this.urlFor(traineeId, 'remove-client-company'))
       .set('Authorization', `Bearer ${accessToken}`)
       .then((data) => { return data.body });
   }
